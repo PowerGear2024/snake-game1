@@ -335,22 +335,19 @@
             to { border-color: rgba(102, 126, 234, 0.3); }
         }
 
-        .particle {
-            position: absolute;
-            pointer-events: none;
-            border-radius: 50%;
-            animation: particleFloat 2s ease-out forwards;
-        }
-
-        @keyframes particleFloat {
-            0% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: scale(0) translateY(-100px);
-            }
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: #00ff00;
+            padding: 8px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 10px;
+            z-index: 2000;
+            max-width: 200px;
+            word-wrap: break-word;
         }
 
         @media (max-width: 480px) {
@@ -369,6 +366,11 @@
     </style>
 </head>
 <body>
+    <!-- Отладочная информация -->
+    <div class="debug-info" id="debugInfo" style="display: none;">
+        Инициализация...
+    </div>
+
     <div class="game-container">
         <div class="game-header">
             <div class="game-title">🐍 ЗМЕЙКА PRO</div>
@@ -381,15 +383,15 @@
         
         <div class="controls">
             <div class="control-row">
-                <button class="control-btn" onclick="changeDirection(0, -1)">⬆️</button>
+                <button class="control-btn" onclick="handleDirection(0, -1)">⬆️</button>
             </div>
             <div class="control-row">
-                <button class="control-btn" onclick="changeDirection(-1, 0)">⬅️</button>
-                <button class="control-btn pause-btn" onclick="togglePause()" id="pauseBtn">старт</button>
-                <button class="control-btn" onclick="changeDirection(1, 0)">➡️</button>
+                <button class="control-btn" onclick="handleDirection(-1, 0)">⬅️</button>
+                <button class="control-btn pause-btn" onclick="handlePause()" id="pauseBtn">старт</button>
+                <button class="control-btn" onclick="handleDirection(1, 0)">➡️</button>
             </div>
             <div class="control-row">
-                <button class="control-btn" onclick="changeDirection(0, 1)">⬇️</button>
+                <button class="control-btn" onclick="handleDirection(0, 1)">⬇️</button>
             </div>
         </div>
         
@@ -405,12 +407,30 @@
         <div class="game-over-content">
             <div class="game-over-title">💀 ИГРА ОКОНЧЕНА</div>
             <div class="final-score" id="finalScore">Результат: 0 очков</div>
-            <button class="action-btn" onclick="restartGame()">🔄 Играть снова</button>
-            <button class="action-btn" onclick="shareScore()">📤 Поделиться</button>
+            <button class="action-btn" onclick="handleRestart()">🔄 Играть снова</button>
+            <button class="action-btn" onclick="handleShare()">📤 Поделиться</button>
         </div>
     </div>
 
     <script>
+        // Отладочная функция
+        function debug(message) {
+            try {
+                const debugElement = document.getElementById('debugInfo');
+                if (debugElement) {
+                    debugElement.innerHTML += '<br>' + new Date().toLocaleTimeString() + ': ' + message;
+                }
+                console.log('Snake Game:', message);
+            } catch (e) {
+                console.error('Debug error:', e);
+            }
+        }
+
+        // Раскомментируйте следующую строку для отладки
+        // document.getElementById('debugInfo').style.display = 'block';
+
+        debug('Начинаем инициализацию');
+
         // Инициализация Telegram WebApp
         let tg = null;
         try {
@@ -418,497 +438,632 @@
                 tg = window.Telegram.WebApp;
                 tg.ready();
                 tg.expand();
+                debug('Telegram WebApp инициализирован');
+            } else {
+                debug('Telegram WebApp недоступен - работаем в браузере');
             }
         } catch (e) {
-            console.log('Telegram WebApp недоступен');
+            debug('Ошибка Telegram WebApp: ' + e.message);
         }
 
         // Canvas и контекст
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
+        debug('Canvas получен: ' + !!canvas + ', Context: ' + !!ctx);
+
         // Настройка canvas
         function setupCanvas() {
-            const size = Math.min(350, Math.min(window.innerWidth * 0.85, window.innerHeight * 0.45));
-            canvas.width = size;
-            canvas.height = size;
-            canvas.style.width = size + 'px';
-            canvas.style.height = size + 'px';
-            ctx.imageSmoothingEnabled = true;
+            try {
+                const size = Math.min(320, Math.min(window.innerWidth * 0.8, window.innerHeight * 0.4));
+                canvas.width = size;
+                canvas.height = size;
+                canvas.style.width = size + 'px';
+                canvas.style.height = size + 'px';
+                
+                debug('Canvas размер установлен: ' + size + 'x' + size);
+                return true;
+            } catch (e) {
+                debug('Ошибка настройки Canvas: ' + e.message);
+                return false;
+            }
         }
 
-        setupCanvas();
+        if (!setupCanvas()) {
+            debug('КРИТИЧЕСКАЯ ОШИБКА: Не удалось настроить Canvas');
+        }
 
         // Игровые константы
         const GRID_SIZE = 16;
         const GRID_COUNT = Math.floor(canvas.width / GRID_SIZE);
 
+        debug('Игровая сетка: ' + GRID_COUNT + 'x' + GRID_COUNT + ', размер ячейки: ' + GRID_SIZE);
+
         // Игровые переменные
-        let snake = [{x: Math.floor(GRID_COUNT / 2), y: Math.floor(GRID_COUNT / 2)}];
-        let direction = {x: 1, y: 0};
-        let food = generateFood();
-        let obstacles = [];
-        let particles = [];
-        let score = 0;
-        let gameRunning = false;
-        let gameStarted = false;
-        let lastRenderTime = 0;
-        let gameSpeed = 220;
-        let animationTime = 0;
+        let gameState = {
+            snake: [{x: Math.floor(GRID_COUNT / 2), y: Math.floor(GRID_COUNT / 2)}],
+            direction: {x: 1, y: 0},
+            food: null,
+            obstacles: [],
+            particles: [],
+            score: 0,
+            gameRunning: false,
+            gameStarted: false,
+            gameSpeed: 200,
+            animationTime: 0,
+            lastRenderTime: 0
+        };
+
+        debug('Игровое состояние инициализировано');
 
         // Генерация еды
         function generateFood() {
-            let newFood;
-            let attempts = 0;
-            do {
-                newFood = {
-                    x: Math.floor(Math.random() * GRID_COUNT),
-                    y: Math.floor(Math.random() * GRID_COUNT)
-                };
-                attempts++;
-            } while (attempts < 100 && (
-                snake.some(segment => segment.x === newFood.x && segment.y === newFood.y) ||
-                obstacles.some(obs => obs.x === newFood.x && obs.y === newFood.y)
-            ));
-            
-            return newFood;
-        }
-
-        // Генерация препятствий
-        function generateObstacles() {
-            const numObstacles = Math.min(Math.floor(score / 50), 8); // Максимум 8 препятствий
-            obstacles = [];
-            
-            for (let i = 0; i < numObstacles; i++) {
-                let obstacle;
+            try {
+                let newFood;
                 let attempts = 0;
                 do {
-                    obstacle = {
+                    newFood = {
                         x: Math.floor(Math.random() * GRID_COUNT),
                         y: Math.floor(Math.random() * GRID_COUNT)
                     };
                     attempts++;
-                } while (attempts < 50 && (
-                    snake.some(segment => segment.x === obstacle.x && segment.y === obstacle.y) ||
-                    obstacles.some(obs => obs.x === obstacle.x && obs.y === obstacle.y) ||
-                    (food.x === obstacle.x && food.y === obstacle.y) ||
-                    // Не ставим препятствия слишком близко к змейке
-                    (Math.abs(obstacle.x - snake[0].x) <= 2 && Math.abs(obstacle.y - snake[0].y) <= 2)
+                } while (attempts < 100 && (
+                    gameState.snake.some(segment => segment.x === newFood.x && segment.y === newFood.y) ||
+                    gameState.obstacles.some(obs => obs.x === newFood.x && obs.y === newFood.y)
                 ));
                 
-                if (attempts < 50) {
-                    obstacles.push(obstacle);
+                debug('Еда создана в: ' + newFood.x + ',' + newFood.y);
+                return newFood;
+            } catch (e) {
+                debug('Ошибка генерации еды: ' + e.message);
+                return {x: 5, y: 5};
+            }
+        }
+
+        // Генерация препятствий
+        function generateObstacles() {
+            try {
+                const numObstacles = Math.min(Math.floor(gameState.score / 50), 6);
+                gameState.obstacles = [];
+                
+                for (let i = 0; i < numObstacles; i++) {
+                    let obstacle;
+                    let attempts = 0;
+                    do {
+                        obstacle = {
+                            x: Math.floor(Math.random() * GRID_COUNT),
+                            y: Math.floor(Math.random() * GRID_COUNT)
+                        };
+                        attempts++;
+                    } while (attempts < 30 && (
+                        gameState.snake.some(segment => segment.x === obstacle.x && segment.y === obstacle.y) ||
+                        gameState.obstacles.some(obs => obs.x === obstacle.x && obs.y === obstacle.y) ||
+                        (gameState.food.x === obstacle.x && gameState.food.y === obstacle.y) ||
+                        (Math.abs(obstacle.x - gameState.snake[0].x) <= 2 && Math.abs(obstacle.y - gameState.snake[0].y) <= 2)
+                    ));
+                    
+                    if (attempts < 30) {
+                        gameState.obstacles.push(obstacle);
+                    }
                 }
+                
+                debug('Создано препятствий: ' + gameState.obstacles.length);
+            } catch (e) {
+                debug('Ошибка генерации препятствий: ' + e.message);
             }
         }
 
         // Создание частиц
         function createParticles(x, y, color = '#FFD700') {
-            const particleCount = 8;
-            for (let i = 0; i < particleCount; i++) {
-                particles.push({
-                    x: x * GRID_SIZE + GRID_SIZE / 2,
-                    y: y * GRID_SIZE + GRID_SIZE / 2,
-                    vx: (Math.random() - 0.5) * 4,
-                    vy: (Math.random() - 0.5) * 4,
-                    life: 1.0,
-                    color: color,
-                    size: Math.random() * 6 + 2
-                });
+            try {
+                const particleCount = 6;
+                for (let i = 0; i < particleCount; i++) {
+                    gameState.particles.push({
+                        x: x * GRID_SIZE + GRID_SIZE / 2,
+                        y: y * GRID_SIZE + GRID_SIZE / 2,
+                        vx: (Math.random() - 0.5) * 3,
+                        vy: (Math.random() - 0.5) * 3,
+                        life: 1.0,
+                        color: color,
+                        size: Math.random() * 4 + 2
+                    });
+                }
+            } catch (e) {
+                debug('Ошибка создания частиц: ' + e.message);
             }
         }
 
         // Обновление частиц
         function updateParticles() {
-            particles = particles.filter(particle => {
-                particle.x += particle.vx;
-                particle.y += particle.vy;
-                particle.vy -= 0.1; // гравитация
-                particle.life -= 0.02;
-                return particle.life > 0;
-            });
+            try {
+                gameState.particles = gameState.particles.filter(particle => {
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.vy -= 0.08;
+                    particle.life -= 0.02;
+                    return particle.life > 0;
+                });
+            } catch (e) {
+                debug('Ошибка обновления частиц: ' + e.message);
+            }
         }
 
         // Отрисовка частиц
         function drawParticles() {
-            particles.forEach(particle => {
-                ctx.save();
-                ctx.globalAlpha = particle.life;
-                ctx.fillStyle = particle.color;
-                ctx.beginPath();
-                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            });
+            try {
+                gameState.particles.forEach(particle => {
+                    ctx.save();
+                    ctx.globalAlpha = particle.life;
+                    ctx.fillStyle = particle.color;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                });
+            } catch (e) {
+                debug('Ошибка отрисовки частиц: ' + e.message);
+            }
+        }
+
+        // Обработчики событий
+        function handleDirection(dx, dy) {
+            try {
+                debug('Направление: ' + dx + ',' + dy);
+                changeDirection(dx, dy);
+            } catch (e) {
+                debug('Ошибка смены направления: ' + e.message);
+            }
+        }
+
+        function handlePause() {
+            try {
+                debug('Переключение паузы');
+                togglePause();
+            } catch (e) {
+                debug('Ошибка паузы: ' + e.message);
+            }
+        }
+
+        function handleRestart() {
+            try {
+                debug('Перезапуск игры');
+                restartGame();
+            } catch (e) {
+                debug('Ошибка перезапуска: ' + e.message);
+            }
+        }
+
+        function handleShare() {
+            try {
+                debug('Поделиться результатом');
+                shareScore();
+            } catch (e) {
+                debug('Ошибка шаринга: ' + e.message);
+            }
         }
 
         // Изменение направления
         function changeDirection(dx, dy) {
             const newDirection = {x: dx, y: dy};
             
-            if (snake.length > 1 && newDirection.x === -direction.x && newDirection.y === -direction.y) {
+            // Предотвращаем движение в противоположную сторону
+            if (gameState.snake.length > 1 && 
+                newDirection.x === -gameState.direction.x && 
+                newDirection.y === -gameState.direction.y) {
+                debug('Блокировано обратное направление');
                 return;
             }
             
-            direction = newDirection;
+            gameState.direction = newDirection;
+            debug('Направление изменено на: ' + dx + ',' + dy);
             
-            if (!gameStarted) {
-                gameStarted = true;
-                gameRunning = true;
+            // Запускаем игру при первом движении
+            if (!gameState.gameStarted) {
+                gameState.gameStarted = true;
+                gameState.gameRunning = true;
                 document.getElementById('pauseBtn').textContent = 'пауза';
+                debug('Игра запущена!');
                 gameLoop();
-            } else if (!gameRunning) {
-                gameRunning = true;
+            } else if (!gameState.gameRunning) {
+                gameState.gameRunning = true;
                 document.getElementById('pauseBtn').textContent = 'пауза';
+                debug('Игра возобновлена');
+                gameLoop();
             }
         }
 
         // Пауза
         function togglePause() {
-            if (!gameStarted) {
+            if (!gameState.gameStarted) {
+                debug('Начинаем игру через паузу');
                 changeDirection(1, 0);
                 return;
             }
             
-            gameRunning = !gameRunning;
-            document.getElementById('pauseBtn').textContent = gameRunning ? 'пауза' : 'старт';
+            gameState.gameRunning = !gameState.gameRunning;
+            document.getElementById('pauseBtn').textContent = gameState.gameRunning ? 'пауза' : 'старт';
+            debug('Пауза: ' + !gameState.gameRunning);
             
-            if (gameRunning) {
+            if (gameState.gameRunning) {
                 gameLoop();
             }
         }
 
         // Обновление игры
         function update() {
-            if (!gameRunning) return false;
+            try {
+                if (!gameState.gameRunning) return false;
 
-            const head = {
-                x: snake[0].x + direction.x,
-                y: snake[0].y + direction.y
-            };
+                const head = {
+                    x: gameState.snake[0].x + gameState.direction.x,
+                    y: gameState.snake[0].y + gameState.direction.y
+                };
 
-            // Проверка столкновений со стенами
-            if (head.x < 0 || head.x >= GRID_COUNT || head.y < 0 || head.y >= GRID_COUNT) {
-                gameOver();
-                return false;
-            }
-
-            // Проверка столкновения с телом
-            if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
-                gameOver();
-                return false;
-            }
-
-            // Проверка столкновения с препятствиями
-            if (obstacles.some(obs => obs.x === head.x && obs.y === head.y)) {
-                gameOver();
-                return false;
-            }
-
-            snake.unshift(head);
-
-            // Проверка поедания еды
-            if (head.x === food.x && head.y === food.y) {
-                score += 10;
-                document.getElementById('scoreDisplay').textContent = `Очки: ${score} | Длина: ${snake.length}`;
-                
-                // Создаем частицы при поедании
-                createParticles(food.x, food.y, '#FFD700');
-                
-                food = generateFood();
-                gameSpeed = Math.max(120, gameSpeed - 1.5);
-                
-                // Добавляем препятствия каждые 50 очков
-                if (score % 50 === 0) {
-                    generateObstacles();
-                    createParticles(Math.floor(GRID_COUNT/2), Math.floor(GRID_COUNT/2), '#ff6b6b');
+                // Проверка столкновений со стенами
+                if (head.x < 0 || head.x >= GRID_COUNT || head.y < 0 || head.y >= GRID_COUNT) {
+                    debug('Столкновение со стеной');
+                    gameOver();
+                    return false;
                 }
-                
-                // Вибрация
-                if (tg && tg.HapticFeedback) {
-                    tg.HapticFeedback.impactOccurred('light');
-                }
-            } else {
-                snake.pop();
-            }
 
-            return true;
+                // Проверка столкновения с телом
+                if (gameState.snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                    debug('Столкновение с телом');
+                    gameOver();
+                    return false;
+                }
+
+                // Проверка столкновения с препятствиями
+                if (gameState.obstacles.some(obs => obs.x === head.x && obs.y === head.y)) {
+                    debug('Столкновение с препятствием');
+                    gameOver();
+                    return false;
+                }
+
+                gameState.snake.unshift(head);
+
+                // Проверка поедания еды
+                if (head.x === gameState.food.x && head.y === gameState.food.y) {
+                    gameState.score += 10;
+                    document.getElementById('scoreDisplay').textContent = 
+                        `Очки: ${gameState.score} | Длина: ${gameState.snake.length}`;
+                    
+                    createParticles(gameState.food.x, gameState.food.y, '#FFD700');
+                    gameState.food = generateFood();
+                    gameState.gameSpeed = Math.max(120, gameState.gameSpeed - 1.5);
+                    
+                    debug('Еда съедена! Счет: ' + gameState.score);
+                    
+                    // Добавляем препятствия
+                    if (gameState.score % 50 === 0 && gameState.score > 0) {
+                        generateObstacles();
+                        createParticles(Math.floor(GRID_COUNT/2), Math.floor(GRID_COUNT/2), '#ff6b6b');
+                        debug('Добавлены препятствия');
+                    }
+                    
+                    // Вибрация
+                    try {
+                        if (tg && tg.HapticFeedback) {
+                            tg.HapticFeedback.impactOccurred('light');
+                        }
+                    } catch (e) {
+                        debug('Вибрация недоступна');
+                    }
+                } else {
+                    gameState.snake.pop();
+                }
+
+                return true;
+            } catch (e) {
+                debug('Ошибка обновления игры: ' + e.message);
+                return false;
+            }
         }
 
         // Отрисовка игры
         function draw() {
-            animationTime += 0.05;
-            
-            // Очистка canvas с градиентом
-            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            gradient.addColorStop(0, '#0a0a1a');
-            gradient.addColorStop(0.5, '#1a1a2e');
-            gradient.addColorStop(1, '#0f0f23');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            try {
+                gameState.animationTime += 0.03;
+                
+                // Очистка canvas
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                gradient.addColorStop(0, '#0a0a1a');
+                gradient.addColorStop(0.5, '#1a1a2e');
+                gradient.addColorStop(1, '#0f0f23');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Анимированная сетка
-            ctx.strokeStyle = `rgba(102, 126, 234, ${0.1 + Math.sin(animationTime) * 0.05})`;
-            ctx.lineWidth = 0.5;
-            for (let i = 0; i <= GRID_COUNT; i++) {
-                const pos = i * GRID_SIZE;
-                const alpha = 0.1 + Math.sin(animationTime + i * 0.1) * 0.05;
-                ctx.strokeStyle = `rgba(102, 126, 234, ${alpha})`;
-                ctx.beginPath();
-                ctx.moveTo(pos, 0);
-                ctx.lineTo(pos, canvas.height);
-                ctx.moveTo(0, pos);
-                ctx.lineTo(canvas.width, pos);
-                ctx.stroke();
-            }
-
-            // Рисуем препятствия
-            obstacles.forEach((obstacle, index) => {
-                const x = obstacle.x * GRID_SIZE;
-                const y = obstacle.y * GRID_SIZE;
-                const pulse = Math.sin(animationTime * 2 + index * 0.5) * 0.1 + 1;
-                
-                // Градиент для препятствия
-                const obsGradient = ctx.createRadialGradient(
-                    x + GRID_SIZE/2, y + GRID_SIZE/2, 0,
-                    x + GRID_SIZE/2, y + GRID_SIZE/2, GRID_SIZE/2 * pulse
-                );
-                obsGradient.addColorStop(0, '#ff6b6b');
-                obsGradient.addColorStop(0.7, '#e74c3c');
-                obsGradient.addColorStop(1, '#c0392b');
-                
-                ctx.fillStyle = obsGradient;
-                ctx.beginPath();
-                ctx.arc(x + GRID_SIZE/2, y + GRID_SIZE/2, (GRID_SIZE-4)/2 * pulse, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Свечение препятствия
-                ctx.shadowColor = '#ff6b6b';
-                ctx.shadowBlur = 10 * pulse;
-                ctx.beginPath();
-                ctx.arc(x + GRID_SIZE/2, y + GRID_SIZE/2, (GRID_SIZE-8)/2 * pulse, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            });
-
-            // Рисуем змейку
-            snake.forEach((segment, index) => {
-                const x = segment.x * GRID_SIZE;
-                const y = segment.y * GRID_SIZE;
-                
-                if (index === 0) {
-                    // Голова змейки - круглая с анимацией
-                    const headPulse = Math.sin(animationTime * 3) * 0.05 + 1;
-                    
-                    // Градиент головы
-                    const headGradient = ctx.createRadialGradient(
-                        x + GRID_SIZE/2, y + GRID_SIZE/2, 0,
-                        x + GRID_SIZE/2, y + GRID_SIZE/2, GRID_SIZE/2 * headPulse
-                    );
-                    headGradient.addColorStop(0, '#4CAF50');
-                    headGradient.addColorStop(0.7, '#2E7D32');
-                    headGradient.addColorStop(1, '#1B5E20');
-                    
-                    ctx.fillStyle = headGradient;
-                    ctx.beginPath();
-                    ctx.arc(x + GRID_SIZE/2, y + GRID_SIZE/2, (GRID_SIZE-2)/2 * headPulse, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Свечение головы
-                    ctx.shadowColor = '#4CAF50';
-                    ctx.shadowBlur = 15;
-                    ctx.beginPath();
-                    ctx.arc(x + GRID_SIZE/2, y + GRID_SIZE/2, (GRID_SIZE-6)/2 * headPulse, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                    
-                    // Глаза
-                    const eyeOffset = GRID_SIZE * 0.3;
-                    const eyeSize = GRID_SIZE * 0.15;
-                    
-                    ctx.fillStyle = 'white';
-                    ctx.beginPath();
-                    ctx.arc(x + GRID_SIZE/2 - eyeOffset/2, y + GRID_SIZE/2 - eyeOffset/3, eyeSize, 0, Math.PI * 2);
-                    ctx.arc(x + GRID_SIZE/2 + eyeOffset/2, y + GRID_SIZE/2 - eyeOffset/3, eyeSize, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Зрачки
-                    ctx.fillStyle = 'black';
-                    const pupilSize = eyeSize * 0.6;
-                    ctx.beginPath();
-                    ctx.arc(x + GRID_SIZE/2 - eyeOffset/2, y + GRID_SIZE/2 - eyeOffset/3, pupilSize, 0, Math.PI * 2);
-                    ctx.arc(x + GRID_SIZE/2 + eyeOffset/2, y + GRID_SIZE/2 - eyeOffset/3, pupilSize, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                } else {
-                    // Тело змейки - круглые сегменты с уменьшением к хвосту
-                    const bodyPulse = Math.sin(animationTime * 2 + index * 0.3) * 0.03 + 1;
-                    const sizeMultiplier = Math.max(0.6, 1 - index * 0.05); // Уменьшаем к хвосту
-                    
-                    // Градиент тела
-                    const bodyGradient = ctx.createRadialGradient(
-                        x + GRID_SIZE/2, y + GRID_SIZE/2, 0,
-                        x + GRID_SIZE/2, y + GRID_SIZE/2, GRID_SIZE/2 * bodyPulse * sizeMultiplier
-                    );
-                    bodyGradient.addColorStop(0, '#81C784');
-                    bodyGradient.addColorStop(0.7, '#4CAF50');
-                    bodyGradient.addColorStop(1, '#2E7D32');
-                    
-                    ctx.fillStyle = bodyGradient;
-                    ctx.beginPath();
-                    ctx.arc(x + GRID_SIZE/2, y + GRID_SIZE/2, (GRID_SIZE-4)/2 * bodyPulse * sizeMultiplier, 0, Math.PI * 2);
-                    ctx.fill();
+                // Анимированная сетка
+                try {
+                    ctx.strokeStyle = 'rgba(102, 126, 234, 0.1)';
+                    ctx.lineWidth = 0.5;
+                    for (let i = 0; i <= GRID_COUNT; i++) {
+                        const pos = i * GRID_SIZE;
+                        ctx.beginPath();
+                        ctx.moveTo(pos, 0);
+                        ctx.lineTo(pos, canvas.height);
+                        ctx.moveTo(0, pos);
+                        ctx.lineTo(canvas.width, pos);
+                        ctx.stroke();
+                    }
+                } catch (e) {
+                    debug('Ошибка отрисовки сетки');
                 }
-            });
 
-            // Рисуем еду - анимированное яблоко
-            const foodX = food.x * GRID_SIZE;
-            const foodY = food.y * GRID_SIZE;
-            const foodPulse = Math.sin(animationTime * 4) * 0.15 + 1;
-            const rotate = animationTime * 0.5;
-            
-            ctx.save();
-            ctx.translate(foodX + GRID_SIZE/2, foodY + GRID_SIZE/2);
-            ctx.rotate(rotate);
-            
-            // Градиент яблока
-            const foodGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, GRID_SIZE/2 * foodPulse);
-            foodGradient.addColorStop(0, '#FF6B6B');
-            foodGradient.addColorStop(0.7, '#E74C3C');
-            foodGradient.addColorStop(1, '#C0392B');
-            
-            ctx.fillStyle = foodGradient;
-            ctx.beginPath();
-            ctx.arc(0, 0, (GRID_SIZE-4)/2 * foodPulse, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Свечение яблока
-            ctx.shadowColor = '#FF6B6B';
-            ctx.shadowBlur = 20 * foodPulse;
-            ctx.beginPath();
-            ctx.arc(0, 0, (GRID_SIZE-8)/2 * foodPulse, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            
-            // Блик на яблоке
-            ctx.fillStyle = 'rgba(255,255,255,0.6)';
-            ctx.beginPath();
-            ctx.arc(-GRID_SIZE/6, -GRID_SIZE/6, GRID_SIZE/8 * foodPulse, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.restore();
+                // Рисуем препятствия
+                try {
+                    gameState.obstacles.forEach((obstacle, index) => {
+                        const x = obstacle.x * GRID_SIZE;
+                        const y = obstacle.y * GRID_SIZE;
+                        const pulse = Math.sin(gameState.animationTime * 2 + index * 0.5) * 0.1 + 1;
+                        
+                        const obsGradient = ctx.createRadialGradient(
+                            x + GRID_SIZE/2, y + GRID_SIZE/2, 0,
+                            x + GRID_SIZE/2, y + GRID_SIZE/2, GRID_SIZE/2 * pulse
+                        );
+                        obsGradient.addColorStop(0, '#ff6b6b');
+                        obsGradient.addColorStop(0.7, '#e74c3c');
+                        obsGradient.addColorStop(1, '#c0392b');
+                        
+                        ctx.fillStyle = obsGradient;
+                        ctx.beginPath();
+                        ctx.arc(x + GRID_SIZE/2, y + GRID_SIZE/2, (GRID_SIZE-4)/2 * pulse, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                } catch (e) {
+                    debug('Ошибка отрисовки препятствий');
+                }
 
-            // Рисуем частицы
-            drawParticles();
-            updateParticles();
+                // Рисуем змейку
+                try {
+                    gameState.snake.forEach((segment, index) => {
+                        const x = segment.x * GRID_SIZE;
+                        const y = segment.y * GRID_SIZE;
+                        
+                        if (index === 0) {
+                            // Голова змейки
+                            const headPulse = Math.sin(gameState.animationTime * 3) * 0.05 + 1;
+                            
+                            const headGradient = ctx.createRadialGradient(
+                                x + GRID_SIZE/2, y + GRID_SIZE/2, 0,
+                                x + GRID_SIZE/2, y + GRID_SIZE/2, GRID_SIZE/2 * headPulse
+                            );
+                            headGradient.addColorStop(0, '#4CAF50');
+                            headGradient.addColorStop(0.7, '#2E7D32');
+                            headGradient.addColorStop(1, '#1B5E20');
+                            
+                            ctx.fillStyle = headGradient;
+                            ctx.beginPath();
+                            ctx.arc(x + GRID_SIZE/2, y + GRID_SIZE/2, (GRID_SIZE-2)/2 * headPulse, 0, Math.PI * 2);
+                            ctx.fill();
+                            
+                            // Глаза
+                            const eyeOffset = GRID_SIZE * 0.3;
+                            const eyeSize = GRID_SIZE * 0.12;
+                            
+                            ctx.fillStyle = 'white';
+                            ctx.beginPath();
+                            ctx.arc(x + GRID_SIZE/2 - eyeOffset/2, y + GRID_SIZE/2 - eyeOffset/3, eyeSize, 0, Math.PI * 2);
+                            ctx.arc(x + GRID_SIZE/2 + eyeOffset/2, y + GRID_SIZE/2 - eyeOffset/3, eyeSize, 0, Math.PI * 2);
+                            ctx.fill();
+                            
+                            // Зрачки
+                            ctx.fillStyle = 'black';
+                            const pupilSize = eyeSize * 0.6;
+                            ctx.beginPath();
+                            ctx.arc(x + GRID_SIZE/2 - eyeOffset/2, y + GRID_SIZE/2 - eyeOffset/3, pupilSize, 0, Math.PI * 2);
+                            ctx.arc(x + GRID_SIZE/2 + eyeOffset/2, y + GRID_SIZE/2 - eyeOffset/3, pupilSize, 0, Math.PI * 2);
+                            ctx.fill();
+                            
+                        } else {
+                            // Тело змейки
+                            const bodyPulse = Math.sin(gameState.animationTime * 2 + index * 0.3) * 0.03 + 1;
+                            const sizeMultiplier = Math.max(0.6, 1 - index * 0.03);
+                            
+                            const bodyGradient = ctx.createRadialGradient(
+                                x + GRID_SIZE/2, y + GRID_SIZE/2, 0,
+                                x + GRID_SIZE/2, y + GRID_SIZE/2, GRID_SIZE/2 * bodyPulse * sizeMultiplier
+                            );
+                            bodyGradient.addColorStop(0, '#81C784');
+                            bodyGradient.addColorStop(0.7, '#4CAF50');
+                            bodyGradient.addColorStop(1, '#2E7D32');
+                            
+                            ctx.fillStyle = bodyGradient;
+                            ctx.beginPath();
+                            ctx.arc(x + GRID_SIZE/2, y + GRID_SIZE/2, (GRID_SIZE-4)/2 * bodyPulse * sizeMultiplier, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    });
+                } catch (e) {
+                    debug('Ошибка отрисовки змейки');
+                }
+
+                // Рисуем еду
+                try {
+                    if (gameState.food) {
+                        const foodX = gameState.food.x * GRID_SIZE;
+                        const foodY = gameState.food.y * GRID_SIZE;
+                        const foodPulse = Math.sin(gameState.animationTime * 4) * 0.15 + 1;
+                        
+                        const foodGradient = ctx.createRadialGradient(
+                            foodX + GRID_SIZE/2, foodY + GRID_SIZE/2, 0,
+                            foodX + GRID_SIZE/2, foodY + GRID_SIZE/2, GRID_SIZE/2 * foodPulse
+                        );
+                        foodGradient.addColorStop(0, '#FF6B6B');
+                        foodGradient.addColorStop(0.7, '#E74C3C');
+                        foodGradient.addColorStop(1, '#C0392B');
+                        
+                        ctx.fillStyle = foodGradient;
+                        ctx.beginPath();
+                        ctx.arc(foodX + GRID_SIZE/2, foodY + GRID_SIZE/2, (GRID_SIZE-4)/2 * foodPulse, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Блик на яблоке
+                        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                        ctx.beginPath();
+                        ctx.arc(foodX + GRID_SIZE/3, foodY + GRID_SIZE/3, GRID_SIZE/8 * foodPulse, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                } catch (e) {
+                    debug('Ошибка отрисовки еды');
+                }
+
+                // Рисуем частицы
+                drawParticles();
+                updateParticles();
+
+            } catch (e) {
+                debug('Критическая ошибка отрисовки: ' + e.message);
+            }
         }
 
         // Главный игровой цикл
         function gameLoop(currentTime = 0) {
-            if (!gameRunning) return;
+            try {
+                if (!gameState.gameRunning) return;
 
-            const timeDelta = currentTime - lastRenderTime;
-            
-            if (timeDelta >= gameSpeed) {
-                const updated = update();
-                if (!updated) return;
-                lastRenderTime = currentTime;
+                const timeDelta = currentTime - gameState.lastRenderTime;
+                
+                if (timeDelta >= gameState.gameSpeed) {
+                    const updated = update();
+                    if (!updated) return;
+                    gameState.lastRenderTime = currentTime;
+                }
+                
+                draw();
+                requestAnimationFrame(gameLoop);
+            } catch (e) {
+                debug('Ошибка игрового цикла: ' + e.message);
+                gameState.gameRunning = false;
             }
-            
-            draw();
-            requestAnimationFrame(gameLoop);
         }
 
         // Окончание игры
         function gameOver() {
-            gameRunning = false;
-            gameStarted = false;
-            
-            // Взрыв частиц при окончании игры
-            snake.forEach(segment => {
-                createParticles(segment.x, segment.y, '#ff6b6b');
-            });
-            
-            document.getElementById('finalScore').textContent = `Результат: ${score} очков`;
-            
-            setTimeout(() => {
-                document.getElementById('gameOverScreen').style.display = 'flex';
-            }, 1000);
-            
-            if (tg && tg.sendData) {
-                tg.sendData(JSON.stringify({
-                    action: 'game_over',
-                    score: score
-                }));
-            }
-            
-            if (tg && tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('heavy');
+            try {
+                gameState.gameRunning = false;
+                gameState.gameStarted = false;
+                
+                debug('Игра окончена. Финальный счет: ' + gameState.score);
+                
+                // Взрыв частиц
+                gameState.snake.forEach(segment => {
+                    createParticles(segment.x, segment.y, '#ff6b6b');
+                });
+                
+                document.getElementById('finalScore').textContent = `Результат: ${gameState.score} очков`;
+                
+                setTimeout(() => {
+                    document.getElementById('gameOverScreen').style.display = 'flex';
+                }, 800);
+                
+                // Отправляем результат в Telegram
+                try {
+                    if (tg && tg.sendData) {
+                        tg.sendData(JSON.stringify({
+                            action: 'game_over',
+                            score: gameState.score
+                        }));
+                        debug('Результат отправлен в Telegram');
+                    }
+                } catch (e) {
+                    debug('Ошибка отправки в Telegram: ' + e.message);
+                }
+                
+                // Вибрация
+                try {
+                    if (tg && tg.HapticFeedback) {
+                        tg.HapticFeedback.impactOccurred('heavy');
+                    }
+                } catch (e) {
+                    debug('Вибрация недоступна');
+                }
+            } catch (e) {
+                debug('Ошибка окончания игры: ' + e.message);
             }
         }
 
         // Перезапуск игры
         function restartGame() {
-            snake = [{x: Math.floor(GRID_COUNT / 2), y: Math.floor(GRID_COUNT / 2)}];
-            direction = {x: 1, y: 0};
-            food = generateFood();
-            obstacles = [];
-            particles = [];
-            score = 0;
-            gameSpeed = 220;
-            gameRunning = false;
-            gameStarted = false;
-            animationTime = 0;
-            
-            document.getElementById('scoreDisplay').textContent = 'Очки: 0 | Длина: 1';
-            document.getElementById('pauseBtn').textContent = 'старт';
-            document.getElementById('gameOverScreen').style.display = 'none';
-            
-            draw();
+            try {
+                debug('Перезапуск игры');
+                
+                gameState = {
+                    snake: [{x: Math.floor(GRID_COUNT / 2), y: Math.floor(GRID_COUNT / 2)}],
+                    direction: {x: 1, y: 0},
+                    food: generateFood(),
+                    obstacles: [],
+                    particles: [],
+                    score: 0,
+                    gameRunning: false,
+                    gameStarted: false,
+                    gameSpeed: 200,
+                    animationTime: 0,
+                    lastRenderTime: 0
+                };
+                
+                document.getElementById('scoreDisplay').textContent = 'Очки: 0 | Длина: 1';
+                document.getElementById('pauseBtn').textContent = 'старт';
+                document.getElementById('gameOverScreen').style.display = 'none';
+                
+                draw();
+                debug('Игра перезапущена');
+            } catch (e) {
+                debug('Ошибка перезапуска: ' + e.message);
+            }
         }
 
         // Поделиться результатом
         function shareScore() {
-            if (tg && tg.sendData) {
-                tg.sendData(JSON.stringify({
-                    action: 'share_score',
-                    score: score
-                }));
+            try {
+                if (tg && tg.sendData) {
+                    tg.sendData(JSON.stringify({
+                        action: 'share_score',
+                        score: gameState.score
+                    }));
+                    debug('Результат отправлен для шаринга');
+                }
+            } catch (e) {
+                debug('Ошибка шаринга: ' + e.message);
             }
         }
 
         // Управление с клавиатуры
         document.addEventListener('keydown', (e) => {
-            switch(e.key) {
-                case 'ArrowUp':
-                case 'w':
-                case 'W':
-                    e.preventDefault();
-                    changeDirection(0, -1);
-                    break;
-                case 'ArrowDown':
-                case 's':
-                case 'S':
-                    e.preventDefault();
-                    changeDirection(0, 1);
-                    break;
-                case 'ArrowLeft':
-                case 'a':
-                case 'A':
-                    e.preventDefault();
-                    changeDirection(-1, 0);
-                    break;
-                case 'ArrowRight':
-                case 'd':
-                case 'D':
-                    e.preventDefault();
-                    changeDirection(1, 0);
-                    break;
-                case ' ':
-                case 'Enter':
-                    e.preventDefault();
-                    togglePause();
-                    break;
+            try {
+                switch(e.key) {
+                    case 'ArrowUp':
+                    case 'w':
+                    case 'W':
+                        e.preventDefault();
+                        handleDirection(0, -1);
+                        break;
+                    case 'ArrowDown':
+                    case 's':
+                    case 'S':
+                        e.preventDefault();
+                        handleDirection(0, 1);
+                        break;
+                    case 'ArrowLeft':
+                    case 'a':
+                    case 'A':
+                        e.preventDefault();
+                        handleDirection(-1, 0);
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                    case 'D':
+                        e.preventDefault();
+                        handleDirection(1, 0);
+                        break;
+                    case ' ':
+                    case 'Enter':
+                        e.preventDefault();
+                        handlePause();
+                        break;
+                }
+            } catch (e) {
+                debug('Ошибка обработки клавиши: ' + e.message);
             }
         });
 
@@ -917,30 +1072,38 @@
         let touchStartY = 0;
 
         canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
+            try {
+                e.preventDefault();
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            } catch (e) {
+                debug('Ошибка touchstart: ' + e.message);
+            }
         }, {passive: false});
 
         canvas.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            
-            const touchEndX = e.changedTouches[0].clientX;
-            const touchEndY = e.changedTouches[0].clientY;
-            
-            const deltaX = touchEndX - touchStartX;
-            const deltaY = touchEndY - touchStartY;
-            
-            const minSwipeDistance = 40;
-            
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                if (Math.abs(deltaX) > minSwipeDistance) {
-                    changeDirection(deltaX > 0 ? 1 : -1, 0);
+            try {
+                e.preventDefault();
+                
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+                
+                const minSwipeDistance = 30;
+                
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    if (Math.abs(deltaX) > minSwipeDistance) {
+                        handleDirection(deltaX > 0 ? 1 : -1, 0);
+                    }
+                } else {
+                    if (Math.abs(deltaY) > minSwipeDistance) {
+                        handleDirection(0, deltaY > 0 ? 1 : -1);
+                    }
                 }
-            } else {
-                if (Math.abs(deltaY) > minSwipeDistance) {
-                    changeDirection(0, deltaY > 0 ? 1 : -1);
-                }
+            } catch (e) {
+                debug('Ошибка touchend: ' + e.message);
             }
         }, {passive: false});
 
@@ -949,14 +1112,49 @@
             e.preventDefault();
         }, {passive: false});
 
-        // Инициализация
-        draw();
-        
-        setTimeout(() => {
-            if (!gameStarted && tg && tg.showAlert) {
-                tg.showAlert('🐍 Нажмите СТАРТ или стрелку для начала эпической игры! 🚀');
+        // Инициализация игры
+        function initGame() {
+            try {
+                debug('Инициализация игры');
+                
+                // Создаем еду
+                gameState.food = generateFood();
+                
+                // Первоначальная отрисовка
+                draw();
+                
+                debug('Игра инициализирована успешно');
+                debug('Змейка в позиции: ' + gameState.snake[0].x + ',' + gameState.snake[0].y);
+                debug('Еда в позиции: ' + gameState.food.x + ',' + gameState.food.y);
+                
+                // Показываем подсказку
+                setTimeout(() => {
+                    if (!gameState.gameStarted) {
+                        try {
+                            if (tg && tg.showAlert) {
+                                tg.showAlert('🐍 Нажмите СТАРТ или стрелку для начала игры! 🚀');
+                            } else {
+                                debug('Подсказка: Нажмите СТАРТ для начала игры');
+                            }
+                        } catch (e) {
+                            debug('Ошибка показа подсказки: ' + e.message);
+                        }
+                    }
+                }, 2000);
+                
+            } catch (e) {
+                debug('КРИТИЧЕСКАЯ ОШИБКА инициализации: ' + e.message);
             }
-        }, 2000);
+        }
+
+        // Запускаем инициализацию после загрузки страницы
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGame);
+        } else {
+            initGame();
+        }
+
+        debug('Скрипт загружен полностью');
     </script>
 </body>
 </html>
