@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐍 Змейка ULTRA - Telegram Game</title>
+    <title>🐍 Змейка MEGA - Telegram Game</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -14,9 +14,7 @@
         }
 
         body {
-            background: linear-gradient(45deg, #0f0f23, #1a1a2e, #16213e, #0f3460);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
             color: white;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             display: flex;
@@ -31,10 +29,53 @@
             height: 100%;
         }
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* Анимированное звездное небо */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            from { opacity: 0.3; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1.2); }
+        }
+
+        .shooting-star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: linear-gradient(45deg, #fff, #4FC3F7);
+            border-radius: 50%;
+            animation: shoot 3s linear infinite;
+        }
+
+        @keyframes shoot {
+            0% {
+                transform: translateX(-100px) translateY(100px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100vw) translateY(-100px);
+                opacity: 0;
+            }
         }
 
         body::before {
@@ -45,22 +86,23 @@
             right: 0;
             bottom: 0;
             background: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.4) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.4) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
-            animation: floatingLights 20s ease-in-out infinite alternate;
+                radial-gradient(circle at 25% 25%, rgba(76, 175, 80, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(233, 30, 99, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(63, 81, 181, 0.1) 0%, transparent 50%);
+            animation: nebula 20s ease-in-out infinite alternate;
+            z-index: 2;
         }
 
-        @keyframes floatingLights {
-            0% { transform: translateX(-20px) translateY(-20px) rotate(0deg); }
-            100% { transform: translateX(20px) translateY(20px) rotate(360deg); }
+        @keyframes nebula {
+            0% { transform: rotate(0deg) scale(1); }
+            100% { transform: rotate(360deg) scale(1.1); }
         }
 
         .game-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             max-width: 100vw;
             max-height: 100vh;
             z-index: 10;
@@ -69,7 +111,7 @@
 
         .game-header {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             animation: fadeInDown 1s ease-out;
         }
 
@@ -79,47 +121,61 @@
         }
 
         .game-title {
-            font-size: clamp(1.6rem, 4vw, 2.2rem);
+            font-size: clamp(1.5rem, 4vw, 2rem);
             font-weight: 900;
             margin-bottom: 8px;
-            background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7);
-            background-size: 400% 400%;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7, #DDA0DD);
+            background-size: 600% 600%;
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: titleRainbow 3s ease-in-out infinite, titleFloat 2s ease-in-out infinite alternate;
-            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+            animation: titleFlow 4s ease-in-out infinite, titleFloat 2s ease-in-out infinite alternate;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
 
-        @keyframes titleRainbow {
+        @keyframes titleFlow {
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
         }
 
         @keyframes titleFloat {
-            from { transform: translateY(-3px) rotate(-0.5deg); }
-            to { transform: translateY(3px) rotate(0.5deg); }
+            from { transform: translateY(-2px) rotate(-0.3deg); }
+            to { transform: translateY(2px) rotate(0.3deg); }
         }
 
         .score-panel {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             flex-wrap: wrap;
             justify-content: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .score-item {
-            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            font-size: clamp(0.8rem, 2.2vw, 1rem);
             font-weight: bold;
             color: #FFD700;
             text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
-            background: rgba(0,0,0,0.3);
-            padding: 8px 16px;
-            border-radius: 20px;
+            background: rgba(0,0,0,0.4);
+            padding: 6px 12px;
+            border-radius: 15px;
             border: 2px solid rgba(255, 215, 0, 0.4);
             backdrop-filter: blur(15px);
             animation: scoreGlow 2s ease-in-out infinite alternate;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: scoreSweep 3s ease-in-out infinite;
         }
 
         @keyframes scoreGlow {
@@ -127,30 +183,35 @@
             to { box-shadow: 0 0 25px rgba(255, 215, 0, 0.6); }
         }
 
+        @keyframes scoreSweep {
+            0%, 100% { left: -100%; }
+            50% { left: 100%; }
+        }
+
         .canvas-container {
             position: relative;
-            border-radius: 25px;
-            padding: 6px;
-            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
-            background-size: 400% 400%;
-            animation: borderRainbow 8s ease infinite, canvasFloat 4s ease-in-out infinite alternate;
+            border-radius: 20px;
+            padding: 4px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c, #4ecdc4, #45b7d1);
+            background-size: 600% 600%;
+            animation: borderFlow 8s ease infinite, canvasFloat 4s ease-in-out infinite alternate;
             box-shadow: 
-                0 0 40px rgba(102, 126, 234, 0.6),
+                0 0 50px rgba(102, 126, 234, 0.6),
                 inset 0 0 20px rgba(255,255,255,0.1);
         }
 
-        @keyframes borderRainbow {
+        @keyframes borderFlow {
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
         }
 
         @keyframes canvasFloat {
-            from { transform: translateY(-3px); }
-            to { transform: translateY(3px); }
+            from { transform: translateY(-2px) rotate(-0.2deg); }
+            to { transform: translateY(2px) rotate(0.2deg); }
         }
 
         #gameCanvas {
-            border-radius: 20px;
+            border-radius: 16px;
             background: #0a0a1a;
             display: block;
             box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
@@ -172,99 +233,133 @@
             animation: powerupShow 2s ease-out forwards;
             pointer-events: none;
             display: none;
+            box-shadow: 0 0 30px rgba(255,255,255,0.5);
         }
 
         @keyframes powerupShow {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5) rotate(-180deg); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1) rotate(0deg); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1) rotate(180deg); }
         }
 
+        /* НОВЫЙ ДИЗАЙН КНОПОК - ВИРТУАЛЬНЫЙ ДЖОЙСТИК */
         .controls {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 8px;
             animation: fadeInUp 1s ease-out 0.5s both;
+            position: relative;
         }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .control-row {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .control-btn {
-            background: linear-gradient(145deg, #667eea, #764ba2);
-            border: none;
+        .virtual-joystick {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 70%, transparent 100%);
+            border: 3px solid rgba(255,255,255,0.2);
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 
-                0 10px 20px rgba(102, 126, 234, 0.4),
-                inset 0 2px 0 rgba(255,255,255,0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            overflow: hidden;
-            animation: buttonBreath 3s ease-in-out infinite alternate;
+            box-shadow: 
+                inset 0 0 20px rgba(255,255,255,0.1),
+                0 0 30px rgba(102, 126, 234, 0.3);
+            animation: joystickGlow 3s ease-in-out infinite alternate;
         }
 
-        @keyframes buttonBreath {
-            from { box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4), inset 0 2px 0 rgba(255,255,255,0.2); }
-            to { box-shadow: 0 15px 30px rgba(102, 126, 234, 0.6), inset 0 2px 0 rgba(255,255,255,0.3); }
+        @keyframes joystickGlow {
+            from { box-shadow: inset 0 0 20px rgba(255,255,255,0.1), 0 0 30px rgba(102, 126, 234, 0.3); }
+            to { box-shadow: inset 0 0 30px rgba(255,255,255,0.2), 0 0 50px rgba(102, 126, 234, 0.5); }
         }
 
-        .control-btn::before {
-            content: '';
+        .direction-btn {
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.6s;
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(145deg, rgba(102, 126, 234, 0.8), rgba(118, 75, 162, 0.8));
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        .control-btn:hover::before {
-            left: 100%;
+        .direction-btn:hover {
+            transform: scale(1.1);
+            background: linear-gradient(145deg, rgba(102, 126, 234, 1), rgba(118, 75, 162, 1));
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
-        .control-btn:hover {
-            transform: translateY(-5px) scale(1.1);
-            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.6);
+        .direction-btn:active {
+            transform: scale(0.9);
+            animation: directionPulse 0.3s ease-out;
         }
 
-        .control-btn:active {
-            transform: translateY(-2px) scale(1.05);
-            animation: buttonPulse 0.3s ease-out;
+        @keyframes directionPulse {
+            0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(102, 126, 234, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
         }
 
-        @keyframes buttonPulse {
-            0% { transform: scale(1.05); }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1.05); }
-        }
+        .btn-up { top: -20px; left: 50%; transform: translateX(-50%); }
+        .btn-down { bottom: -20px; left: 50%; transform: translateX(-50%); }
+        .btn-left { left: -20px; top: 50%; transform: translateY(-50%); }
+        .btn-right { right: -20px; top: 50%; transform: translateY(-50%); }
 
-        .pause-btn {
+        .joystick-center {
+            width: 40px;
+            height: 40px;
             background: linear-gradient(145deg, #ff6b6b, #ee5a52);
-            width: 90px;
-            height: 50px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 700;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 0 20px rgba(255, 107, 107, 0.5),
+                inset 0 2px 0 rgba(255,255,255,0.3);
+            font-size: 12px;
+            font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 1px;
+            animation: centerPulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes centerPulse {
+            from { box-shadow: 0 0 20px rgba(255, 107, 107, 0.5), inset 0 2px 0 rgba(255,255,255,0.3); }
+            to { box-shadow: 0 0 30px rgba(255, 107, 107, 0.8), inset 0 2px 0 rgba(255,255,255,0.5); }
+        }
+
+        .joystick-center:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 40px rgba(255, 107, 107, 0.8);
+        }
+
+        .combo-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: #FFD700;
+            padding: 10px 15px;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            font-weight: bold;
+            animation: comboGlow 1s ease-in-out infinite alternate;
+            display: none;
+        }
+
+        @keyframes comboGlow {
+            from { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+            to { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
         }
 
         .game-over-screen {
@@ -285,8 +380,8 @@
 
         .game-over-content {
             background: linear-gradient(145deg, #2d3748, #1a202c);
-            padding: 50px;
-            border-radius: 35px;
+            padding: 40px;
+            border-radius: 30px;
             text-align: center;
             box-shadow: 
                 0 30px 60px rgba(0,0,0,0.8),
@@ -302,8 +397,8 @@
         }
 
         .game-over-title {
-            font-size: clamp(2rem, 5vw, 3rem);
-            margin-bottom: 25px;
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            margin-bottom: 20px;
             background: linear-gradient(45deg, #ff6b6b, #feca57, #ff9ff3);
             -webkit-background-clip: text;
             background-clip: text;
@@ -317,8 +412,8 @@
         }
 
         .final-score {
-            font-size: clamp(1.2rem, 3vw, 1.6rem);
-            margin-bottom: 35px;
+            font-size: clamp(1.1rem, 3vw, 1.4rem);
+            margin-bottom: 25px;
             color: #FFD700;
             font-weight: bold;
             text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
@@ -327,15 +422,15 @@
         .action-btn {
             background: linear-gradient(145deg, #48bb78, #38a169);
             border: none;
-            padding: 18px 35px;
-            border-radius: 35px;
+            padding: 15px 25px;
+            border-radius: 25px;
             color: white;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             cursor: pointer;
-            margin: 10px;
+            margin: 8px;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 10px 20px rgba(72, 187, 120, 0.4);
+            box-shadow: 0 8px 15px rgba(72, 187, 120, 0.4);
             position: relative;
             overflow: hidden;
             text-transform: uppercase;
@@ -343,22 +438,22 @@
         }
 
         .action-btn:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 20px 40px rgba(72, 187, 120, 0.6);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(72, 187, 120, 0.6);
         }
 
         .instructions {
             text-align: center;
-            font-size: clamp(0.7rem, 1.8vw, 0.9rem);
+            font-size: clamp(0.7rem, 1.6vw, 0.85rem);
             opacity: 0.9;
-            margin-top: 15px;
-            line-height: 1.6;
+            margin-top: 12px;
+            line-height: 1.5;
             background: rgba(0,0,0,0.3);
-            padding: 15px;
-            border-radius: 15px;
+            padding: 12px;
+            border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.1);
             backdrop-filter: blur(15px);
-            max-width: 320px;
+            max-width: 280px;
             animation: instructionsGlow 4s ease-in-out infinite alternate;
         }
 
@@ -368,68 +463,77 @@
         }
 
         @media (max-width: 480px) {
-            .control-btn {
-                width: 55px;
-                height: 55px;
-                font-size: 22px;
+            .virtual-joystick {
+                width: 100px;
+                height: 100px;
             }
             
-            .pause-btn {
-                width: 80px;
-                height: 45px;
-                font-size: 13px;
+            .direction-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
+            }
+
+            .joystick-center {
+                width: 35px;
+                height: 35px;
+                font-size: 10px;
             }
 
             .score-panel {
-                gap: 10px;
+                gap: 8px;
             }
 
             .score-item {
-                padding: 6px 12px;
-                font-size: 0.85rem;
+                padding: 5px 10px;
+                font-size: 0.75rem;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Звездное небо -->
+    <div class="stars" id="starsContainer"></div>
+
     <div class="powerup-notification" id="powerupNotification">
         🌟 БОНУС АКТИВИРОВАН! 🌟
     </div>
 
+    <div class="combo-indicator" id="comboIndicator">
+        🔥 КОМБО x1
+    </div>
+
     <div class="game-container">
         <div class="game-header">
-            <div class="game-title">🐍 ЗМЕЙКА ULTRA</div>
+            <div class="game-title">🐍 ЗМЕЙКА MEGA</div>
             <div class="score-panel">
                 <div class="score-item" id="scoreDisplay">Очки: 0</div>
                 <div class="score-item" id="lengthDisplay">Длина: 1</div>
                 <div class="score-item" id="speedDisplay">Уровень: 1</div>
+                <div class="score-item" id="comboDisplay">Комбо: 0</div>
             </div>
         </div>
         
         <div class="canvas-container">
-            <canvas id="gameCanvas" width="320" height="320"></canvas>
+            <canvas id="gameCanvas" width="400" height="400"></canvas>
         </div>
         
         <div class="controls">
-            <div class="control-row">
-                <button class="control-btn" onclick="handleDirection(0, -1)">⬆️</button>
-            </div>
-            <div class="control-row">
-                <button class="control-btn" onclick="handleDirection(-1, 0)">⬅️</button>
-                <button class="control-btn pause-btn" onclick="handlePause()" id="pauseBtn">старт</button>
-                <button class="control-btn" onclick="handleDirection(1, 0)">➡️</button>
-            </div>
-            <div class="control-row">
-                <button class="control-btn" onclick="handleDirection(0, 1)">⬇️</button>
+            <div class="virtual-joystick">
+                <button class="direction-btn btn-up" onclick="handleDirection(0, -1)">⬆</button>
+                <button class="direction-btn btn-down" onclick="handleDirection(0, 1)">⬇</button>
+                <button class="direction-btn btn-left" onclick="handleDirection(-1, 0)">⬅</button>
+                <button class="direction-btn btn-right" onclick="handleDirection(1, 0)">➡</button>
+                <button class="joystick-center" onclick="handlePause()" id="pauseBtn">старт</button>
             </div>
         </div>
         
         <div class="instructions">
-            💡 Управление: кнопки или стрелки<br>
-            🍎 Красные яблоки: +10 очков<br>
-            🌟 Золотые: +25 очков, замедление<br>
-            💎 Алмазы: +50 очков, сквозь стены<br>
-            ⚡ Молнии: +15 очков, ускорение
+            💫 Виртуальный джойстик или стрелки<br>
+            🍎 Красные: +10 🌟 Золотые: +25<br>
+            💎 Алмазы: +50 ⚡ Молнии: +15<br>
+            🌀 Порталы телепортируют!<br>
+            🔥 Комбо множат очки!
         </div>
     </div>
 
@@ -456,13 +560,47 @@
             console.log('Telegram WebApp недоступен');
         }
 
+        // Создание звездного неба
+        function createStarField() {
+            const starsContainer = document.getElementById('starsContainer');
+            
+            // Обычные звезды
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = star.style.height = Math.random() * 3 + 1 + 'px';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                starsContainer.appendChild(star);
+            }
+
+            // Падающие звезды
+            setInterval(() => {
+                if (Math.random() < 0.3) {
+                    const shootingStar = document.createElement('div');
+                    shootingStar.className = 'shooting-star';
+                    shootingStar.style.top = Math.random() * 50 + '%';
+                    shootingStar.style.left = '-100px';
+                    starsContainer.appendChild(shootingStar);
+                    
+                    setTimeout(() => {
+                        if (shootingStar.parentNode) {
+                            shootingStar.parentNode.removeChild(shootingStar);
+                        }
+                    }, 3000);
+                }
+            }, 2000);
+        }
+
         // Canvas и контекст
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Настройка canvas
+        // Настройка canvas (увеличенный размер)
         function setupCanvas() {
-            const size = Math.min(320, Math.min(window.innerWidth * 0.8, window.innerHeight * 0.4));
+            const size = Math.min(400, Math.min(window.innerWidth * 0.9, window.innerHeight * 0.5));
             canvas.width = size;
             canvas.height = size;
             canvas.style.width = size + 'px';
@@ -471,39 +609,45 @@
 
         setupCanvas();
 
-        // Игровые константы
+        // Игровые константы (увеличенное поле)
         const GRID_SIZE = 16;
         const GRID_COUNT = Math.floor(canvas.width / GRID_SIZE);
 
-        // Типы еды и бонусов
+        // Типы еды и бонусов (добавлены порталы)
         const FOOD_TYPES = {
             NORMAL: { color: '#FF6B6B', points: 10, emoji: '🍎' },
             GOLDEN: { color: '#FFD700', points: 25, emoji: '🌟', effect: 'slow' },
             DIAMOND: { color: '#00FFFF', points: 50, emoji: '💎', effect: 'ghost' },
-            LIGHTNING: { color: '#FFFF00', points: 15, emoji: '⚡', effect: 'speed' }
+            LIGHTNING: { color: '#FFFF00', points: 15, emoji: '⚡', effect: 'speed' },
+            PORTAL: { color: '#9C27B0', points: 30, emoji: '🌀', effect: 'teleport' }
         };
 
-        // Игровое состояние
+        // Игровое состояние (добавлены новые поля)
         let gameState = {
             snake: [{x: Math.floor(GRID_COUNT / 2), y: Math.floor(GRID_COUNT / 2)}],
             direction: {x: 1, y: 0},
             food: null,
             obstacles: [],
             particles: [],
+            trails: [], // След от змейки
+            portals: [], // Активные порталы
             score: 0,
             level: 1,
+            combo: 0,
+            maxCombo: 0,
             gameRunning: false,
             gameStarted: false,
-            gameSpeed: 200,
+            gameSpeed: 180,
             animationTime: 0,
             lastRenderTime: 0,
             powerups: {},
             achievements: new Set(),
             totalFoodEaten: 0,
-            maxLength: 1
+            maxLength: 1,
+            lastFoodTime: 0
         };
 
-        // Генерация еды с типами
+        // Генерация еды с новыми типами
         function generateFood() {
             let newFood;
             let foodType;
@@ -520,25 +664,53 @@
                 gameState.obstacles.some(obs => obs.x === newFood.x && obs.y === newFood.y)
             ));
             
-            // Определяем тип еды
+            // Определяем тип еды (добавлены порталы)
             const rand = Math.random();
-            if (rand < 0.6) {
+            if (rand < 0.5) {
                 foodType = 'NORMAL';
-            } else if (rand < 0.8) {
+            } else if (rand < 0.7) {
                 foodType = 'GOLDEN';
-            } else if (rand < 0.95) {
+            } else if (rand < 0.85) {
                 foodType = 'LIGHTNING';
-            } else {
+            } else if (rand < 0.95) {
                 foodType = 'DIAMOND';
+            } else {
+                foodType = 'PORTAL';
             }
             
             newFood.type = foodType;
             return newFood;
         }
 
+        // Создание порталов
+        function createPortals() {
+            if (gameState.portals.length < 2) {
+                for (let i = 0; i < 2; i++) {
+                    let portal;
+                    let attempts = 0;
+                    do {
+                        portal = {
+                            x: Math.floor(Math.random() * GRID_COUNT),
+                            y: Math.floor(Math.random() * GRID_COUNT),
+                            id: i
+                        };
+                        attempts++;
+                    } while (attempts < 50 && (
+                        gameState.snake.some(segment => segment.x === portal.x && segment.y === portal.y) ||
+                        gameState.obstacles.some(obs => obs.x === portal.x && obs.y === portal.y) ||
+                        (gameState.food && gameState.food.x === portal.x && gameState.food.y === portal.y)
+                    ));
+                    
+                    if (attempts < 50) {
+                        gameState.portals.push(portal);
+                    }
+                }
+            }
+        }
+
         // Генерация препятствий
         function generateObstacles() {
-            const numObstacles = Math.min(Math.floor(gameState.score / 100), 8);
+            const numObstacles = Math.min(Math.floor(gameState.score / 150), 10);
             gameState.obstacles = [];
             
             for (let i = 0; i < numObstacles; i++) {
@@ -554,6 +726,7 @@
                     gameState.snake.some(segment => segment.x === obstacle.x && segment.y === obstacle.y) ||
                     gameState.obstacles.some(obs => obs.x === obstacle.x && obs.y === obstacle.y) ||
                     (gameState.food && gameState.food.x === obstacle.x && gameState.food.y === obstacle.y) ||
+                    gameState.portals.some(portal => portal.x === obstacle.x && portal.y === obstacle.y) ||
                     (Math.abs(obstacle.x - gameState.snake[0].x) <= 3 && Math.abs(obstacle.y - gameState.snake[0].y) <= 3)
                 ));
                 
@@ -569,13 +742,23 @@
                 gameState.particles.push({
                     x: x * GRID_SIZE + GRID_SIZE / 2,
                     y: y * GRID_SIZE + GRID_SIZE / 2,
-                    vx: (Math.random() - 0.5) * 6,
-                    vy: (Math.random() - 0.5) * 6,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
                     life: 1.0,
                     color: color,
-                    size: Math.random() * 6 + 3
+                    size: Math.random() * 8 + 4
                 });
             }
+        }
+
+        // Создание следа от змейки
+        function createTrail(x, y) {
+            gameState.trails.push({
+                x: x * GRID_SIZE + GRID_SIZE / 2,
+                y: y * GRID_SIZE + GRID_SIZE / 2,
+                life: 0.8,
+                size: GRID_SIZE / 3
+            });
         }
 
         // Обновление частиц
@@ -583,9 +766,18 @@
             gameState.particles = gameState.particles.filter(particle => {
                 particle.x += particle.vx;
                 particle.y += particle.vy;
-                particle.vy -= 0.1;
-                particle.life -= 0.025;
+                particle.vy -= 0.15;
+                particle.life -= 0.03;
                 return particle.life > 0;
+            });
+        }
+
+        // Обновление следов
+        function updateTrails() {
+            gameState.trails = gameState.trails.filter(trail => {
+                trail.life -= 0.05;
+                trail.size *= 0.95;
+                return trail.life > 0;
             });
         }
 
@@ -595,8 +787,23 @@
                 ctx.save();
                 ctx.globalAlpha = particle.life;
                 ctx.fillStyle = particle.color;
+                ctx.shadowColor = particle.color;
+                ctx.shadowBlur = 10;
                 ctx.beginPath();
                 ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
+        // Отрисовка следов
+        function drawTrails() {
+            gameState.trails.forEach(trail => {
+                ctx.save();
+                ctx.globalAlpha = trail.life * 0.3;
+                ctx.fillStyle = '#4CAF50';
+                ctx.beginPath();
+                ctx.arc(trail.x, trail.y, trail.size, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
             });
@@ -612,22 +819,52 @@
             }, 2000);
         }
 
+        // Обновление комбо
+        function updateCombo() {
+            const now = Date.now();
+            if (now - gameState.lastFoodTime < 3000) { // Комбо если еда съедена в течение 3 сек
+                gameState.combo++;
+                gameState.maxCombo = Math.max(gameState.maxCombo, gameState.combo);
+                
+                if (gameState.combo >= 3) {
+                    const comboIndicator = document.getElementById('comboIndicator');
+                    comboIndicator.textContent = `🔥 КОМБО x${gameState.combo}`;
+                    comboIndicator.style.display = 'block';
+                    setTimeout(() => {
+                        comboIndicator.style.display = 'none';
+                    }, 2000);
+                }
+            } else {
+                gameState.combo = 1;
+            }
+            
+            document.getElementById('comboDisplay').textContent = `Комбо: ${gameState.combo}`;
+            gameState.lastFoodTime = now;
+        }
+
         // Применение эффектов еды
         function applyFoodEffect(foodType) {
             const food = FOOD_TYPES[foodType];
             if (food.effect) {
                 switch (food.effect) {
                     case 'slow':
-                        gameState.powerups.slow = Date.now() + 5000;
-                        showPowerupNotification('🌟 ЗАМЕДЛЕНИЕ на 5 сек!');
+                        gameState.powerups.slow = Date.now() + 6000;
+                        showPowerupNotification('🌟 ЗАМЕДЛЕНИЕ на 6 сек!');
                         break;
                     case 'ghost':
-                        gameState.powerups.ghost = Date.now() + 8000;
-                        showPowerupNotification('💎 ПРИЗРАК на 8 сек!');
+                        gameState.powerups.ghost = Date.now() + 10000;
+                        showPowerupNotification('💎 ПРИЗРАК на 10 сек!');
                         break;
                     case 'speed':
-                        gameState.powerups.speed = Date.now() + 4000;
-                        showPowerupNotification('⚡ УСКОРЕНИЕ на 4 сек!');
+                        gameState.powerups.speed = Date.now() + 5000;
+                        showPowerupNotification('⚡ УСКОРЕНИЕ на 5 сек!');
+                        break;
+                    case 'teleport':
+                        createPortals();
+                        showPowerupNotification('🌀 ПОРТАЛЫ АКТИВИРОВАНЫ!');
+                        setTimeout(() => {
+                            gameState.portals = [];
+                        }, 15000);
                         break;
                 }
             }
@@ -637,24 +874,29 @@
         function checkAchievements() {
             const achievements = [];
             
-            if (gameState.totalFoodEaten === 10 && !gameState.achievements.has('first_feast')) {
-                achievements.push('🍽️ Первый пир: съели 10 яблок');
+            if (gameState.totalFoodEaten === 15 && !gameState.achievements.has('first_feast')) {
+                achievements.push('🍽️ Первый пир: съели 15 фруктов');
                 gameState.achievements.add('first_feast');
             }
             
-            if (gameState.score >= 200 && !gameState.achievements.has('score_200')) {
-                achievements.push('🏆 Мастер: набрали 200 очков');
-                gameState.achievements.add('score_200');
+            if (gameState.score >= 300 && !gameState.achievements.has('score_300')) {
+                achievements.push('🏆 Мастер: набрали 300 очков');
+                gameState.achievements.add('score_300');
             }
             
-            if (gameState.maxLength >= 15 && !gameState.achievements.has('long_snake')) {
-                achievements.push('🐍 Гигантская змея: длина 15+');
+            if (gameState.maxLength >= 20 && !gameState.achievements.has('long_snake')) {
+                achievements.push('🐍 Гигантская змея: длина 20+');
                 gameState.achievements.add('long_snake');
             }
             
-            if (gameState.level >= 5 && !gameState.achievements.has('speed_demon')) {
-                achievements.push('💨 Демон скорости: уровень 5');
+            if (gameState.level >= 6 && !gameState.achievements.has('speed_demon')) {
+                achievements.push('💨 Демон скорости: уровень 6');
                 gameState.achievements.add('speed_demon');
+            }
+
+            if (gameState.maxCombo >= 5 && !gameState.achievements.has('combo_master')) {
+                achievements.push('🔥 Мастер комбо: комбо x5');
+                gameState.achievements.add('combo_master');
             }
             
             return achievements;
@@ -681,7 +923,6 @@
         function changeDirection(dx, dy) {
             const newDirection = {x: dx, y: dy};
             
-            // Предотвращаем движение в противоположную сторону
             if (gameState.snake.length > 1 && 
                 newDirection.x === -gameState.direction.x && 
                 newDirection.y === -gameState.direction.y) {
@@ -721,13 +962,27 @@
         function update() {
             if (!gameState.gameRunning) return false;
 
-            // Вычисляем новую позицию головы
+            // Добавляем след от головы змейки
+            createTrail(gameState.snake[0].x, gameState.snake[0].y);
+
             const head = {
                 x: gameState.snake[0].x + gameState.direction.x,
                 y: gameState.snake[0].y + gameState.direction.y
             };
 
-            // Проверка столкновений со стенами (с учетом эффекта призрака)
+            // Проверка телепортации через порталы
+            const portal = gameState.portals.find(p => p.x === head.x && p.y === head.y);
+            if (portal) {
+                const otherPortal = gameState.portals.find(p => p.id !== portal.id);
+                if (otherPortal) {
+                    head.x = otherPortal.x;
+                    head.y = otherPortal.y;
+                    createParticles(head.x, head.y, '#9C27B0', 15);
+                    showPowerupNotification('🌀 ТЕЛЕПОРТАЦИЯ!');
+                }
+            }
+
+            // Проверка столкновений со стенами
             const hasGhost = gameState.powerups.ghost && Date.now() < gameState.powerups.ghost;
             if (!hasGhost && (head.x < 0 || head.x >= GRID_COUNT || head.y < 0 || head.y >= GRID_COUNT)) {
                 gameOver();
@@ -742,19 +997,18 @@
                 if (head.y >= GRID_COUNT) head.y = 0;
             }
 
-            // Проверка столкновения с телом (БЕЗ учета призрака)
+            // Проверка столкновения с телом
             if (gameState.snake.some(segment => segment.x === head.x && segment.y === head.y)) {
                 gameOver();
                 return false;
             }
 
-            // Проверка столкновения с препятствиями (с учетом призрака)
+            // Проверка столкновения с препятствиями
             if (!hasGhost && gameState.obstacles.some(obs => obs.x === head.x && obs.y === head.y)) {
                 gameOver();
                 return false;
             }
 
-            // Добавляем новую голову ПОСЛЕ всех проверок
             gameState.snake.unshift(head);
 
             // Проверка поедания еды
@@ -762,7 +1016,12 @@
                 const foodType = gameState.food.type;
                 const foodData = FOOD_TYPES[foodType];
                 
-                gameState.score += foodData.points;
+                updateCombo();
+                const basePoints = foodData.points;
+                const bonusPoints = basePoints * Math.max(1, gameState.combo - 1) * 0.5;
+                const totalPoints = Math.floor(basePoints + bonusPoints);
+                
+                gameState.score += totalPoints;
                 gameState.totalFoodEaten++;
                 gameState.maxLength = Math.max(gameState.maxLength, gameState.snake.length);
                 
@@ -771,7 +1030,7 @@
                 document.getElementById('lengthDisplay').textContent = `Длина: ${gameState.snake.length}`;
                 
                 // Создаем частицы
-                createParticles(gameState.food.x, gameState.food.y, foodData.color, 12);
+                createParticles(gameState.food.x, gameState.food.y, foodData.color, 15);
                 
                 // Применяем эффект еды
                 applyFoodEffect(foodType);
@@ -780,7 +1039,7 @@
                 gameState.food = generateFood();
                 
                 // Увеличиваем уровень и скорость
-                const newLevel = Math.floor(gameState.totalFoodEaten / 5) + 1;
+                const newLevel = Math.floor(gameState.totalFoodEaten / 6) + 1;
                 if (newLevel > gameState.level) {
                     gameState.level = newLevel;
                     document.getElementById('speedDisplay').textContent = `Уровень: ${gameState.level}`;
@@ -789,14 +1048,14 @@
                 
                 // Проверяем достижения
                 const newAchievements = checkAchievements();
-                newAchievements.forEach(achievement => {
-                    setTimeout(() => showPowerupNotification(achievement), 1000);
+                newAchievements.forEach((achievement, index) => {
+                    setTimeout(() => showPowerupNotification(achievement), 1500 + index * 1000);
                 });
                 
                 // Добавляем препятствия
-                if (gameState.score % 100 === 0 && gameState.score > 0) {
+                if (gameState.score % 150 === 0 && gameState.score > 0) {
                     generateObstacles();
-                    createParticles(Math.floor(GRID_COUNT/2), Math.floor(GRID_COUNT/2), '#ff6b6b', 15);
+                    createParticles(Math.floor(GRID_COUNT/2), Math.floor(GRID_COUNT/2), '#ff6b6b', 20);
                 }
                 
                 // Вибрация
@@ -804,7 +1063,6 @@
                     tg.HapticFeedback.impactOccurred('light');
                 }
             } else {
-                // Удаляем хвост только если еда не съедена
                 gameState.snake.pop();
             }
 
@@ -813,14 +1071,13 @@
 
         // Получение текущей скорости с учетом эффектов
         function getCurrentSpeed() {
-            let speed = Math.max(80, 200 - (gameState.level - 1) * 15);
+            let speed = Math.max(70, 180 - (gameState.level - 1) * 12);
             
-            // Применяем эффекты
             if (gameState.powerups.slow && Date.now() < gameState.powerups.slow) {
-                speed *= 1.8;
+                speed *= 1.6;
             }
             if (gameState.powerups.speed && Date.now() < gameState.powerups.speed) {
-                speed *= 0.6;
+                speed *= 0.5;
             }
             
             return speed;
@@ -828,22 +1085,27 @@
 
         // Отрисовка игры
         function draw() {
-            gameState.animationTime += 0.03;
+            gameState.animationTime += 0.02;
             
-            // Очистка canvas
-            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            gradient.addColorStop(0, '#0a0a1a');
-            gradient.addColorStop(0.5, '#1a1a2e');
+            // Очистка canvas с космическим градиентом
+            const gradient = ctx.createRadialGradient(
+                canvas.width/2, canvas.height/2, 0,
+                canvas.width/2, canvas.height/2, canvas.width/2
+            );
+            gradient.addColorStop(0, '#1a1a2e');
+            gradient.addColorStop(0.5, '#16213e');
             gradient.addColorStop(1, '#0f0f23');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Анимированная сетка
+            // Космическая сетка
             const hasGhost = gameState.powerups.ghost && Date.now() < gameState.powerups.ghost;
-            ctx.strokeStyle = hasGhost ? 'rgba(0, 255, 255, 0.2)' : 'rgba(102, 126, 234, 0.1)';
-            ctx.lineWidth = 0.5;
+            ctx.strokeStyle = hasGhost ? 'rgba(0, 255, 255, 0.15)' : 'rgba(102, 126, 234, 0.08)';
+            ctx.lineWidth = 1;
             for (let i = 0; i <= GRID_COUNT; i++) {
                 const pos = i * GRID_SIZE;
+                const alpha = 0.08 + Math.sin(gameState.animationTime + i * 0.1) * 0.04;
+                ctx.strokeStyle = hasGhost ? `rgba(0, 255, 255, ${alpha * 2})` : `rgba(102, 126, 234, ${alpha})`;
                 ctx.beginPath();
                 ctx.moveTo(pos, 0);
                 ctx.lineTo(pos, canvas.height);
@@ -852,13 +1114,49 @@
                 ctx.stroke();
             }
 
+            // Отрисовка следов
+            drawTrails();
+            updateTrails();
+
+            // Рисуем порталы
+            gameState.portals.forEach((portal, index) => {
+                const x = portal.x * GRID_SIZE;
+                const y = portal.y * GRID_SIZE;
+                const pulse = Math.sin(gameState.animationTime * 4 + index * Math.PI) * 0.3 + 1;
+                const rotation = gameState.animationTime * 2 + index * Math.PI;
+                
+                ctx.save();
+                ctx.translate(x + GRID_SIZE/2, y + GRID_SIZE/2);
+                ctx.rotate(rotation);
+                
+                // Внешнее кольцо портала
+                const portalGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, GRID_SIZE/2 * pulse);
+                portalGradient.addColorStop(0, 'rgba(156, 39, 176, 0.8)');
+                portalGradient.addColorStop(0.7, 'rgba(233, 30, 99, 0.6)');
+                portalGradient.addColorStop(1, 'rgba(63, 81, 181, 0.4)');
+                
+                ctx.fillStyle = portalGradient;
+                ctx.beginPath();
+                ctx.arc(0, 0, (GRID_SIZE-2)/2 * pulse, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Свечение портала
+                ctx.shadowColor = '#9C27B0';
+                ctx.shadowBlur = 20 * pulse;
+                ctx.beginPath();
+                ctx.arc(0, 0, (GRID_SIZE-6)/2 * pulse, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                ctx.restore();
+            });
+
             // Рисуем препятствия
             gameState.obstacles.forEach((obstacle, index) => {
                 const x = obstacle.x * GRID_SIZE;
                 const y = obstacle.y * GRID_SIZE;
                 const pulse = Math.sin(gameState.animationTime * 2 + index * 0.5) * 0.1 + 1;
                 
-                // Делаем препятствия полупрозрачными при эффекте призрака
                 const alpha = hasGhost ? 0.5 : 1;
                 
                 const obsGradient = ctx.createRadialGradient(
@@ -873,6 +1171,16 @@
                 ctx.beginPath();
                 ctx.arc(x + GRID_SIZE/2, y + GRID_SIZE/2, (GRID_SIZE-4)/2 * pulse, 0, Math.PI * 2);
                 ctx.fill();
+                
+                // Свечение препятствий
+                if (!hasGhost) {
+                    ctx.shadowColor = '#ff6b6b';
+                    ctx.shadowBlur = 8 * pulse;
+                    ctx.beginPath();
+                    ctx.arc(x + GRID_SIZE/2, y + GRID_SIZE/2, (GRID_SIZE-8)/2 * pulse, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
             });
 
             // Рисуем змейку
@@ -882,7 +1190,7 @@
                 
                 if (index === 0) {
                     // Голова змейки с эффектами
-                    const headPulse = Math.sin(gameState.animationTime * 3) * 0.05 + 1;
+                    const headPulse = Math.sin(gameState.animationTime * 4) * 0.08 + 1;
                     let headColor = hasGhost ? '#00FFFF' : '#4CAF50';
                     
                     const headGradient = ctx.createRadialGradient(
@@ -898,10 +1206,10 @@
                     ctx.arc(x + GRID_SIZE/2, y + GRID_SIZE/2, (GRID_SIZE-2)/2 * headPulse, 0, Math.PI * 2);
                     ctx.fill();
                     
-                    // Свечение при эффектах
+                    // Мощное свечение при эффектах
                     if (hasGhost || gameState.powerups.speed || gameState.powerups.slow) {
                         ctx.shadowColor = hasGhost ? '#00FFFF' : gameState.powerups.speed ? '#FFFF00' : '#FFD700';
-                        ctx.shadowBlur = 15;
+                        ctx.shadowBlur = 25;
                         ctx.beginPath();
                         ctx.arc(x + GRID_SIZE/2, y + GRID_SIZE/2, (GRID_SIZE-6)/2 * headPulse, 0, Math.PI * 2);
                         ctx.fill();
@@ -909,27 +1217,27 @@
                     }
                     
                     // Глаза
-                    const eyeOffset = GRID_SIZE * 0.3;
-                    const eyeSize = GRID_SIZE * 0.12;
+                    const eyeOffset = GRID_SIZE * 0.25;
+                    const eyeSize = GRID_SIZE * 0.1;
                     
                     ctx.fillStyle = 'white';
                     ctx.beginPath();
-                    ctx.arc(x + GRID_SIZE/2 - eyeOffset/2, y + GRID_SIZE/2 - eyeOffset/3, eyeSize, 0, Math.PI * 2);
-                    ctx.arc(x + GRID_SIZE/2 + eyeOffset/2, y + GRID_SIZE/2 - eyeOffset/3, eyeSize, 0, Math.PI * 2);
+                    ctx.arc(x + GRID_SIZE/2 - eyeOffset, y + GRID_SIZE/2 - eyeOffset/2, eyeSize, 0, Math.PI * 2);
+                    ctx.arc(x + GRID_SIZE/2 + eyeOffset, y + GRID_SIZE/2 - eyeOffset/2, eyeSize, 0, Math.PI * 2);
                     ctx.fill();
                     
                     // Зрачки
                     ctx.fillStyle = hasGhost ? '#00FFFF' : 'black';
                     const pupilSize = eyeSize * 0.6;
                     ctx.beginPath();
-                    ctx.arc(x + GRID_SIZE/2 - eyeOffset/2, y + GRID_SIZE/2 - eyeOffset/3, pupilSize, 0, Math.PI * 2);
-                    ctx.arc(x + GRID_SIZE/2 + eyeOffset/2, y + GRID_SIZE/2 - eyeOffset/3, pupilSize, 0, Math.PI * 2);
+                    ctx.arc(x + GRID_SIZE/2 - eyeOffset, y + GRID_SIZE/2 - eyeOffset/2, pupilSize, 0, Math.PI * 2);
+                    ctx.arc(x + GRID_SIZE/2 + eyeOffset, y + GRID_SIZE/2 - eyeOffset/2, pupilSize, 0, Math.PI * 2);
                     ctx.fill();
                     
                 } else {
-                    // Тело змейки
-                    const bodyPulse = Math.sin(gameState.animationTime * 2 + index * 0.3) * 0.03 + 1;
-                    const sizeMultiplier = Math.max(0.6, 1 - index * 0.03);
+                    // Тело змейки с улучшенными эффектами
+                    const bodyPulse = Math.sin(gameState.animationTime * 3 + index * 0.2) * 0.04 + 1;
+                    const sizeMultiplier = Math.max(0.5, 1 - index * 0.02);
                     const alpha = hasGhost ? 0.7 : 1;
                     
                     const bodyGradient = ctx.createRadialGradient(
@@ -947,19 +1255,22 @@
                 }
             });
 
-            // Рисуем еду
+            // Рисуем еду с улучшенными эффектами
             if (gameState.food) {
                 const foodX = gameState.food.x * GRID_SIZE;
                 const foodY = gameState.food.y * GRID_SIZE;
-                const foodPulse = Math.sin(gameState.animationTime * 4) * 0.15 + 1;
+                const foodPulse = Math.sin(gameState.animationTime * 5) * 0.2 + 1;
+                const rotation = gameState.animationTime;
                 const foodData = FOOD_TYPES[gameState.food.type];
                 
-                const foodGradient = ctx.createRadialGradient(
-                    foodX + GRID_SIZE/2, foodY + GRID_SIZE/2, 0,
-                    foodX + GRID_SIZE/2, foodY + GRID_SIZE/2, GRID_SIZE/2 * foodPulse
-                );
+                ctx.save();
+                ctx.translate(foodX + GRID_SIZE/2, foodY + GRID_SIZE/2);
+                if (gameState.food.type !== 'NORMAL') {
+                    ctx.rotate(rotation);
+                }
                 
-                // Устанавливаем цвета в зависимости от типа еды
+                const foodGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, GRID_SIZE/2 * foodPulse);
+                
                 switch (gameState.food.type) {
                     case 'GOLDEN':
                         foodGradient.addColorStop(0, '#FFD700');
@@ -968,13 +1279,18 @@
                         break;
                     case 'DIAMOND':
                         foodGradient.addColorStop(0, '#00FFFF');
-                        foodGradient.addColorStop(0.7, '#0080FF');
+                        foodGradient.addColorStop(0.5, '#0080FF');
                         foodGradient.addColorStop(1, '#0040FF');
                         break;
                     case 'LIGHTNING':
                         foodGradient.addColorStop(0, '#FFFF00');
                         foodGradient.addColorStop(0.7, '#FFD700');
                         foodGradient.addColorStop(1, '#FFA500');
+                        break;
+                    case 'PORTAL':
+                        foodGradient.addColorStop(0, '#9C27B0');
+                        foodGradient.addColorStop(0.7, '#E91E63');
+                        foodGradient.addColorStop(1, '#3F51B5');
                         break;
                     default:
                         foodGradient.addColorStop(0, '#FF6B6B');
@@ -984,48 +1300,57 @@
                 
                 ctx.fillStyle = foodGradient;
                 ctx.beginPath();
-                ctx.arc(foodX + GRID_SIZE/2, foodY + GRID_SIZE/2, (GRID_SIZE-4)/2 * foodPulse, 0, Math.PI * 2);
+                ctx.arc(0, 0, (GRID_SIZE-4)/2 * foodPulse, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Свечение для особых типов еды
+                // Мощное свечение для особых типов еды
                 if (gameState.food.type !== 'NORMAL') {
                     ctx.shadowColor = foodData.color;
-                    ctx.shadowBlur = 20 * foodPulse;
+                    ctx.shadowBlur = 25 * foodPulse;
                     ctx.beginPath();
-                    ctx.arc(foodX + GRID_SIZE/2, foodY + GRID_SIZE/2, (GRID_SIZE-8)/2 * foodPulse, 0, Math.PI * 2);
+                    ctx.arc(0, 0, (GRID_SIZE-8)/2 * foodPulse, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.shadowBlur = 0;
                 }
                 
                 // Блик
-                ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
                 ctx.beginPath();
-                ctx.arc(foodX + GRID_SIZE/3, foodY + GRID_SIZE/3, GRID_SIZE/8 * foodPulse, 0, Math.PI * 2);
+                ctx.arc(-GRID_SIZE/6, -GRID_SIZE/6, GRID_SIZE/10 * foodPulse, 0, Math.PI * 2);
                 ctx.fill();
+                
+                ctx.restore();
             }
 
             // Рисуем частицы
             drawParticles();
             updateParticles();
 
-            // Индикаторы эффектов
-            let effectY = 10;
+            // Индикаторы эффектов с улучшенным стилем
+            let effectY = 15;
+            ctx.font = 'bold 14px Arial';
             if (gameState.powerups.ghost && Date.now() < gameState.powerups.ghost) {
                 ctx.fillStyle = '#00FFFF';
-                ctx.font = '12px Arial';
-                ctx.fillText('💎 ПРИЗРАК', 10, effectY);
-                effectY += 20;
+                ctx.shadowColor = '#00FFFF';
+                ctx.shadowBlur = 10;
+                ctx.fillText('💎 ПРИЗРАК', 15, effectY);
+                ctx.shadowBlur = 0;
+                effectY += 25;
             }
             if (gameState.powerups.speed && Date.now() < gameState.powerups.speed) {
                 ctx.fillStyle = '#FFFF00';
-                ctx.font = '12px Arial';
-                ctx.fillText('⚡ УСКОРЕНИЕ', 10, effectY);
-                effectY += 20;
+                ctx.shadowColor = '#FFFF00';
+                ctx.shadowBlur = 10;
+                ctx.fillText('⚡ УСКОРЕНИЕ', 15, effectY);
+                ctx.shadowBlur = 0;
+                effectY += 25;
             }
             if (gameState.powerups.slow && Date.now() < gameState.powerups.slow) {
                 ctx.fillStyle = '#FFD700';
-                ctx.font = '12px Arial';
-                ctx.fillText('🌟 ЗАМЕДЛЕНИЕ', 10, effectY);
+                ctx.shadowColor = '#FFD700';
+                ctx.shadowBlur = 10;
+                ctx.fillText('🌟 ЗАМЕДЛЕНИЕ', 15, effectY);
+                ctx.shadowBlur = 0;
             }
         }
 
@@ -1051,9 +1376,11 @@
             gameState.gameRunning = false;
             gameState.gameStarted = false;
             
-            // Взрыв частиц
-            gameState.snake.forEach(segment => {
-                createParticles(segment.x, segment.y, '#ff6b6b', 10);
+            // Эпический взрыв частиц
+            gameState.snake.forEach((segment, index) => {
+                setTimeout(() => {
+                    createParticles(segment.x, segment.y, '#ff6b6b', 15);
+                }, index * 50);
             });
             
             // Показываем достижения
@@ -1063,9 +1390,10 @@
                     Array.from(gameState.achievements).map(a => {
                         switch(a) {
                             case 'first_feast': return '🍽️ Первый пир';
-                            case 'score_200': return '🏆 Мастер';
+                            case 'score_300': return '🏆 Мастер';
                             case 'long_snake': return '🐍 Гигантская змея';
                             case 'speed_demon': return '💨 Демон скорости';
+                            case 'combo_master': return '🔥 Мастер комбо';
                             default: return a;
                         }
                     }).join(', ') + '</div>';
@@ -1076,11 +1404,12 @@
             document.getElementById('finalScore').innerHTML = 
                 `Результат: ${gameState.score} очков<br>` +
                 `Максимальная длина: ${gameState.maxLength}<br>` +
-                `Достигнутый уровень: ${gameState.level}`;
+                `Достигнутый уровень: ${gameState.level}<br>` +
+                `Лучшее комбо: x${gameState.maxCombo}`;
             
             setTimeout(() => {
                 document.getElementById('gameOverScreen').style.display = 'flex';
-            }, 800);
+            }, 1000);
             
             // Отправляем в Telegram
             if (tg && tg.sendData) {
@@ -1088,7 +1417,8 @@
                     action: 'game_over',
                     score: gameState.score,
                     level: gameState.level,
-                    maxLength: gameState.maxLength
+                    maxLength: gameState.maxLength,
+                    maxCombo: gameState.maxCombo
                 }));
             }
             
@@ -1105,24 +1435,31 @@
                 food: generateFood(),
                 obstacles: [],
                 particles: [],
+                trails: [],
+                portals: [],
                 score: 0,
                 level: 1,
+                combo: 0,
+                maxCombo: 0,
                 gameRunning: false,
                 gameStarted: false,
-                gameSpeed: 200,
+                gameSpeed: 180,
                 animationTime: 0,
                 lastRenderTime: 0,
                 powerups: {},
                 achievements: new Set(),
                 totalFoodEaten: 0,
-                maxLength: 1
+                maxLength: 1,
+                lastFoodTime: 0
             };
             
             document.getElementById('scoreDisplay').textContent = 'Очки: 0';
             document.getElementById('lengthDisplay').textContent = 'Длина: 1';
             document.getElementById('speedDisplay').textContent = 'Уровень: 1';
+            document.getElementById('comboDisplay').textContent = 'Комбо: 0';
             document.getElementById('pauseBtn').textContent = 'старт';
             document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('comboIndicator').style.display = 'none';
             
             draw();
         }
@@ -1134,7 +1471,8 @@
                     action: 'share_score',
                     score: gameState.score,
                     level: gameState.level,
-                    maxLength: gameState.maxLength
+                    maxLength: gameState.maxLength,
+                    maxCombo: gameState.maxCombo
                 }));
             }
         }
@@ -1193,7 +1531,7 @@
             const deltaX = touchEndX - touchStartX;
             const deltaY = touchEndY - touchStartY;
             
-            const minSwipeDistance = 30;
+            const minSwipeDistance = 40;
             
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
                 if (Math.abs(deltaX) > minSwipeDistance) {
@@ -1213,13 +1551,14 @@
 
         // Инициализация игры
         function initGame() {
+            createStarField();
             gameState.food = generateFood();
             draw();
             
             setTimeout(() => {
                 if (!gameState.gameStarted) {
                     if (tg && tg.showAlert) {
-                        tg.showAlert('🐍 Добро пожаловать в ЗМЕЙКУ ULTRA! Нажмите СТАРТ для начала эпической игры! 🚀');
+                        tg.showAlert('🌟 Добро пожаловать в ЗМЕЙКУ MEGA! Виртуальный джойстик или стрелки для управления. Готовы к космическому приключению? 🚀');
                     }
                 }
             }, 1500);
