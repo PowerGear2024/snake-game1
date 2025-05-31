@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>🐍 Змейка MEGA - Полноэкранная</title>
+    <title>🐍 Змейка MEGA</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -14,18 +14,22 @@
         }
 
         html, body {
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             overflow: hidden;
             position: fixed;
+            top: 0;
+            left: 0;
         }
 
         body {
-            background: radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4ecdc4 100%);
             color: white;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             user-select: none;
             touch-action: none;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Анимированное звездное небо */
@@ -77,103 +81,44 @@
             }
         }
 
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 25% 25%, rgba(76, 175, 80, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 75% 75%, rgba(233, 30, 99, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(63, 81, 181, 0.1) 0%, transparent 50%);
-            animation: nebula 20s ease-in-out infinite alternate;
-            z-index: 2;
-        }
-
-        @keyframes nebula {
-            0% { transform: rotate(0deg) scale(1); }
-            100% { transform: rotate(360deg) scale(1.1); }
-        }
-
         .game-container {
             width: 100vw;
             height: 100vh;
-            display: grid;
-            grid-template-rows: auto 1fr auto;
+            display: flex;
+            flex-direction: column;
             position: relative;
             z-index: 10;
         }
 
         .game-header {
-            padding: min(2vh, 15px) min(3vw, 20px) min(1vh, 8px);
-            text-align: center;
-            animation: fadeInDown 1s ease-out;
-        }
-
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .game-title {
-            font-size: clamp(1rem, 4vw, 2.5rem);
-            font-weight: 900;
-            margin-bottom: min(1vh, 8px);
-            background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7, #DDA0DD);
-            background-size: 600% 600%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: titleFlow 4s ease-in-out infinite, titleFloat 2s ease-in-out infinite alternate;
-            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
-        }
-
-        @keyframes titleFlow {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        @keyframes titleFloat {
-            from { transform: translateY(-2px) rotate(-0.3deg); }
-            to { transform: translateY(2px) rotate(0.3deg); }
+            padding: min(1vh, 8px) min(2vw, 15px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            flex-shrink: 0;
         }
 
         .score-panel {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(15vw, 80px), 1fr));
-            gap: min(2vw, 8px);
-            max-width: 100%;
-            padding: 0 min(3vw, 20px);
+            display: flex;
+            gap: min(1.5vw, 8px);
+            flex-wrap: wrap;
         }
 
         .score-item {
-            font-size: clamp(0.6rem, 2.2vw, 1rem);
+            font-size: clamp(0.6rem, 2vw, 0.9rem);
             font-weight: bold;
             color: #FFD700;
             text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
             background: rgba(0,0,0,0.4);
-            padding: min(1vh, 6px) min(2vw, 10px);
-            border-radius: min(3vw, 15px);
+            padding: min(0.5vh, 4px) min(1.5vw, 8px);
+            border-radius: min(2vw, 12px);
             border: 1px solid rgba(255, 215, 0, 0.4);
             backdrop-filter: blur(15px);
             animation: scoreGlow 2s ease-in-out infinite alternate;
-            position: relative;
-            overflow: hidden;
-            text-align: center;
             white-space: nowrap;
-        }
-
-        .score-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            animation: scoreSweep 3s ease-in-out infinite;
+            text-align: center;
         }
 
         @keyframes scoreGlow {
@@ -181,49 +126,85 @@
             to { box-shadow: 0 0 25px rgba(255, 215, 0, 0.6); }
         }
 
-        @keyframes scoreSweep {
-            0%, 100% { left: -100%; }
-            50% { left: 100%; }
+        .game-title {
+            font-size: clamp(0.8rem, 2.5vw, 1.2rem);
+            font-weight: 900;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1, #FFEAA7);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titleFlow 3s ease-in-out infinite;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
 
-        .canvas-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: min(1vh, 10px);
-        }
-
-        .canvas-wrapper {
-            position: relative;
-            border-radius: min(3vw, 20px);
-            padding: min(0.5vw, 4px);
-            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c, #4ecdc4, #45b7d1);
-            background-size: 600% 600%;
-            animation: borderFlow 8s ease infinite, canvasFloat 4s ease-in-out infinite alternate;
-            box-shadow: 
-                0 0 50px rgba(102, 126, 234, 0.6),
-                inset 0 0 20px rgba(255,255,255,0.1);
-        }
-
-        @keyframes borderFlow {
+        @keyframes titleFlow {
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
         }
 
-        @keyframes canvasFloat {
-            from { transform: translateY(-1px) rotate(-0.1deg); }
-            to { transform: translateY(1px) rotate(0.1deg); }
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
         }
 
         #gameCanvas {
-            border-radius: min(2.5vw, 16px);
-            background: #0a0a1a;
+            background: linear-gradient(145deg, 
+                rgba(26, 35, 50, 0.9) 0%, 
+                rgba(32, 45, 65, 0.8) 25%,
+                rgba(45, 55, 80, 0.7) 50%,
+                rgba(35, 50, 70, 0.8) 75%,
+                rgba(28, 40, 60, 0.9) 100%);
+            border-radius: min(3vw, 20px);
+            box-shadow: 
+                0 0 50px rgba(255,255,255,0.2),
+                inset 0 0 30px rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
             display: block;
-            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
             touch-action: none;
+        }
+
+        .footer-panel {
+            padding: min(1vh, 8px) min(2vw, 15px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            flex-shrink: 0;
+        }
+
+        .tournament-info {
+            background: rgba(0,0,0,0.4);
+            padding: min(0.8vh, 6px) min(2vw, 10px);
+            border-radius: min(3vw, 15px);
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            font-size: clamp(0.6rem, 1.8vw, 0.8rem);
+            color: #FFD700;
+            white-space: nowrap;
+        }
+
+        .leaderboard-btn {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            border: none;
+            padding: min(0.8vh, 6px) min(2.5vw, 12px);
+            border-radius: min(3vw, 15px);
+            color: white;
+            font-size: clamp(0.6rem, 1.8vw, 0.8rem);
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.2);
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .leaderboard-btn:active {
+            transform: scale(0.95);
         }
 
         .swipe-indicator {
@@ -231,68 +212,21 @@
             bottom: min(2vh, 15px);
             left: 50%;
             transform: translateX(-50%);
-            font-size: clamp(0.7rem, 2vw, 0.9rem);
+            font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             opacity: 0.8;
             text-align: center;
             background: rgba(0,0,0,0.6);
-            padding: min(1vh, 8px) min(3vw, 15px);
-            border-radius: min(5vw, 25px);
-            border: 1px solid rgba(255,255,255,0.2);
+            padding: min(0.8vh, 6px) min(3vw, 12px);
+            border-radius: min(4vw, 20px);
+            border: 1px solid rgba(255,255,255,0.3);
             backdrop-filter: blur(10px);
             animation: swipeHint 3s ease-in-out infinite;
             white-space: nowrap;
         }
 
         @keyframes swipeHint {
-            0%, 100% { opacity: 0.8; transform: translateX(-50%) scale(1); }
-            50% { opacity: 1; transform: translateX(-50%) scale(1.05); }
-        }
-
-        .tournament-panel {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: min(2vw, 10px);
-            padding: min(1vh, 8px) min(3vw, 20px) min(2vh, 15px);
-            flex-wrap: wrap;
-        }
-
-        .tournament-info {
-            background: rgba(0,0,0,0.6);
-            padding: min(1vh, 8px) min(2.5vw, 12px);
-            border-radius: min(4vw, 20px);
-            border: 1px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            font-size: clamp(0.6rem, 1.8vw, 0.85rem);
-            animation: tournamentGlow 2s ease-in-out infinite alternate;
-            white-space: nowrap;
-            flex: 1;
-            text-align: center;
-            min-width: 0;
-        }
-
-        @keyframes tournamentGlow {
-            from { border-color: rgba(255,255,255,0.2); }
-            to { border-color: rgba(102, 126, 234, 0.4); }
-        }
-
-        .leaderboard-btn {
-            background: linear-gradient(145deg, #667eea, #764ba2);
-            border: none;
-            padding: min(1vh, 8px) min(3vw, 15px);
-            border-radius: min(4vw, 20px);
-            color: white;
-            font-size: clamp(0.6rem, 1.8vw, 0.85rem);
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.2);
-            white-space: nowrap;
-        }
-
-        .leaderboard-btn:active {
-            transform: scale(0.95);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
         }
 
         .powerup-notification {
@@ -302,9 +236,9 @@
             transform: translate(-50%, -50%);
             background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
             color: white;
-            padding: min(3vh, 20px) min(6vw, 30px);
-            border-radius: min(5vw, 25px);
-            font-size: clamp(1rem, 3vw, 1.5rem);
+            padding: min(2vh, 15px) min(4vw, 20px);
+            border-radius: min(4vw, 20px);
+            font-size: clamp(0.9rem, 3vw, 1.3rem);
             font-weight: bold;
             text-align: center;
             z-index: 1001;
@@ -316,9 +250,9 @@
         }
 
         @keyframes powerupShow {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5) rotate(-180deg); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1) rotate(0deg); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(1) rotate(180deg); }
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
         }
 
         .combo-indicator {
@@ -327,11 +261,11 @@
             right: min(3vw, 20px);
             background: rgba(0,0,0,0.7);
             color: #FFD700;
-            padding: min(1.5vh, 10px) min(3vw, 15px);
-            border-radius: min(4vw, 20px);
+            padding: min(1vh, 8px) min(2.5vw, 12px);
+            border-radius: min(3vw, 15px);
             border: 2px solid rgba(255, 215, 0, 0.5);
             font-weight: bold;
-            font-size: clamp(0.8rem, 2.5vw, 1.2rem);
+            font-size: clamp(0.7rem, 2vw, 1rem);
             animation: comboGlow 1s ease-in-out infinite alternate;
             display: none;
             white-space: nowrap;
@@ -340,6 +274,25 @@
         @keyframes comboGlow {
             from { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
             to { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
+        }
+
+        .pause-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(2rem, 8vw, 4rem);
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 0 20px rgba(255,255,255,0.8);
+            animation: pausePulse 1.5s ease-in-out infinite;
+            pointer-events: none;
+            display: none;
+            z-index: 100;
+        }
+
+        @keyframes pausePulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
         }
 
         .game-over-screen {
@@ -355,76 +308,54 @@
             justify-content: center;
             flex-direction: column;
             z-index: 1000;
-            animation: fadeIn 0.8s ease-out;
             padding: min(3vh, 20px);
         }
 
         .game-over-content {
             background: linear-gradient(145deg, #2d3748, #1a202c);
-            padding: min(4vh, 30px) min(6vw, 25px);
-            border-radius: min(5vw, 25px);
+            padding: min(3vh, 20px);
+            border-radius: min(4vw, 20px);
             text-align: center;
-            box-shadow: 
-                0 30px 60px rgba(0,0,0,0.8),
-                inset 0 1px 0 rgba(255,255,255,0.1);
-            border: 3px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            border: 2px solid rgba(255,255,255,0.1);
             max-width: 90vw;
             max-height: 80vh;
             overflow-y: auto;
-            animation: gameOverAppear 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes gameOverAppear {
-            from { transform: scale(0.5) rotate(-10deg); opacity: 0; }
-            to { transform: scale(1) rotate(0deg); opacity: 1; }
         }
 
         .game-over-title {
-            font-size: clamp(1.2rem, 5vw, 2.5rem);
+            font-size: clamp(1.2rem, 4vw, 2rem);
             margin-bottom: min(2vh, 15px);
             background: linear-gradient(45deg, #ff6b6b, #feca57, #ff9ff3);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gameOverPulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes gameOverPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
         }
 
         .final-score {
-            font-size: clamp(0.9rem, 2.8vw, 1.3rem);
-            margin-bottom: min(2.5vh, 20px);
+            font-size: clamp(0.8rem, 2.5vw, 1.1rem);
+            margin-bottom: min(2vh, 15px);
             color: #FFD700;
             font-weight: bold;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
             line-height: 1.4;
         }
 
         .action-btn {
             background: linear-gradient(145deg, #48bb78, #38a169);
             border: none;
-            padding: min(2vh, 12px) min(4vw, 20px);
-            border-radius: min(5vw, 25px);
+            padding: min(1.5vh, 10px) min(4vw, 16px);
+            border-radius: min(4vw, 20px);
             color: white;
-            font-size: clamp(0.8rem, 2.5vw, 1.1rem);
+            font-size: clamp(0.7rem, 2.2vw, 1rem);
             font-weight: 700;
             cursor: pointer;
-            margin: min(1vh, 6px);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 8px 15px rgba(72, 187, 120, 0.4);
-            position: relative;
-            overflow: hidden;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            margin: min(0.8vh, 5px);
+            transition: all 0.3s ease;
             white-space: nowrap;
         }
 
         .action-btn:active {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 15px 30px rgba(72, 187, 120, 0.6);
+            transform: scale(0.95);
         }
 
         .leaderboard-modal {
@@ -439,14 +370,13 @@
             align-items: center;
             justify-content: center;
             z-index: 2000;
-            animation: fadeIn 0.5s ease-out;
             padding: min(3vh, 20px);
         }
 
         .leaderboard-content {
             background: linear-gradient(145deg, #2d3748, #1a202c);
-            padding: min(3vh, 25px);
-            border-radius: min(5vw, 25px);
+            padding: min(2.5vh, 20px);
+            border-radius: min(4vw, 20px);
             max-width: 90vw;
             max-height: 80vh;
             overflow-y: auto;
@@ -454,8 +384,8 @@
         }
 
         .leaderboard-title {
-            font-size: clamp(1.1rem, 4vw, 1.8rem);
-            margin-bottom: min(2.5vh, 20px);
+            font-size: clamp(1rem, 3.5vw, 1.5rem);
+            margin-bottom: min(2vh, 15px);
             text-align: center;
             background: linear-gradient(45deg, #FFD700, #FFA500);
             -webkit-background-clip: text;
@@ -467,94 +397,31 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: min(1.5vh, 10px);
-            margin: min(0.8vh, 5px) 0;
+            padding: min(1vh, 8px);
+            margin: min(0.5vh, 4px) 0;
             background: rgba(255,255,255,0.05);
-            border-radius: min(2.5vw, 12px);
+            border-radius: min(2vw, 10px);
             border-left: 3px solid #667eea;
-            font-size: clamp(0.8rem, 2.2vw, 1rem);
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
         }
 
-        .pause-indicator {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: clamp(2rem, 8vw, 5rem);
-            color: rgba(255,255,255,0.9);
-            text-shadow: 0 0 20px rgba(255,255,255,0.8);
-            animation: pausePulse 1.5s ease-in-out infinite;
-            pointer-events: none;
-            display: none;
-            z-index: 100;
-        }
-
-        @keyframes pausePulse {
-            0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-        }
-
-        /* Адаптация для очень маленьких экранов */
-        @media (max-height: 500px) {
-            .game-header {
-                padding: 5px 10px 3px;
+        /* Адаптация для маленьких экранов */
+        @media (max-height: 600px) {
+            .game-header, .footer-panel {
+                padding: 4px 8px;
             }
             
-            .tournament-panel {
-                padding: 3px 10px 8px;
-            }
-            
-            .score-panel {
-                gap: 4px;
-            }
-            
-            .game-title {
-                margin-bottom: 3px;
+            .score-item, .tournament-info, .leaderboard-btn {
+                padding: 3px 6px;
+                font-size: 0.6rem;
             }
         }
 
         /* Адаптация для широких экранов */
         @media (min-aspect-ratio: 16/9) {
-            .game-container {
-                grid-template-columns: 1fr auto 1fr;
-                grid-template-rows: auto 1fr auto;
-                grid-template-areas: 
-                    "header header header"
-                    "left-space canvas right-space"
-                    "tournament tournament tournament";
-            }
-            
-            .game-header {
-                grid-area: header;
-            }
-            
             .canvas-container {
-                grid-area: canvas;
-            }
-            
-            .tournament-panel {
-                grid-area: tournament;
-            }
-            
-            .canvas-container {
-                max-width: min(80vh, 80vw);
-            }
-        }
-
-        /* Адаптация для портретной ориентации */
-        @media (max-aspect-ratio: 3/4) {
-            .score-panel {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            
-            .tournament-panel {
-                flex-direction: column;
-                gap: min(1vh, 8px);
-            }
-            
-            .tournament-info, .leaderboard-btn {
-                width: 100%;
-                flex: none;
+                max-width: 80vh;
+                margin: 0 auto;
             }
         }
     </style>
@@ -582,28 +449,23 @@
                 <div class="score-item" id="scoreDisplay">🏆 0</div>
                 <div class="score-item" id="lengthDisplay">📏 1</div>
                 <div class="score-item" id="speedDisplay">⚡ 1</div>
-                <div class="score-item" id="comboDisplay">🔥 0</div>
                 <div class="score-item" id="timeDisplay">⏱️ 0:00</div>
-                <div class="score-item" id="recordDisplay">👑 0</div>
             </div>
         </div>
         
         <div class="canvas-container">
-            <div class="canvas-wrapper">
-                <canvas id="gameCanvas"></canvas>
-                <div class="swipe-indicator" id="swipeIndicator">
-                    💫 Свайп для управления<br>
-                    <small>Двойной тап - пауза</small>
-                </div>
+            <canvas id="gameCanvas"></canvas>
+            <div class="swipe-indicator" id="swipeIndicator">
+                💫 Свайп для управления | Двойной тап - пауза
             </div>
         </div>
         
-        <div class="tournament-panel">
+        <div class="footer-panel">
             <div class="tournament-info" id="tournamentInfo">
                 🏆 Турнир: #0
             </div>
             <button class="leaderboard-btn" onclick="showLeaderboard()">
-                📊 Топ
+                📊 Топ игроков
             </button>
             <div class="tournament-info" id="playerRank">
                 🎯 Рейтинг: 1500
@@ -626,7 +488,7 @@
         <div class="leaderboard-content">
             <div class="leaderboard-title">🏆 ТУРНИРНАЯ ТАБЛИЦА</div>
             <div id="leaderboardList"></div>
-            <button class="action-btn" onclick="hideLeaderboard()" style="margin-top: min(2vh, 20px);">✖️ Закрыть</button>
+            <button class="action-btn" onclick="hideLeaderboard()" style="margin-top: min(2vh, 15px);">✖️ Закрыть</button>
         </div>
     </div>
 
@@ -638,6 +500,10 @@
                 tg = window.Telegram.WebApp;
                 tg.ready();
                 tg.expand();
+                tg.disableVerticalSwipes();
+                // Скрываем заголовок Telegram
+                document.documentElement.style.setProperty('--tg-viewport-height', '100vh');
+                document.documentElement.style.setProperty('--tg-viewport-stable-height', '100vh');
             }
         } catch (e) {
             console.log('Telegram WebApp недоступен');
@@ -671,7 +537,7 @@
         function createStarField() {
             const starsContainer = document.getElementById('starsContainer');
             
-            for (let i = 0; i < 200; i++) {
+            for (let i = 0; i < 100; i++) {
                 const star = document.createElement('div');
                 star.className = 'star';
                 star.style.left = Math.random() * 100 + '%';
@@ -683,7 +549,7 @@
             }
 
             setInterval(() => {
-                if (Math.random() < 0.15) {
+                if (Math.random() < 0.1) {
                     const shootingStar = document.createElement('div');
                     shootingStar.className = 'shooting-star';
                     shootingStar.style.top = Math.random() * 50 + '%';
@@ -696,7 +562,7 @@
                         }
                     }, 3000);
                 }
-            }, 1200);
+            }, 2000);
         }
 
         // Canvas и контекст
@@ -708,12 +574,10 @@
             const container = document.querySelector('.canvas-container');
             const containerRect = container.getBoundingClientRect();
             
-            // Вычисляем доступное пространство
-            const availableWidth = containerRect.width - 20; // отступы
-            const availableHeight = containerRect.height - 20;
+            // Вычисляем максимальный размер с учетом отступов
+            const maxSize = Math.min(containerRect.width - 20, containerRect.height - 20);
             
-            // Определяем размер canvas (квадратный, максимально возможный)
-            const maxSize = Math.min(availableWidth, availableHeight);
+            // Определяем размер canvas (квадратный)
             const canvasSize = Math.floor(maxSize / 16) * 16; // Кратно 16 для ровной сетки
             
             canvas.width = canvasSize;
@@ -722,7 +586,7 @@
             canvas.style.height = canvasSize + 'px';
             
             // Пересчитываем игровые константы
-            window.GRID_SIZE = Math.max(12, Math.floor(canvasSize / 30)); // Адаптивный размер клетки
+            window.GRID_SIZE = Math.max(10, Math.floor(canvasSize / 28)); // Оптимальный размер клетки
             window.GRID_COUNT = Math.floor(canvasSize / window.GRID_SIZE);
         }
 
@@ -824,7 +688,7 @@
 
         // Генерация препятствий
         function generateObstacles() {
-            const numObstacles = Math.min(Math.floor(gameState.score / 200), Math.floor(window.GRID_COUNT / 3));
+            const numObstacles = Math.min(Math.floor(gameState.score / 200), Math.floor(window.GRID_COUNT / 4));
             gameState.obstacles = [];
             
             for (let i = 0; i < numObstacles; i++) {
@@ -840,7 +704,7 @@
                     gameState.snake.some(segment => segment.x === obstacle.x && segment.y === obstacle.y) ||
                     gameState.obstacles.some(obs => obs.x === obstacle.x && obs.y === obstacle.y) ||
                     (gameState.food && gameState.food.x === obstacle.x && gameState.food.y === obstacle.y) ||
-                    gameState.portals.some(portal => portal.x === obstacle.x && portal.y === obstacle.y) ||
+                    gameState.portals.some(portal => portal.x === obstacle.x && portal.y === portal.y) ||
                     (Math.abs(obstacle.x - gameState.snake[0].x) <= 3 && Math.abs(obstacle.y - gameState.snake[0].y) <= 3)
                 ));
                 
@@ -963,7 +827,6 @@
                 gameState.combo = 1;
             }
             
-            document.getElementById('comboDisplay').textContent = `🔥 ${gameState.combo}`;
             gameState.lastFoodTime = now;
         }
 
@@ -1274,34 +1137,36 @@
             return speed;
         }
 
-        // Отрисовка игры с улучшенными эффектами
+        // Отрисовка игры с светлым красивым фоном
         function draw() {
             gameState.animationTime += 0.02;
             
-            // Очистка canvas с космическим градиентом
+            // Светлый градиентный фон
             const gradient = ctx.createRadialGradient(
                 canvas.width/2, canvas.height/2, 0,
                 canvas.width/2, canvas.height/2, canvas.width/2
             );
-            gradient.addColorStop(0, '#1a1a2e');
-            gradient.addColorStop(0.5, '#16213e');
-            gradient.addColorStop(1, '#0f0f23');
+            gradient.addColorStop(0, 'rgba(240, 248, 255, 0.95)'); // Очень светлый голубой
+            gradient.addColorStop(0.3, 'rgba(230, 240, 250, 0.9)'); // Светло-голубой
+            gradient.addColorStop(0.6, 'rgba(220, 235, 245, 0.85)'); // Мягкий голубой
+            gradient.addColorStop(1, 'rgba(200, 220, 240, 0.8)'); // Приятный голубой
+            
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Улучшенная космическая сетка
+            // Улучшенная светлая сетка
             const hasGhost = gameState.powerups.ghost && Date.now() < gameState.powerups.ghost;
             const hasMega = gameState.powerups.mega && Date.now() < gameState.powerups.mega;
             
             ctx.lineWidth = 1;
             for (let i = 0; i <= window.GRID_COUNT; i++) {
                 const pos = i * window.GRID_SIZE;
-                const alpha = 0.06 + Math.sin(gameState.animationTime + i * 0.1) * 0.03;
+                const alpha = 0.15 + Math.sin(gameState.animationTime + i * 0.1) * 0.05;
                 
                 if (hasMega) {
-                    ctx.strokeStyle = `rgba(255, 20, 147, ${alpha * 3})`;
+                    ctx.strokeStyle = `rgba(255, 20, 147, ${alpha})`;
                 } else if (hasGhost) {
-                    ctx.strokeStyle = `rgba(0, 255, 255, ${alpha * 2})`;
+                    ctx.strokeStyle = `rgba(0, 191, 255, ${alpha})`;
                 } else {
                     ctx.strokeStyle = `rgba(102, 126, 234, ${alpha})`;
                 }
@@ -1345,25 +1210,25 @@
                 ctx.restore();
             });
 
-            // Рисуем препятствия с улучшенными эффектами
+            // Рисуем препятствия
             gameState.obstacles.forEach((obstacle, index) => {
                 const x = obstacle.x * window.GRID_SIZE;
                 const y = obstacle.y * window.GRID_SIZE;
                 const pulse = Math.sin(gameState.animationTime * 2.5 + index * 0.7) * 0.15 + 1;
                 
-                const alpha = hasGhost ? 0.4 : 1;
+                const alpha = hasGhost ? 0.4 : 0.8;
                 
                 const obsGradient = ctx.createRadialGradient(
                     x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, 0,
                     x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, window.GRID_SIZE/2 * pulse
                 );
-                obsGradient.addColorStop(0, `rgba(255, 107, 107, ${alpha})`);
-                obsGradient.addColorStop(0.7, `rgba(231, 76, 60, ${alpha})`);
-                obsGradient.addColorStop(1, `rgba(192, 57, 43, ${alpha * 0.5})`);
+                obsGradient.addColorStop(0, `rgba(220, 50, 47, ${alpha})`);
+                obsGradient.addColorStop(0.7, `rgba(200, 40, 37, ${alpha})`);
+                obsGradient.addColorStop(1, `rgba(180, 30, 27, ${alpha * 0.5})`);
                 
                 ctx.fillStyle = obsGradient;
                 if (!hasGhost) {
-                    ctx.shadowColor = '#ff6b6b';
+                    ctx.shadowColor = '#dc322f';
                     ctx.shadowBlur = 12 * pulse;
                 }
                 ctx.beginPath();
@@ -1372,26 +1237,26 @@
                 ctx.shadowBlur = 0;
             });
 
-            // Рисуем змейку с улучшенными эффектами
+            // Рисуем змейку с яркими контрастными цветами
             gameState.snake.forEach((segment, index) => {
                 const x = segment.x * window.GRID_SIZE;
                 const y = segment.y * window.GRID_SIZE;
                 
                 if (index === 0) {
-                    // Голова змейки с динамическими эффектами
+                    // Голова змейки
                     const headPulse = Math.sin(gameState.animationTime * 6) * 0.1 + 1;
-                    let headColor = '#4CAF50';
+                    let headColor = '#2E7D32'; // Темно-зеленый
                     let shadowColor = '#4CAF50';
                     
                     if (hasMega) {
-                        headColor = '#FF1493';
-                        shadowColor = '#FF1493';
+                        headColor = '#C51162'; // Темно-розовый
+                        shadowColor = '#E91E63';
                     } else if (hasGhost) {
-                        headColor = '#00FFFF';
-                        shadowColor = '#00FFFF';
+                        headColor = '#006064'; // Темно-голубой
+                        shadowColor = '#00BCD4';
                     } else if (gameState.powerups.speed && Date.now() < gameState.powerups.speed) {
-                        headColor = '#FFFF00';
-                        shadowColor = '#FFFF00';
+                        headColor = '#F57F17'; // Темно-желтый
+                        shadowColor = '#FFEB3B';
                     }
                     
                     const headGradient = ctx.createRadialGradient(
@@ -1399,8 +1264,8 @@
                         x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, window.GRID_SIZE/2 * headPulse
                     );
                     headGradient.addColorStop(0, headColor);
-                    headGradient.addColorStop(0.6, headColor + '80');
-                    headGradient.addColorStop(1, headColor + '20');
+                    headGradient.addColorStop(0.6, headColor + 'C0');
+                    headGradient.addColorStop(1, headColor + '40');
                     
                     ctx.fillStyle = headGradient;
                     ctx.shadowColor = shadowColor;
@@ -1410,7 +1275,7 @@
                     ctx.fill();
                     ctx.shadowBlur = 0;
                     
-                    // Улучшенные глаза
+                    // Глаза
                     const eyeOffset = window.GRID_SIZE * 0.3;
                     const eyeSize = window.GRID_SIZE * 0.12;
                     
@@ -1423,8 +1288,8 @@
                     ctx.fill();
                     ctx.shadowBlur = 0;
                     
-                    // Динамические зрачки
-                    ctx.fillStyle = hasMega ? '#FF1493' : hasGhost ? '#00FFFF' : 'black';
+                    // Зрачки
+                    ctx.fillStyle = hasMega ? '#C51162' : hasGhost ? '#006064' : '#1B5E20';
                     const pupilSize = eyeSize * 0.7;
                     ctx.beginPath();
                     ctx.arc(x + window.GRID_SIZE/2 - eyeOffset, y + window.GRID_SIZE/2 - eyeOffset/2, pupilSize, 0, Math.PI * 2);
@@ -1432,16 +1297,16 @@
                     ctx.fill();
                     
                 } else {
-                    // Тело змейки с градиентными переходами
+                    // Тело змейки
                     const bodyPulse = Math.sin(gameState.animationTime * 4 + index * 0.3) * 0.06 + 1;
                     const sizeMultiplier = Math.max(0.6, 1 - index * 0.015);
-                    const alpha = hasGhost ? 0.7 : 1;
+                    const alpha = hasGhost ? 0.6 : 0.9;
                     
-                    let bodyColor = '#81C784';
+                    let bodyColor = '#388E3C'; // Зеленый
                     if (hasMega) {
-                        bodyColor = '#FF69B4';
+                        bodyColor = '#E91E63'; // Розовый
                     } else if (hasGhost) {
-                        bodyColor = '#81FFFF';
+                        bodyColor = '#00BCD4'; // Голубой
                     }
                     
                     const bodyGradient = ctx.createRadialGradient(
@@ -1449,12 +1314,12 @@
                         x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, window.GRID_SIZE/2 * bodyPulse * sizeMultiplier
                     );
                     bodyGradient.addColorStop(0, bodyColor + Math.floor(alpha * 255).toString(16).padStart(2, '0'));
-                    bodyGradient.addColorStop(0.7, bodyColor + Math.floor(alpha * 200).toString(16).padStart(2, '0'));
-                    bodyGradient.addColorStop(1, bodyColor + Math.floor(alpha * 100).toString(16).padStart(2, '0'));
+                    bodyGradient.addColorStop(0.7, bodyColor + Math.floor(alpha * 180).toString(16).padStart(2, '0'));
+                    bodyGradient.addColorStop(1, bodyColor + Math.floor(alpha * 80).toString(16).padStart(2, '0'));
                     
                     ctx.fillStyle = bodyGradient;
                     
-                    // Легкое свечение для особых эффектов
+                    // Легкое свечение
                     if (hasMega || hasGhost) {
                         ctx.shadowColor = bodyColor;
                         ctx.shadowBlur = 10 * bodyPulse;
@@ -1467,7 +1332,7 @@
                 }
             });
 
-            // Рисуем еду с улучшенными эффектами
+            // Рисуем еду с яркими цветами
             if (gameState.food) {
                 const foodX = gameState.food.x * window.GRID_SIZE;
                 const foodY = gameState.food.y * window.GRID_SIZE;
@@ -1520,9 +1385,11 @@
                         ctx.shadowBlur = 35 * foodPulse;
                         break;
                     default:
-                        foodGradient.addColorStop(0, '#FF6B6B');
-                        foodGradient.addColorStop(0.7, '#E74C3C');
-                        foodGradient.addColorStop(1, '#C0392B');
+                        foodGradient.addColorStop(0, '#FF4444');
+                        foodGradient.addColorStop(0.7, '#E53E3E');
+                        foodGradient.addColorStop(1, '#C53030');
+                        ctx.shadowColor = '#FF4444';
+                        ctx.shadowBlur = 15 * foodPulse;
                 }
                 
                 ctx.fillStyle = foodGradient;
@@ -1530,9 +1397,9 @@
                 ctx.arc(0, 0, (window.GRID_SIZE-2)/2 * foodPulse, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Блик для всех типов еды
+                // Блик
                 ctx.shadowBlur = 0;
-                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.fillStyle = 'rgba(255,255,255,0.9)';
                 ctx.beginPath();
                 ctx.arc(-window.GRID_SIZE/8, -window.GRID_SIZE/8, window.GRID_SIZE/12 * foodPulse, 0, Math.PI * 2);
                 ctx.fill();
@@ -1544,38 +1411,38 @@
             drawParticles();
             updateParticles();
 
-            // Индикаторы эффектов с адаптивным размером
+            // Индикаторы эффектов
             let effectY = Math.max(20, canvas.height * 0.05);
             const fontSize = Math.max(12, canvas.width * 0.025);
             ctx.font = `bold ${fontSize}px Arial`;
             
             if (gameState.powerups.mega && Date.now() < gameState.powerups.mega) {
-                ctx.fillStyle = '#FF1493';
-                ctx.shadowColor = '#FF1493';
+                ctx.fillStyle = '#C51162';
+                ctx.shadowColor = '#E91E63';
                 ctx.shadowBlur = 15;
                 ctx.fillText('💥 МЕГА БОНУС', 20, effectY);
                 ctx.shadowBlur = 0;
                 effectY += fontSize + 5;
             }
             if (gameState.powerups.ghost && Date.now() < gameState.powerups.ghost) {
-                ctx.fillStyle = '#00FFFF';
-                ctx.shadowColor = '#00FFFF';
+                ctx.fillStyle = '#006064';
+                ctx.shadowColor = '#00BCD4';
                 ctx.shadowBlur = 12;
                 ctx.fillText('💎 ПРИЗРАК', 20, effectY);
                 ctx.shadowBlur = 0;
                 effectY += fontSize + 5;
             }
             if (gameState.powerups.speed && Date.now() < gameState.powerups.speed) {
-                ctx.fillStyle = '#FFFF00';
-                ctx.shadowColor = '#FFFF00';
+                ctx.fillStyle = '#F57F17';
+                ctx.shadowColor = '#FFEB3B';
                 ctx.shadowBlur = 12;
                 ctx.fillText('⚡ УСКОРЕНИЕ', 20, effectY);
                 ctx.shadowBlur = 0;
                 effectY += fontSize + 5;
             }
             if (gameState.powerups.slow && Date.now() < gameState.powerups.slow) {
-                ctx.fillStyle = '#FFD700';
-                ctx.shadowColor = '#FFD700';
+                ctx.fillStyle = '#FF8F00';
+                ctx.shadowColor = '#FFC107';
                 ctx.shadowBlur = 12;
                 ctx.fillText('🌟 ЗАМЕДЛЕНИЕ', 20, effectY);
                 ctx.shadowBlur = 0;
@@ -1670,9 +1537,6 @@
                 `Лучшее комбо: x${gameState.maxCombo}<br>` +
                 `Время игры: ${Math.floor(gameState.currentGameTime / 60000)}:${Math.floor((gameState.currentGameTime % 60000) / 1000).toString().padStart(2, '0')}`;
             
-            // Обновляем рекорд в интерфейсе
-            document.getElementById('recordDisplay').textContent = `👑 ${gameStats.bestScore}`;
-            
             setTimeout(() => {
                 document.getElementById('gameOverScreen').style.display = 'flex';
             }, 1000);
@@ -1699,7 +1563,6 @@
 
         // Перезапуск игры
         function restartGame() {
-            // Пересчитываем игровое поле при перезапуске
             setupCanvas();
             
             gameState = {
@@ -1732,9 +1595,7 @@
             document.getElementById('scoreDisplay').textContent = '🏆 0';
             document.getElementById('lengthDisplay').textContent = '📏 1';
             document.getElementById('speedDisplay').textContent = '⚡ 1';
-            document.getElementById('comboDisplay').textContent = '🔥 0';
             document.getElementById('timeDisplay').textContent = '⏱️ 0:00';
-            document.getElementById('recordDisplay').textContent = `👑 ${gameStats.bestScore}`;
             document.getElementById('gameOverScreen').style.display = 'none';
             document.getElementById('comboIndicator').style.display = 'none';
             document.getElementById('pauseIndicator').style.display = 'none';
@@ -1886,18 +1747,8 @@
         function initGame() {
             createStarField();
             gameState.food = generateFood();
-            
-            // Обновляем интерфейс статистикой
-            document.getElementById('recordDisplay').textContent = `👑 ${gameStats.bestScore}`;
             updateTournamentInfo();
-            
             draw();
-            
-            setTimeout(() => {
-                if (!gameState.gameStarted && tg && tg.showAlert) {
-                    tg.showAlert('🌟 Добро пожаловать в ЗМЕЙКУ MEGA! Свайп для управления, двойной тап для паузы. Участвуйте в турнире и побеждайте! 🚀');
-                }
-            }, 1500);
         }
 
         // Запуск
