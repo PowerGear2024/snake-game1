@@ -119,11 +119,35 @@
             animation: scoreGlow 2s ease-in-out infinite alternate;
             white-space: nowrap;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: scoreShine 3s ease-in-out infinite;
         }
 
         @keyframes scoreGlow {
-            from { box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
-            to { box-shadow: 0 0 25px rgba(255, 215, 0, 0.6); }
+            from { 
+                box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+                transform: scale(1);
+            }
+            to { 
+                box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+                transform: scale(1.02);
+            }
+        }
+
+        @keyframes scoreShine {
+            0%, 100% { left: -100%; }
+            50% { left: 100%; }
         }
 
         .game-title {
@@ -134,13 +158,18 @@
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: titleFlow 3s ease-in-out infinite;
+            animation: titleFlow 3s ease-in-out infinite, titleBounce 2s ease-in-out infinite;
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
 
         @keyframes titleFlow {
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
+        }
+
+        @keyframes titleBounce {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-2px) rotate(1deg); }
         }
 
         .canvas-container {
@@ -153,19 +182,33 @@
         }
 
         #gameCanvas {
-            background: linear-gradient(145deg, 
-                rgba(26, 35, 50, 0.9) 0%, 
-                rgba(32, 45, 65, 0.8) 25%,
-                rgba(45, 55, 80, 0.7) 50%,
-                rgba(35, 50, 70, 0.8) 75%,
-                rgba(28, 40, 60, 0.9) 100%);
+            background: linear-gradient(135deg, 
+                #1e3c72 0%,
+                #2a5298 15%,
+                #764ba2 30%,
+                #667eea 45%,
+                #f093fb 60%,
+                #f5576c 75%,
+                #4ecdc4 90%,
+                #44a08d 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
             border-radius: min(3vw, 20px);
             box-shadow: 
-                0 0 50px rgba(255,255,255,0.2),
-                inset 0 0 30px rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.3);
+                0 0 50px rgba(255,255,255,0.3),
+                inset 0 0 30px rgba(255,255,255,0.1),
+                0 0 100px rgba(102, 126, 234, 0.4);
+            border: 3px solid rgba(255,255,255,0.4);
             display: block;
             touch-action: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .footer-panel {
@@ -187,6 +230,12 @@
             font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             color: #FFD700;
             white-space: nowrap;
+            animation: infoGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes infoGlow {
+            from { border-color: rgba(255,255,255,0.2); }
+            to { border-color: rgba(255, 215, 0, 0.5); }
         }
 
         .leaderboard-btn {
@@ -201,6 +250,12 @@
             border: 1px solid rgba(255,255,255,0.2);
             white-space: nowrap;
             transition: all 0.3s ease;
+            animation: btnPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes btnPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(102, 126, 234, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(102, 126, 234, 0.6); }
         }
 
         .leaderboard-btn:active {
@@ -225,8 +280,8 @@
         }
 
         @keyframes swipeHint {
-            0%, 100% { opacity: 0.8; }
-            50% { opacity: 1; }
+            0%, 100% { opacity: 0.8; transform: translateX(-50%) translateY(0px); }
+            50% { opacity: 1; transform: translateX(-50%) translateY(-3px); }
         }
 
         .powerup-notification {
@@ -234,7 +289,9 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #FFD700);
+            background-size: 300% 300%;
+            animation: notificationBg 2s ease infinite;
             color: white;
             padding: min(2vh, 15px) min(4vw, 20px);
             border-radius: min(4vw, 20px);
@@ -242,38 +299,67 @@
             font-weight: bold;
             text-align: center;
             z-index: 1001;
-            animation: powerupShow 2s ease-out forwards;
             pointer-events: none;
             display: none;
             box-shadow: 0 0 30px rgba(255,255,255,0.5);
             max-width: 80vw;
+            border: 2px solid rgba(255,255,255,0.6);
+        }
+
+        @keyframes notificationBg {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .powerup-show {
+            animation: powerupShow 3s ease-out forwards !important;
         }
 
         @keyframes powerupShow {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+            0% { 
+                opacity: 0; 
+                transform: translate(-50%, -50%) scale(0.3) rotate(-180deg); 
+            }
+            30% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1.2) rotate(0deg); 
+            }
+            70% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1) rotate(0deg); 
+            }
+            100% { 
+                opacity: 0; 
+                transform: translate(-50%, -50%) scale(0.8) rotate(180deg); 
+            }
         }
 
         .combo-indicator {
             position: absolute;
             top: min(3vh, 20px);
             right: min(3vw, 20px);
-            background: rgba(0,0,0,0.7);
-            color: #FFD700;
+            background: linear-gradient(145deg, rgba(255, 215, 0, 0.9), rgba(255, 165, 0, 0.9));
+            color: #8B4513;
             padding: min(1vh, 8px) min(2.5vw, 12px);
             border-radius: min(3vw, 15px);
-            border: 2px solid rgba(255, 215, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.8);
             font-weight: bold;
             font-size: clamp(0.7rem, 2vw, 1rem);
             animation: comboGlow 1s ease-in-out infinite alternate;
             display: none;
             white-space: nowrap;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
         }
 
         @keyframes comboGlow {
-            from { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
-            to { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
+            from { 
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+                transform: scale(1);
+            }
+            to { 
+                box-shadow: 0 0 35px rgba(255, 215, 0, 0.9);
+                transform: scale(1.05);
+            }
         }
 
         .pause-indicator {
@@ -291,11 +377,11 @@
         }
 
         @keyframes pausePulse {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
+            0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
         }
 
-        .game-over-screen {
+        .game-over-screen, .leaderboard-modal {
             position: fixed;
             top: 0;
             left: 0;
@@ -311,7 +397,7 @@
             padding: min(3vh, 20px);
         }
 
-        .game-over-content {
+        .game-over-content, .leaderboard-content {
             background: linear-gradient(145deg, #2d3748, #1a202c);
             padding: min(3vh, 20px);
             border-radius: min(4vw, 20px);
@@ -321,15 +407,28 @@
             max-width: 90vw;
             max-height: 80vh;
             overflow-y: auto;
+            animation: modalAppear 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .game-over-title {
+        @keyframes modalAppear {
+            from { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+            to { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .game-over-title, .leaderboard-title {
             font-size: clamp(1.2rem, 4vw, 2rem);
             margin-bottom: min(2vh, 15px);
             background: linear-gradient(45deg, #ff6b6b, #feca57, #ff9ff3);
+            background-size: 300% 300%;
+            animation: titleShine 3s ease infinite;
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        @keyframes titleShine {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
         .final-score {
@@ -338,6 +437,12 @@
             color: #FFD700;
             font-weight: bold;
             line-height: 1.4;
+            animation: scoreFlicker 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes scoreFlicker {
+            from { text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); }
+            to { text-shadow: 0 0 20px rgba(255, 215, 0, 1); }
         }
 
         .action-btn {
@@ -352,45 +457,18 @@
             margin: min(0.8vh, 5px);
             transition: all 0.3s ease;
             white-space: nowrap;
+            animation: btnFloat 3s ease-in-out infinite;
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        @keyframes btnFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-2px); }
         }
 
         .action-btn:active {
-            transform: scale(0.95);
-        }
-
-        .leaderboard-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(20px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            padding: min(3vh, 20px);
-        }
-
-        .leaderboard-content {
-            background: linear-gradient(145deg, #2d3748, #1a202c);
-            padding: min(2.5vh, 20px);
-            border-radius: min(4vw, 20px);
-            max-width: 90vw;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 2px solid rgba(255,255,255,0.1);
-        }
-
-        .leaderboard-title {
-            font-size: clamp(1rem, 3.5vw, 1.5rem);
-            margin-bottom: min(2vh, 15px);
-            text-align: center;
-            background: linear-gradient(45deg, #FFD700, #FFA500);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+            transform: scale(0.95) translateY(2px);
+            box-shadow: 0 2px 8px rgba(72, 187, 120, 0.6);
         }
 
         .leaderboard-item {
@@ -403,6 +481,31 @@
             border-radius: min(2vw, 10px);
             border-left: 3px solid #667eea;
             font-size: clamp(0.7rem, 2vw, 0.9rem);
+            animation: itemSlide 0.5s ease-out;
+        }
+
+        @keyframes itemSlide {
+            from { transform: translateX(-50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Улучшенные эффекты частиц */
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            border-radius: 50%;
+            animation: particleFloat 2s ease-out forwards;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.5) rotate(360deg) translateY(-50px);
+            }
         }
 
         /* Адаптация для маленьких экранов */
@@ -462,13 +565,13 @@
         
         <div class="footer-panel">
             <div class="tournament-info" id="tournamentInfo">
-                🏆 Турнир: #0
+                🏆 Турнир: #<span id="tournamentRank">-</span>
             </div>
             <button class="leaderboard-btn" onclick="showLeaderboard()">
                 📊 Топ игроков
             </button>
             <div class="tournament-info" id="playerRank">
-                🎯 Рейтинг: 1500
+                🎯 Рейтинг: <span id="playerRating">1500</span>
             </div>
         </div>
     </div>
@@ -479,6 +582,7 @@
             <div class="final-score" id="finalScore">Результат: 0 очков</div>
             <div id="achievementsList"></div>
             <div id="tournamentResult"></div>
+            <div id="statisticsDisplay"></div>
             <button class="action-btn" onclick="handleRestart()">🔄 Играть снова</button>
             <button class="action-btn" onclick="handleShare()">📤 Поделиться</button>
         </div>
@@ -501,43 +605,50 @@
                 tg.ready();
                 tg.expand();
                 tg.disableVerticalSwipes();
-                // Скрываем заголовок Telegram
-                document.documentElement.style.setProperty('--tg-viewport-height', '100vh');
-                document.documentElement.style.setProperty('--tg-viewport-stable-height', '100vh');
             }
         } catch (e) {
             console.log('Telegram WebApp недоступен');
         }
 
-        // Игровая статистика и турнир
+        // Улучшенная игровая статистика
         let gameStats = {
             gamesPlayed: parseInt(localStorage.getItem('snakeGamesPlayed') || '0'),
             totalScore: parseInt(localStorage.getItem('snakeTotalScore') || '0'),
             bestScore: parseInt(localStorage.getItem('snakeBestScore') || '0'),
             totalTime: parseInt(localStorage.getItem('snakeTotalTime') || '0'),
+            totalFoodEaten: parseInt(localStorage.getItem('snakeTotalFoodEaten') || '0'),
             achievements: JSON.parse(localStorage.getItem('snakeAchievements') || '[]'),
             rating: parseInt(localStorage.getItem('snakeRating') || '1500'),
             tournamentRank: parseInt(localStorage.getItem('snakeTournamentRank') || '0'),
-            dailyBest: parseInt(localStorage.getItem(`snakeDailyBest_${new Date().toDateString()}`) || '0')
+            dailyBest: parseInt(localStorage.getItem(`snakeDailyBest_${new Date().toDateString()}`) || '0'),
+            averageScore: 0,
+            winRate: 0,
+            longestGame: parseInt(localStorage.getItem('snakeLongestGame') || '0'),
+            bestCombo: parseInt(localStorage.getItem('snakeBestCombo') || '0'),
+            favoriteFood: localStorage.getItem('snakeFavoriteFood') || 'NORMAL'
         };
 
-        // Турнирная система
+        // Вычисляем дополнительную статистику
+        gameStats.averageScore = gameStats.gamesPlayed > 0 ? Math.floor(gameStats.totalScore / gameStats.gamesPlayed) : 0;
+        gameStats.winRate = gameStats.gamesPlayed > 0 ? Math.floor((gameStats.bestScore > 100 ? 1 : 0) * 100) : 0;
+
+        // Турнирная система с реальными данными
         let tournament = {
             participants: [
-                { name: "Мастер Змей", score: 850, rating: 2200 },
-                { name: "Космический Гонщик", score: 720, rating: 2100 },
-                { name: "Нео-Игрок", score: 680, rating: 2000 },
-                { name: "Дигитал Воин", score: 650, rating: 1950 },
-                { name: "Быстрый Как Молния", score: 620, rating: 1900 },
-                { name: "Вы", score: gameStats.dailyBest, rating: gameStats.rating }
+                { name: "🏆 КиберМастер", score: Math.max(850, gameStats.dailyBest + 50), rating: 2200 },
+                { name: "⚡ Быстрая Молния", score: Math.max(720, gameStats.dailyBest + 30), rating: 2100 },
+                { name: "🎯 Снайпер", score: Math.max(680, gameStats.dailyBest + 20), rating: 2000 },
+                { name: "🚀 РакетаПро", score: Math.max(650, gameStats.dailyBest + 10), rating: 1950 },
+                { name: "💎 АлмазныйИгрок", score: Math.max(620, gameStats.dailyBest + 5), rating: 1900 },
+                { name: "🎮 Вы", score: gameStats.dailyBest, rating: gameStats.rating }
             ]
         };
 
-        // Создание звездного неба
+        // Создание звездного неба с эффектами
         function createStarField() {
             const starsContainer = document.getElementById('starsContainer');
             
-            for (let i = 0; i < 100; i++) {
+            for (let i = 0; i < 150; i++) {
                 const star = document.createElement('div');
                 star.className = 'star';
                 star.style.left = Math.random() * 100 + '%';
@@ -562,39 +673,35 @@
                         }
                     }, 3000);
                 }
-            }, 2000);
+            }, 1500);
         }
 
         // Canvas и контекст
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Адаптивная настройка canvas под размер экрана
+        // Адаптивная настройка canvas
         function setupCanvas() {
             const container = document.querySelector('.canvas-container');
             const containerRect = container.getBoundingClientRect();
             
-            // Вычисляем максимальный размер с учетом отступов
             const maxSize = Math.min(containerRect.width - 20, containerRect.height - 20);
-            
-            // Определяем размер canvas (квадратный)
-            const canvasSize = Math.floor(maxSize / 16) * 16; // Кратно 16 для ровной сетки
+            const canvasSize = Math.floor(maxSize / 16) * 16;
             
             canvas.width = canvasSize;
             canvas.height = canvasSize;
             canvas.style.width = canvasSize + 'px';
             canvas.style.height = canvasSize + 'px';
             
-            // Пересчитываем игровые константы
-            window.GRID_SIZE = Math.max(10, Math.floor(canvasSize / 28)); // Оптимальный размер клетки
+            window.GRID_SIZE = Math.max(10, Math.floor(canvasSize / 30));
             window.GRID_COUNT = Math.floor(canvasSize / window.GRID_SIZE);
         }
 
         setupCanvas();
 
-        // Типы еды и бонусов
+        // Типы еды с улучшенными эффектами
         const FOOD_TYPES = {
-            NORMAL: { color: '#FF6B6B', points: 10, emoji: '🍎', probability: 0.5 },
+            NORMAL: { color: '#FF4444', points: 10, emoji: '🍎', probability: 0.4, effect: null },
             GOLDEN: { color: '#FFD700', points: 25, emoji: '🌟', effect: 'slow', probability: 0.25 },
             DIAMOND: { color: '#00FFFF', points: 50, emoji: '💎', effect: 'ghost', probability: 0.15 },
             LIGHTNING: { color: '#FFFF00', points: 15, emoji: '⚡', effect: 'speed', probability: 0.2 },
@@ -627,10 +734,11 @@
             lastFoodTime: 0,
             gameStartTime: 0,
             currentGameTime: 0,
-            isPaused: false
+            isPaused: false,
+            foodStats: {}
         };
 
-        // Генерация еды с вероятностями
+        // Генерация еды с статистикой
         function generateFood() {
             let newFood;
             let attempts = 0;
@@ -646,7 +754,6 @@
                 gameState.obstacles.some(obs => obs.x === newFood.x && obs.y === newFood.y)
             ));
             
-            // Определяем тип еды по вероятностям
             const rand = Math.random();
             let cumulativeProbability = 0;
             
@@ -661,7 +768,7 @@
             return newFood;
         }
 
-        // Создание порталов
+        // Создание порталов с эффектами
         function createPortals() {
             gameState.portals = [];
             for (let i = 0; i < 2; i++) {
@@ -704,7 +811,7 @@
                     gameState.snake.some(segment => segment.x === obstacle.x && segment.y === obstacle.y) ||
                     gameState.obstacles.some(obs => obs.x === obstacle.x && obs.y === obstacle.y) ||
                     (gameState.food && gameState.food.x === obstacle.x && gameState.food.y === obstacle.y) ||
-                    gameState.portals.some(portal => portal.x === obstacle.x && portal.y === portal.y) ||
+                    gameState.portals.some(portal => portal.x === obstacle.x && portal.y === obstacle.y) ||
                     (Math.abs(obstacle.x - gameState.snake[0].x) <= 3 && Math.abs(obstacle.y - gameState.snake[0].y) <= 3)
                 ));
                 
@@ -714,39 +821,65 @@
             }
         }
 
-        // Создание частиц
-        function createParticles(x, y, color = '#FFD700', count = 12) {
+        // Улучшенные частицы с разными типами
+        function createParticles(x, y, color = '#FFD700', count = 12, type = 'explosion') {
             for (let i = 0; i < count; i++) {
-                gameState.particles.push({
+                const particle = {
                     x: x * window.GRID_SIZE + window.GRID_SIZE / 2,
                     y: y * window.GRID_SIZE + window.GRID_SIZE / 2,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.5) * 10,
+                    vx: (Math.random() - 0.5) * 15,
+                    vy: (Math.random() - 0.5) * 15,
                     life: 1.0,
                     color: color,
-                    size: Math.random() * (window.GRID_SIZE / 2) + window.GRID_SIZE / 4
-                });
+                    size: Math.random() * (window.GRID_SIZE / 2) + window.GRID_SIZE / 4,
+                    type: type,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: (Math.random() - 0.5) * 0.3
+                };
+                
+                if (type === 'sparkle') {
+                    particle.vx *= 0.5;
+                    particle.vy *= 0.5;
+                    particle.size *= 0.5;
+                }
+                
+                gameState.particles.push(particle);
             }
         }
 
-        // Создание следа от змейки
+        // Создание следа змейки с градиентом
         function createTrail(x, y) {
+            const hasGhost = gameState.powerups.ghost && Date.now() < gameState.powerups.ghost;
+            const hasMega = gameState.powerups.mega && Date.now() < gameState.powerups.mega;
+            
+            let color = '#4CAF50';
+            if (hasMega) color = '#FF1493';
+            else if (hasGhost) color = '#00FFFF';
+            
             gameState.trails.push({
                 x: x * window.GRID_SIZE + window.GRID_SIZE / 2,
                 y: y * window.GRID_SIZE + window.GRID_SIZE / 2,
                 life: 1.0,
-                size: window.GRID_SIZE / 4
+                size: window.GRID_SIZE / 3,
+                color: color
             });
         }
 
-        // Обновление частиц
+        // Обновление частиц с улучшенной физикой
         function updateParticles() {
             gameState.particles = gameState.particles.filter(particle => {
                 particle.x += particle.vx;
                 particle.y += particle.vy;
-                particle.vy -= 0.2;
-                particle.vx *= 0.98;
-                particle.life -= 0.025;
+                particle.vy -= 0.2; // гравитация
+                particle.vx *= 0.98; // сопротивление воздуха
+                particle.life -= particle.type === 'sparkle' ? 0.01 : 0.025;
+                particle.rotation += particle.rotationSpeed;
+                
+                if (particle.type === 'sparkle') {
+                    particle.vx += Math.sin(Date.now() * 0.01 + particle.x * 0.1) * 0.1;
+                    particle.vy += Math.cos(Date.now() * 0.01 + particle.y * 0.1) * 0.1;
+                }
+                
                 return particle.life > 0;
             });
         }
@@ -754,43 +887,62 @@
         // Обновление следов
         function updateTrails() {
             gameState.trails = gameState.trails.filter(trail => {
-                trail.life -= 0.08;
-                trail.size *= 0.95;
+                trail.life -= 0.06;
+                trail.size *= 0.96;
                 return trail.life > 0;
             });
         }
 
-        // Отрисовка частиц с улучшенными эффектами
+        // Отрисовка частиц с эффектами
         function drawParticles() {
             gameState.particles.forEach(particle => {
                 ctx.save();
                 ctx.globalAlpha = particle.life;
                 
-                const particleGradient = ctx.createRadialGradient(
-                    particle.x, particle.y, 0,
-                    particle.x, particle.y, particle.size
-                );
-                particleGradient.addColorStop(0, particle.color);
-                particleGradient.addColorStop(1, 'transparent');
+                if (particle.type === 'sparkle') {
+                    ctx.fillStyle = particle.color;
+                    ctx.shadowColor = particle.color;
+                    ctx.shadowBlur = 20;
+                    ctx.translate(particle.x, particle.y);
+                    ctx.rotate(particle.rotation);
+                    ctx.fillRect(-particle.size/2, -particle.size/2, particle.size, particle.size);
+                } else {
+                    const particleGradient = ctx.createRadialGradient(
+                        particle.x, particle.y, 0,
+                        particle.x, particle.y, particle.size
+                    );
+                    particleGradient.addColorStop(0, particle.color);
+                    particleGradient.addColorStop(0.7, particle.color + '80');
+                    particleGradient.addColorStop(1, 'transparent');
+                    
+                    ctx.fillStyle = particleGradient;
+                    ctx.shadowColor = particle.color;
+                    ctx.shadowBlur = 15;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
                 
-                ctx.fillStyle = particleGradient;
-                ctx.shadowColor = particle.color;
-                ctx.shadowBlur = 15;
-                ctx.beginPath();
-                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-                ctx.fill();
                 ctx.restore();
             });
         }
 
-        // Отрисовка следов
+        // Отрисовка следов с градиентом
         function drawTrails() {
             gameState.trails.forEach(trail => {
                 ctx.save();
-                ctx.globalAlpha = trail.life * 0.4;
-                ctx.fillStyle = '#4CAF50';
-                ctx.shadowColor = '#4CAF50';
-                ctx.shadowBlur = 8;
+                ctx.globalAlpha = trail.life * 0.5;
+                
+                const trailGradient = ctx.createRadialGradient(
+                    trail.x, trail.y, 0,
+                    trail.x, trail.y, trail.size
+                );
+                trailGradient.addColorStop(0, trail.color);
+                trailGradient.addColorStop(1, 'transparent');
+                
+                ctx.fillStyle = trailGradient;
+                ctx.shadowColor = trail.color;
+                ctx.shadowBlur = 10;
                 ctx.beginPath();
                 ctx.arc(trail.x, trail.y, trail.size, 0, Math.PI * 2);
                 ctx.fill();
@@ -798,17 +950,20 @@
             });
         }
 
-        // Показ уведомления о бонусе
+        // Улучшенный показ уведомлений
         function showPowerupNotification(text) {
             const notification = document.getElementById('powerupNotification');
             notification.textContent = text;
             notification.style.display = 'block';
+            notification.className = 'powerup-notification powerup-show';
+            
             setTimeout(() => {
                 notification.style.display = 'none';
-            }, 2000);
+                notification.className = 'powerup-notification';
+            }, 3000);
         }
 
-        // Обновление комбо
+        // Обновление комбо с эффектами
         function updateCombo() {
             const now = Date.now();
             if (now - gameState.lastFoodTime < 2500) {
@@ -819,9 +974,17 @@
                     const comboIndicator = document.getElementById('comboIndicator');
                     comboIndicator.textContent = `🔥 КОМБО x${gameState.combo}`;
                     comboIndicator.style.display = 'block';
+                    
+                    // Создаем искры от комбо
+                    createParticles(
+                        Math.floor(window.GRID_COUNT * 0.8),
+                        Math.floor(window.GRID_COUNT * 0.1),
+                        '#FFD700', 8, 'sparkle'
+                    );
+                    
                     setTimeout(() => {
                         comboIndicator.style.display = 'none';
-                    }, 2000);
+                    }, 2500);
                 }
             } else {
                 gameState.combo = 1;
@@ -866,29 +1029,29 @@
         function checkAchievements() {
             const achievements = [];
             
-            if (gameState.totalFoodEaten === 20 && !gameState.achievements.has('feast_master')) {
-                achievements.push('🍽️ Мастер пира: съели 20 фруктов');
-                gameState.achievements.add('feast_master');
+            if (gameState.totalFoodEaten === 15 && !gameState.achievements.has('first_feast')) {
+                achievements.push('🍽️ Первый пир: съели 15 фруктов');
+                gameState.achievements.add('first_feast');
             }
             
-            if (gameState.score >= 500 && !gameState.achievements.has('score_500')) {
-                achievements.push('🏆 Чемпион: набрали 500 очков');
-                gameState.achievements.add('score_500');
+            if (gameState.score >= 300 && !gameState.achievements.has('score_300')) {
+                achievements.push('🏆 Мастер: набрали 300 очков');
+                gameState.achievements.add('score_300');
             }
             
-            if (gameState.maxLength >= 30 && !gameState.achievements.has('giant_snake')) {
-                achievements.push('🐍 Титаническая змея: длина 30+');
-                gameState.achievements.add('giant_snake');
+            if (gameState.maxLength >= 20 && !gameState.achievements.has('long_snake')) {
+                achievements.push('🐍 Гигантская змея: длина 20+');
+                gameState.achievements.add('long_snake');
             }
             
-            if (gameState.level >= 8 && !gameState.achievements.has('speed_legend')) {
-                achievements.push('💨 Легенда скорости: уровень 8');
-                gameState.achievements.add('speed_legend');
+            if (gameState.level >= 6 && !gameState.achievements.has('speed_demon')) {
+                achievements.push('💨 Демон скорости: уровень 6');
+                gameState.achievements.add('speed_demon');
             }
 
-            if (gameState.maxCombo >= 8 && !gameState.achievements.has('combo_king')) {
-                achievements.push('🔥 Король комбо: комбо x8');
-                gameState.achievements.add('combo_king');
+            if (gameState.maxCombo >= 5 && !gameState.achievements.has('combo_master')) {
+                achievements.push('🔥 Мастер комбо: комбо x5');
+                gameState.achievements.add('combo_master');
             }
 
             if (gameState.currentGameTime >= 300000 && !gameState.achievements.has('endurance')) {
@@ -909,30 +1072,34 @@
             }
         }
 
-        // Обновление турнирной информации
+        // Обновление турнирной информации с анимацией
         function updateTournamentInfo() {
             tournament.participants[5].score = Math.max(tournament.participants[5].score, gameState.score);
             tournament.participants.sort((a, b) => b.score - a.score);
             
-            const playerIndex = tournament.participants.findIndex(p => p.name === "Вы");
+            const playerIndex = tournament.participants.findIndex(p => p.name === "🎮 Вы");
             const rank = playerIndex + 1;
             
-            document.getElementById('tournamentInfo').textContent = `🏆 Турнир: #${rank}`;
-            document.getElementById('playerRank').textContent = `🎯 ${gameStats.rating}`;
+            // Анимированное обновление рейтинга
+            const rankElement = document.getElementById('tournamentRank');
+            const ratingElement = document.getElementById('playerRating');
+            
+            rankElement.textContent = rank;
+            ratingElement.textContent = gameStats.rating;
             
             gameStats.tournamentRank = rank;
             localStorage.setItem('snakeTournamentRank', rank.toString());
         }
 
-        // Показать турнирную таблицу
+        // Показать турнирную таблицу с анимацией
         function showLeaderboard() {
             const modal = document.getElementById('leaderboardModal');
             const list = document.getElementById('leaderboardList');
             
             list.innerHTML = tournament.participants.map((player, index) => `
-                <div class="leaderboard-item" style="${player.name === 'Вы' ? 'border-left-color: #FFD700; background: rgba(255,215,0,0.1);' : ''}">
+                <div class="leaderboard-item" style="${player.name === '🎮 Вы' ? 'border-left-color: #FFD700; background: rgba(255,215,0,0.1);' : ''} animation-delay: ${index * 0.1}s">
                     <span>${index + 1}. ${player.name}</span>
-                    <span>${player.score} (${player.rating})</span>
+                    <span>${player.score} очков (⭐${player.rating})</span>
                 </div>
             `).join('');
             
@@ -1021,7 +1188,7 @@
                 if (otherPortal) {
                     head.x = otherPortal.x;
                     head.y = otherPortal.y;
-                    createParticles(head.x, head.y, '#9C27B0', 20);
+                    createParticles(head.x, head.y, '#9C27B0', 20, 'explosion');
                     showPowerupNotification('🌀 ТЕЛЕПОРТАЦИЯ!');
                 }
             }
@@ -1060,6 +1227,9 @@
                 const foodType = gameState.food.type;
                 const foodData = FOOD_TYPES[foodType];
                 
+                // Обновляем статистику еды
+                gameState.foodStats[foodType] = (gameState.foodStats[foodType] || 0) + 1;
+                
                 updateCombo();
                 let basePoints = foodData.points;
                 
@@ -1079,8 +1249,11 @@
                 document.getElementById('scoreDisplay').textContent = `🏆 ${gameState.score}`;
                 document.getElementById('lengthDisplay').textContent = `📏 ${gameState.snake.length}`;
                 
-                // Создаем частицы
-                createParticles(gameState.food.x, gameState.food.y, foodData.color, 20);
+                // Создаем эффектные частицы
+                createParticles(gameState.food.x, gameState.food.y, foodData.color, 20, 'explosion');
+                if (foodType !== 'NORMAL') {
+                    createParticles(gameState.food.x, gameState.food.y, '#FFD700', 10, 'sparkle');
+                }
                 
                 // Применяем эффект еды
                 applyFoodEffect(foodType);
@@ -1099,13 +1272,13 @@
                 // Проверяем достижения
                 const newAchievements = checkAchievements();
                 newAchievements.forEach((achievement, index) => {
-                    setTimeout(() => showPowerupNotification(achievement), 1500 + index * 1000);
+                    setTimeout(() => showPowerupNotification(achievement), 2000 + index * 1500);
                 });
                 
                 // Добавляем препятствия
                 if (gameState.score % 200 === 0 && gameState.score > 0) {
                     generateObstacles();
-                    createParticles(Math.floor(window.GRID_COUNT/2), Math.floor(window.GRID_COUNT/2), '#ff6b6b', 25);
+                    createParticles(Math.floor(window.GRID_COUNT/2), Math.floor(window.GRID_COUNT/2), '#ff6b6b', 25, 'explosion');
                     showPowerupNotification('⚠️ НОВЫЕ ПРЕПЯТСТВИЯ!');
                 }
                 
@@ -1137,99 +1310,112 @@
             return speed;
         }
 
-        // Отрисовка игры с светлым красивым фоном
+        // Отрисовка игры с градиентным полем и эффектами
         function draw() {
             gameState.animationTime += 0.02;
             
-            // Светлый градиентный фон
-            const gradient = ctx.createRadialGradient(
-                canvas.width/2, canvas.height/2, 0,
-                canvas.width/2, canvas.height/2, canvas.width/2
-            );
-            gradient.addColorStop(0, 'rgba(240, 248, 255, 0.95)'); // Очень светлый голубой
-            gradient.addColorStop(0.3, 'rgba(230, 240, 250, 0.9)'); // Светло-голубой
-            gradient.addColorStop(0.6, 'rgba(220, 235, 245, 0.85)'); // Мягкий голубой
-            gradient.addColorStop(1, 'rgba(200, 220, 240, 0.8)'); // Приятный голубой
-            
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Очистка canvas 
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Улучшенная светлая сетка
+            // Рисуем градиентную сетку
             const hasGhost = gameState.powerups.ghost && Date.now() < gameState.powerups.ghost;
             const hasMega = gameState.powerups.mega && Date.now() < gameState.powerups.mega;
             
-            ctx.lineWidth = 1;
+            // Динамическая сетка с градиентами
             for (let i = 0; i <= window.GRID_COUNT; i++) {
-                const pos = i * window.GRID_SIZE;
-                const alpha = 0.15 + Math.sin(gameState.animationTime + i * 0.1) * 0.05;
-                
-                if (hasMega) {
-                    ctx.strokeStyle = `rgba(255, 20, 147, ${alpha})`;
-                } else if (hasGhost) {
-                    ctx.strokeStyle = `rgba(0, 191, 255, ${alpha})`;
-                } else {
-                    ctx.strokeStyle = `rgba(102, 126, 234, ${alpha})`;
+                for (let j = 0; j <= window.GRID_COUNT; j++) {
+                    const x = i * window.GRID_SIZE;
+                    const y = j * window.GRID_SIZE;
+                    
+                    // Волновой эффект
+                    const wave = Math.sin(gameState.animationTime * 2 + i * 0.3 + j * 0.3) * 0.1 + 0.9;
+                    const alpha = 0.03 + Math.sin(gameState.animationTime + i * 0.2 + j * 0.2) * 0.02;
+                    
+                    if (hasMega) {
+                        ctx.strokeStyle = `rgba(255, 20, 147, ${alpha * wave})`;
+                    } else if (hasGhost) {
+                        ctx.strokeStyle = `rgba(0, 255, 255, ${alpha * wave})`;
+                    } else {
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * wave})`;
+                    }
+                    
+                    ctx.lineWidth = 1;
+                    
+                    if (i < window.GRID_COUNT) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, y);
+                        ctx.lineTo(x + window.GRID_SIZE, y);
+                        ctx.stroke();
+                    }
+                    
+                    if (j < window.GRID_COUNT) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, y);
+                        ctx.lineTo(x, y + window.GRID_SIZE);
+                        ctx.stroke();
+                    }
                 }
-                
-                ctx.beginPath();
-                ctx.moveTo(pos, 0);
-                ctx.lineTo(pos, canvas.height);
-                ctx.moveTo(0, pos);
-                ctx.lineTo(canvas.width, pos);
-                ctx.stroke();
             }
 
             // Отрисовка следов и частиц
             drawTrails();
             updateTrails();
 
-            // Рисуем порталы с улучшенными эффектами
+            // Рисуем порталы с мощными эффектами
             gameState.portals.forEach((portal, index) => {
                 const x = portal.x * window.GRID_SIZE;
                 const y = portal.y * window.GRID_SIZE;
-                const pulse = Math.sin(gameState.animationTime * 6 + index * Math.PI) * 0.4 + 1;
-                const rotation = gameState.animationTime * 3 + index * Math.PI;
+                const pulse = Math.sin(gameState.animationTime * 8 + index * Math.PI) * 0.5 + 1;
+                const rotation = gameState.animationTime * 4 + index * Math.PI;
                 
                 ctx.save();
                 ctx.translate(x + window.GRID_SIZE/2, y + window.GRID_SIZE/2);
-                ctx.rotate(rotation);
                 
+                // Внешнее кольцо
+                ctx.rotate(rotation);
                 const portalGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, window.GRID_SIZE/2 * pulse);
                 portalGradient.addColorStop(0, 'rgba(156, 39, 176, 0.9)');
-                portalGradient.addColorStop(0.7, 'rgba(233, 30, 99, 0.7)');
+                portalGradient.addColorStop(0.5, 'rgba(233, 30, 99, 0.7)');
                 portalGradient.addColorStop(1, 'rgba(63, 81, 181, 0.5)');
                 
                 ctx.fillStyle = portalGradient;
                 ctx.shadowColor = '#9C27B0';
-                ctx.shadowBlur = 25 * pulse;
+                ctx.shadowBlur = 30 * pulse;
                 ctx.beginPath();
                 ctx.arc(0, 0, (window.GRID_SIZE-2)/2 * pulse, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Внутреннее кольцо
+                ctx.rotate(-rotation * 2);
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(0, 0, (window.GRID_SIZE-8)/2 * pulse, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
                 
                 ctx.restore();
             });
 
-            // Рисуем препятствия
+            // Рисуем препятствия с градиентами
             gameState.obstacles.forEach((obstacle, index) => {
                 const x = obstacle.x * window.GRID_SIZE;
                 const y = obstacle.y * window.GRID_SIZE;
-                const pulse = Math.sin(gameState.animationTime * 2.5 + index * 0.7) * 0.15 + 1;
+                const pulse = Math.sin(gameState.animationTime * 3 + index * 0.8) * 0.2 + 1;
                 
-                const alpha = hasGhost ? 0.4 : 0.8;
+                const alpha = hasGhost ? 0.4 : 0.9;
                 
                 const obsGradient = ctx.createRadialGradient(
                     x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, 0,
                     x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, window.GRID_SIZE/2 * pulse
                 );
-                obsGradient.addColorStop(0, `rgba(220, 50, 47, ${alpha})`);
-                obsGradient.addColorStop(0.7, `rgba(200, 40, 37, ${alpha})`);
-                obsGradient.addColorStop(1, `rgba(180, 30, 27, ${alpha * 0.5})`);
+                obsGradient.addColorStop(0, `rgba(255, 69, 58, ${alpha})`);
+                obsGradient.addColorStop(0.7, `rgba(255, 45, 85, ${alpha})`);
+                obsGradient.addColorStop(1, `rgba(175, 82, 222, ${alpha * 0.5})`);
                 
                 ctx.fillStyle = obsGradient;
                 if (!hasGhost) {
-                    ctx.shadowColor = '#dc322f';
-                    ctx.shadowBlur = 12 * pulse;
+                    ctx.shadowColor = '#FF453A';
+                    ctx.shadowBlur = 15 * pulse;
                 }
                 ctx.beginPath();
                 ctx.arc(x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, (window.GRID_SIZE-3)/2 * pulse, 0, Math.PI * 2);
@@ -1237,25 +1423,25 @@
                 ctx.shadowBlur = 0;
             });
 
-            // Рисуем змейку с яркими контрастными цветами
+            // Рисуем красивую змейку с градиентами и эффектами
             gameState.snake.forEach((segment, index) => {
                 const x = segment.x * window.GRID_SIZE;
                 const y = segment.y * window.GRID_SIZE;
                 
                 if (index === 0) {
-                    // Голова змейки
-                    const headPulse = Math.sin(gameState.animationTime * 6) * 0.1 + 1;
-                    let headColor = '#2E7D32'; // Темно-зеленый
-                    let shadowColor = '#4CAF50';
+                    // Голова змейки с мощными эффектами
+                    const headPulse = Math.sin(gameState.animationTime * 8) * 0.15 + 1;
+                    let headColors = ['#00C851', '#007E33', '#004d1a']; // Зеленые оттенки
+                    let shadowColor = '#00C851';
                     
                     if (hasMega) {
-                        headColor = '#C51162'; // Темно-розовый
-                        shadowColor = '#E91E63';
+                        headColors = ['#FF1493', '#C51162', '#880E4F'];
+                        shadowColor = '#FF1493';
                     } else if (hasGhost) {
-                        headColor = '#006064'; // Темно-голубой
-                        shadowColor = '#00BCD4';
+                        headColors = ['#00FFFF', '#00BCD4', '#006064'];
+                        shadowColor = '#00FFFF';
                     } else if (gameState.powerups.speed && Date.now() < gameState.powerups.speed) {
-                        headColor = '#F57F17'; // Темно-желтый
+                        headColors = ['#FFEB3B', '#FFC107', '#FF8F00'];
                         shadowColor = '#FFEB3B';
                     }
                     
@@ -1263,25 +1449,26 @@
                         x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, 0,
                         x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, window.GRID_SIZE/2 * headPulse
                     );
-                    headGradient.addColorStop(0, headColor);
-                    headGradient.addColorStop(0.6, headColor + 'C0');
-                    headGradient.addColorStop(1, headColor + '40');
+                    headGradient.addColorStop(0, headColors[0]);
+                    headGradient.addColorStop(0.6, headColors[1]);
+                    headGradient.addColorStop(1, headColors[2]);
                     
                     ctx.fillStyle = headGradient;
                     ctx.shadowColor = shadowColor;
-                    ctx.shadowBlur = 20 * headPulse;
+                    ctx.shadowBlur = 25 * headPulse;
                     ctx.beginPath();
                     ctx.arc(x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, (window.GRID_SIZE-1)/2 * headPulse, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.shadowBlur = 0;
                     
-                    // Глаза
-                    const eyeOffset = window.GRID_SIZE * 0.3;
-                    const eyeSize = window.GRID_SIZE * 0.12;
+                    // Красивые глаза с бликами
+                    const eyeOffset = window.GRID_SIZE * 0.25;
+                    const eyeSize = window.GRID_SIZE * 0.15;
                     
+                    // Белки глаз
                     ctx.fillStyle = 'white';
                     ctx.shadowColor = 'white';
-                    ctx.shadowBlur = 5;
+                    ctx.shadowBlur = 8;
                     ctx.beginPath();
                     ctx.arc(x + window.GRID_SIZE/2 - eyeOffset, y + window.GRID_SIZE/2 - eyeOffset/2, eyeSize, 0, Math.PI * 2);
                     ctx.arc(x + window.GRID_SIZE/2 + eyeOffset, y + window.GRID_SIZE/2 - eyeOffset/2, eyeSize, 0, Math.PI * 2);
@@ -1289,55 +1476,71 @@
                     ctx.shadowBlur = 0;
                     
                     // Зрачки
-                    ctx.fillStyle = hasMega ? '#C51162' : hasGhost ? '#006064' : '#1B5E20';
-                    const pupilSize = eyeSize * 0.7;
+                    ctx.fillStyle = hasMega ? '#8B0000' : hasGhost ? '#004d40' : '#1B5E20';
+                    const pupilSize = eyeSize * 0.6;
                     ctx.beginPath();
                     ctx.arc(x + window.GRID_SIZE/2 - eyeOffset, y + window.GRID_SIZE/2 - eyeOffset/2, pupilSize, 0, Math.PI * 2);
                     ctx.arc(x + window.GRID_SIZE/2 + eyeOffset, y + window.GRID_SIZE/2 - eyeOffset/2, pupilSize, 0, Math.PI * 2);
                     ctx.fill();
                     
+                    // Блики в глазах
+                    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                    const glareSize = eyeSize * 0.3;
+                    ctx.beginPath();
+                    ctx.arc(x + window.GRID_SIZE/2 - eyeOffset + pupilSize/3, y + window.GRID_SIZE/2 - eyeOffset/2 - pupilSize/3, glareSize, 0, Math.PI * 2);
+                    ctx.arc(x + window.GRID_SIZE/2 + eyeOffset + pupilSize/3, y + window.GRID_SIZE/2 - eyeOffset/2 - pupilSize/3, glareSize, 0, Math.PI * 2);
+                    ctx.fill();
+                    
                 } else {
-                    // Тело змейки
-                    const bodyPulse = Math.sin(gameState.animationTime * 4 + index * 0.3) * 0.06 + 1;
-                    const sizeMultiplier = Math.max(0.6, 1 - index * 0.015);
+                    // Тело змейки с красивыми переходами
+                    const bodyPulse = Math.sin(gameState.animationTime * 5 + index * 0.4) * 0.08 + 1;
+                    const sizeMultiplier = Math.max(0.5, 1 - index * 0.02);
                     const alpha = hasGhost ? 0.6 : 0.9;
                     
-                    let bodyColor = '#388E3C'; // Зеленый
+                    let bodyColors = ['#4CAF50', '#388E3C', '#2E7D32']; // Зеленые оттенки
                     if (hasMega) {
-                        bodyColor = '#E91E63'; // Розовый
+                        bodyColors = ['#E91E63', '#C2185B', '#AD1457'];
                     } else if (hasGhost) {
-                        bodyColor = '#00BCD4'; // Голубой
+                        bodyColors = ['#26C6DA', '#00ACC1', '#0097A7'];
                     }
                     
                     const bodyGradient = ctx.createRadialGradient(
                         x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, 0,
                         x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, window.GRID_SIZE/2 * bodyPulse * sizeMultiplier
                     );
-                    bodyGradient.addColorStop(0, bodyColor + Math.floor(alpha * 255).toString(16).padStart(2, '0'));
-                    bodyGradient.addColorStop(0.7, bodyColor + Math.floor(alpha * 180).toString(16).padStart(2, '0'));
-                    bodyGradient.addColorStop(1, bodyColor + Math.floor(alpha * 80).toString(16).padStart(2, '0'));
+                    bodyGradient.addColorStop(0, bodyColors[0] + Math.floor(alpha * 255).toString(16).padStart(2, '0'));
+                    bodyGradient.addColorStop(0.7, bodyColors[1] + Math.floor(alpha * 200).toString(16).padStart(2, '0'));
+                    bodyGradient.addColorStop(1, bodyColors[2] + Math.floor(alpha * 100).toString(16).padStart(2, '0'));
                     
                     ctx.fillStyle = bodyGradient;
                     
-                    // Легкое свечение
+                    // Легкое свечение для особых эффектов
                     if (hasMega || hasGhost) {
-                        ctx.shadowColor = bodyColor;
-                        ctx.shadowBlur = 10 * bodyPulse;
+                        ctx.shadowColor = bodyColors[0];
+                        ctx.shadowBlur = 12 * bodyPulse;
                     }
                     
                     ctx.beginPath();
                     ctx.arc(x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, (window.GRID_SIZE-2)/2 * bodyPulse * sizeMultiplier, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.shadowBlur = 0;
+                    
+                    // Чешуйки на теле
+                    if (index % 3 === 0) {
+                        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                        ctx.beginPath();
+                        ctx.arc(x + window.GRID_SIZE/2 - window.GRID_SIZE/4, y + window.GRID_SIZE/2, window.GRID_SIZE/8, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
                 }
             });
 
-            // Рисуем еду с яркими цветами
+            // Рисуем еду с мощными эффектами
             if (gameState.food) {
                 const foodX = gameState.food.x * window.GRID_SIZE;
                 const foodY = gameState.food.y * window.GRID_SIZE;
-                const foodPulse = Math.sin(gameState.animationTime * 6) * 0.25 + 1;
-                const rotation = gameState.animationTime * 2;
+                const foodPulse = Math.sin(gameState.animationTime * 8) * 0.3 + 1;
+                const rotation = gameState.animationTime * 3;
                 const foodData = FOOD_TYPES[gameState.food.type];
                 
                 ctx.save();
@@ -1351,45 +1554,49 @@
                 switch (gameState.food.type) {
                     case 'GOLDEN':
                         foodGradient.addColorStop(0, '#FFD700');
-                        foodGradient.addColorStop(0.7, '#FFA500');
+                        foodGradient.addColorStop(0.5, '#FFA500');
                         foodGradient.addColorStop(1, '#FF8C00');
                         ctx.shadowColor = '#FFD700';
-                        ctx.shadowBlur = 20 * foodPulse;
-                        break;
-                    case 'DIAMOND':
-                        foodGradient.addColorStop(0, '#00FFFF');
-                        foodGradient.addColorStop(0.5, '#0080FF');
-                        foodGradient.addColorStop(1, '#0040FF');
-                        ctx.shadowColor = '#00FFFF';
                         ctx.shadowBlur = 25 * foodPulse;
                         break;
-                    case 'LIGHTNING':
-                        foodGradient.addColorStop(0, '#FFFF00');
-                        foodGradient.addColorStop(0.7, '#FFD700');
-                        foodGradient.addColorStop(1, '#FFA500');
-                        ctx.shadowColor = '#FFFF00';
+                    case 'DIAMOND':
+                        foodGradient.addColorStop(0, '#E0FFFF');
+                        foodGradient.addColorStop(0.3, '#00FFFF');
+                        foodGradient.addColorStop(0.7, '#0080FF');
+                        foodGradient.addColorStop(1, '#0040FF');
+                        ctx.shadowColor = '#00FFFF';
                         ctx.shadowBlur = 30 * foodPulse;
                         break;
+                    case 'LIGHTNING':
+                        foodGradient.addColorStop(0, '#FFFF99');
+                        foodGradient.addColorStop(0.4, '#FFFF00');
+                        foodGradient.addColorStop(0.8, '#FFD700');
+                        foodGradient.addColorStop(1, '#FFA500');
+                        ctx.shadowColor = '#FFFF00';
+                        ctx.shadowBlur = 35 * foodPulse;
+                        break;
                     case 'PORTAL':
-                        foodGradient.addColorStop(0, '#9C27B0');
+                        foodGradient.addColorStop(0, '#DDA0DD');
+                        foodGradient.addColorStop(0.4, '#9C27B0');
                         foodGradient.addColorStop(0.7, '#E91E63');
                         foodGradient.addColorStop(1, '#3F51B5');
                         ctx.shadowColor = '#9C27B0';
-                        ctx.shadowBlur = 20 * foodPulse;
+                        ctx.shadowBlur = 25 * foodPulse;
                         break;
                     case 'MEGA':
-                        foodGradient.addColorStop(0, '#FF1493');
-                        foodGradient.addColorStop(0.5, '#FF69B4');
+                        foodGradient.addColorStop(0, '#FFB6C1');
+                        foodGradient.addColorStop(0.3, '#FF1493');
+                        foodGradient.addColorStop(0.6, '#FF69B4');
                         foodGradient.addColorStop(1, '#FF20B2');
                         ctx.shadowColor = '#FF1493';
-                        ctx.shadowBlur = 35 * foodPulse;
+                        ctx.shadowBlur = 40 * foodPulse;
                         break;
                     default:
-                        foodGradient.addColorStop(0, '#FF4444');
-                        foodGradient.addColorStop(0.7, '#E53E3E');
-                        foodGradient.addColorStop(1, '#C53030');
+                        foodGradient.addColorStop(0, '#FF6B6B');
+                        foodGradient.addColorStop(0.5, '#FF4444');
+                        foodGradient.addColorStop(1, '#FF0000');
                         ctx.shadowColor = '#FF4444';
-                        ctx.shadowBlur = 15 * foodPulse;
+                        ctx.shadowBlur = 20 * foodPulse;
                 }
                 
                 ctx.fillStyle = foodGradient;
@@ -1397,12 +1604,20 @@
                 ctx.arc(0, 0, (window.GRID_SIZE-2)/2 * foodPulse, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Блик
+                // Мощный блик
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = 'rgba(255,255,255,0.9)';
                 ctx.beginPath();
-                ctx.arc(-window.GRID_SIZE/8, -window.GRID_SIZE/8, window.GRID_SIZE/12 * foodPulse, 0, Math.PI * 2);
+                ctx.arc(-window.GRID_SIZE/6, -window.GRID_SIZE/6, window.GRID_SIZE/8 * foodPulse, 0, Math.PI * 2);
                 ctx.fill();
+                
+                // Дополнительные блики для особых типов
+                if (gameState.food.type !== 'NORMAL') {
+                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                    ctx.beginPath();
+                    ctx.arc(window.GRID_SIZE/6, window.GRID_SIZE/6, window.GRID_SIZE/12 * foodPulse, 0, Math.PI * 2);
+                    ctx.fill();
+                }
                 
                 ctx.restore();
             }
@@ -1411,40 +1626,52 @@
             drawParticles();
             updateParticles();
 
-            // Индикаторы эффектов
-            let effectY = Math.max(20, canvas.height * 0.05);
-            const fontSize = Math.max(12, canvas.width * 0.025);
+            // Индикаторы эффектов с улучшенным дизайном
+            let effectY = Math.max(25, canvas.height * 0.06);
+            const fontSize = Math.max(14, canvas.width * 0.03);
             ctx.font = `bold ${fontSize}px Arial`;
             
             if (gameState.powerups.mega && Date.now() < gameState.powerups.mega) {
-                ctx.fillStyle = '#C51162';
-                ctx.shadowColor = '#E91E63';
-                ctx.shadowBlur = 15;
-                ctx.fillText('💥 МЕГА БОНУС', 20, effectY);
+                ctx.fillStyle = '#FF1493';
+                ctx.shadowColor = '#FF69B4';
+                ctx.shadowBlur = 20;
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 2;
+                ctx.strokeText('💥 МЕГА БОНУС', 25, effectY);
+                ctx.fillText('💥 МЕГА БОНУС', 25, effectY);
                 ctx.shadowBlur = 0;
-                effectY += fontSize + 5;
+                effectY += fontSize + 8;
             }
             if (gameState.powerups.ghost && Date.now() < gameState.powerups.ghost) {
-                ctx.fillStyle = '#006064';
-                ctx.shadowColor = '#00BCD4';
-                ctx.shadowBlur = 12;
-                ctx.fillText('💎 ПРИЗРАК', 20, effectY);
+                ctx.fillStyle = '#00FFFF';
+                ctx.shadowColor = '#26C6DA';
+                ctx.shadowBlur = 15;
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 2;
+                ctx.strokeText('💎 ПРИЗРАК', 25, effectY);
+                ctx.fillText('💎 ПРИЗРАК', 25, effectY);
                 ctx.shadowBlur = 0;
-                effectY += fontSize + 5;
+                effectY += fontSize + 8;
             }
             if (gameState.powerups.speed && Date.now() < gameState.powerups.speed) {
-                ctx.fillStyle = '#F57F17';
-                ctx.shadowColor = '#FFEB3B';
-                ctx.shadowBlur = 12;
-                ctx.fillText('⚡ УСКОРЕНИЕ', 20, effectY);
+                ctx.fillStyle = '#FFEB3B';
+                ctx.shadowColor = '#FFC107';
+                ctx.shadowBlur = 15;
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 2;
+                ctx.strokeText('⚡ УСКОРЕНИЕ', 25, effectY);
+                ctx.fillText('⚡ УСКОРЕНИЕ', 25, effectY);
                 ctx.shadowBlur = 0;
-                effectY += fontSize + 5;
+                effectY += fontSize + 8;
             }
             if (gameState.powerups.slow && Date.now() < gameState.powerups.slow) {
-                ctx.fillStyle = '#FF8F00';
-                ctx.shadowColor = '#FFC107';
-                ctx.shadowBlur = 12;
-                ctx.fillText('🌟 ЗАМЕДЛЕНИЕ', 20, effectY);
+                ctx.fillStyle = '#FFD700';
+                ctx.shadowColor = '#FFA500';
+                ctx.shadowBlur = 15;
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 2;
+                ctx.strokeText('🌟 ЗАМЕДЛЕНИЕ', 25, effectY);
+                ctx.fillText('🌟 ЗАМЕДЛЕНИЕ', 25, effectY);
                 ctx.shadowBlur = 0;
             }
         }
@@ -1466,17 +1693,35 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // Окончание игры
+        // Окончание игры с сохранением статистики
         function gameOver() {
             gameState.gameRunning = false;
             gameState.gameStarted = false;
             
-            // Сохраняем статистику
+            // Обновляем расширенную статистику
             gameStats.gamesPlayed++;
             gameStats.totalScore += gameState.score;
             gameStats.totalTime += gameState.currentGameTime;
+            gameStats.totalFoodEaten += gameState.totalFoodEaten;
             gameStats.bestScore = Math.max(gameStats.bestScore, gameState.score);
+            gameStats.longestGame = Math.max(gameStats.longestGame, gameState.currentGameTime);
+            gameStats.bestCombo = Math.max(gameStats.bestCombo, gameState.maxCombo);
             gameStats.achievements = Array.from(gameState.achievements);
+            
+            // Определяем любимую еду
+            let maxCount = 0;
+            let favoriteFood = 'NORMAL';
+            for (const [type, count] of Object.entries(gameState.foodStats)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    favoriteFood = type;
+                }
+            }
+            gameStats.favoriteFood = favoriteFood;
+            
+            // Пересчитываем статистику
+            gameStats.averageScore = Math.floor(gameStats.totalScore / gameStats.gamesPlayed);
+            gameStats.winRate = Math.floor((gameStats.gamesPlayed > 0 ? (gameStats.bestScore > 200 ? 1 : 0) : 0) * 100);
             
             // Обновляем дневной рекорд
             const today = new Date().toDateString();
@@ -1487,7 +1732,7 @@
             const ratingChange = Math.floor(gameState.score / 50) - Math.floor(Math.random() * 20);
             gameStats.rating = Math.max(1000, gameStats.rating + ratingChange);
             
-            // Сохраняем в localStorage
+            // Сохраняем все в localStorage
             Object.keys(gameStats).forEach(key => {
                 if (key !== 'achievements') {
                     localStorage.setItem(`snake${key.charAt(0).toUpperCase() + key.slice(1)}`, gameStats[key].toString());
@@ -1499,27 +1744,42 @@
             // Эпический взрыв частиц
             gameState.snake.forEach((segment, index) => {
                 setTimeout(() => {
-                    createParticles(segment.x, segment.y, '#ff6b6b', 20);
-                }, index * 30);
+                    createParticles(segment.x, segment.y, '#ff6b6b', 25, 'explosion');
+                }, index * 50);
             });
             
             // Показываем достижения
             const achievementsList = document.getElementById('achievementsList');
             if (gameState.achievements.size > 0) {
                 const achievementNames = {
-                    'feast_master': '🍽️ Мастер пира',
-                    'score_500': '🏆 Чемпион',
-                    'giant_snake': '🐍 Титаническая змея',
-                    'speed_legend': '💨 Легенда скорости',
-                    'combo_king': '🔥 Король комбо',
+                    'first_feast': '🍽️ Первый пир',
+                    'score_300': '🏆 Мастер',
+                    'long_snake': '🐍 Гигантская змея',
+                    'speed_demon': '💨 Демон скорости',
+                    'combo_master': '🔥 Мастер комбо',
                     'endurance': '⏰ Выносливость'
                 };
                 
-                achievementsList.innerHTML = '<div style="margin-bottom: 15px; font-size: 14px;">🏆 ДОСТИЖЕНИЯ:<br>' + 
+                achievementsList.innerHTML = '<div style="margin-bottom: 15px; font-size: 14px; color: #FFD700;">🏆 ДОСТИЖЕНИЯ:<br>' + 
                     Array.from(gameState.achievements).map(a => achievementNames[a] || a).join(', ') + '</div>';
             } else {
                 achievementsList.innerHTML = '';
             }
+            
+            // Показываем расширенную статистику
+            const statisticsDisplay = document.getElementById('statisticsDisplay');
+            const foodEmojis = { NORMAL: '🍎', GOLDEN: '🌟', DIAMOND: '💎', LIGHTNING: '⚡', PORTAL: '🌀', MEGA: '💥' };
+            
+            statisticsDisplay.innerHTML = `
+                <div style="margin-bottom: 15px; font-size: 12px; color: #90EE90; line-height: 1.4;">
+                    📊 СТАТИСТИКА:<br>
+                    🎮 Игр сыграно: ${gameStats.gamesPlayed}<br>
+                    📈 Средний счет: ${gameStats.averageScore}<br>
+                    ⏱️ Общее время: ${Math.floor(gameStats.totalTime / 60000)}:${Math.floor((gameStats.totalTime % 60000) / 1000).toString().padStart(2, '0')}<br>
+                    🍎 Съедено фруктов: ${gameStats.totalFoodEaten}<br>
+                    ❤️ Любимая еда: ${foodEmojis[gameStats.favoriteFood] || '🍎'}
+                </div>
+            `;
             
             // Турнирный результат
             updateTournamentInfo();
@@ -1539,7 +1799,7 @@
             
             setTimeout(() => {
                 document.getElementById('gameOverScreen').style.display = 'flex';
-            }, 1000);
+            }, 1500);
             
             // Отправляем в Telegram
             if (tg && tg.sendData) {
@@ -1552,7 +1812,8 @@
                     gameTime: gameState.currentGameTime,
                     achievements: Array.from(gameState.achievements),
                     tournamentRank: gameStats.tournamentRank,
-                    rating: gameStats.rating
+                    rating: gameStats.rating,
+                    statistics: gameStats
                 }));
             }
             
@@ -1589,7 +1850,8 @@
                 lastFoodTime: 0,
                 gameStartTime: 0,
                 currentGameTime: 0,
-                isPaused: false
+                isPaused: false,
+                foodStats: {}
             };
             
             document.getElementById('scoreDisplay').textContent = '🏆 0';
@@ -1607,7 +1869,7 @@
 
         // Поделиться результатом
         function shareScore() {
-            const text = `🐍 Змейка MEGA\n🏆 Набрал ${gameState.score} очков!\n📏 Длина: ${gameState.maxLength}\n⚡ Уровень: ${gameState.level}\n🔥 Лучшее комбо: x${gameState.maxCombo}\n🏆 Место в турнире: #${gameStats.tournamentRank}`;
+            const text = `🐍 Змейка MEGA\n🏆 Набрал ${gameState.score} очков!\n📏 Длина: ${gameState.maxLength}\n⚡ Уровень: ${gameState.level}\n🔥 Лучшее комбо: x${gameState.maxCombo}\n🏆 Место в турнире: #${gameStats.tournamentRank}\n🎯 Рейтинг: ${gameStats.rating}`;
             
             if (navigator.share) {
                 navigator.share({
@@ -1623,7 +1885,8 @@
                     level: gameState.level,
                     maxLength: gameState.maxLength,
                     maxCombo: gameState.maxCombo,
-                    tournamentRank: gameStats.tournamentRank
+                    tournamentRank: gameStats.tournamentRank,
+                    rating: gameStats.rating
                 }));
             }
         }
@@ -1749,6 +2012,13 @@
             gameState.food = generateFood();
             updateTournamentInfo();
             draw();
+            
+            // Показываем приветственное сообщение
+            setTimeout(() => {
+                if (!gameState.gameStarted) {
+                    showPowerupNotification('🌟 Добро пожаловать в ЗМЕЙКУ MEGA! 🚀');
+                }
+            }, 1000);
         }
 
         // Запуск
