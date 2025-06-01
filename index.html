@@ -2176,6 +2176,13 @@
             const touchEndTime = Date.now();
             const touchDuration = touchEndTime - touchStartTime;
             
+            // Если игра не началась, запускаем при любом тапе
+            if (!gameState.gameStarted) {
+                startGame();
+                showPowerupNotification('🚀 Игра началась! Свайпайте для управления!');
+                return;
+            }
+            
             // Двойной тап для паузы
             if (touchDuration < 200 && touchEndTime - lastTouchTime < 400) {
                 togglePause();
@@ -2204,6 +2211,15 @@
                 }
             }
         }, {passive: false});
+
+        // Обработка кликов мышью для старта игры
+        canvas.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!gameState.gameStarted) {
+                startGame();
+                showPowerupNotification('🚀 Игра началась! Используйте стрелки или WASD!');
+            }
+        });
 
         // Предотвращение скролла
         document.addEventListener('touchmove', (e) => {
@@ -2253,9 +2269,17 @@
                 // Приветственное сообщение
                 setTimeout(() => {
                     if (!gameState.gameStarted) {
-                        showPowerupNotification('🌟 Добро пожаловать в ЗМЕЙКУ MEGA! 🚀');
+                        showPowerupNotification('🎮 Свайпните или нажмите стрелку для старта!');
                     }
-                }, 1500);
+                }, 1000);
+                
+                // Автостарт через 3 секунды если не начали играть
+                setTimeout(() => {
+                    if (!gameState.gameStarted) {
+                        startGame();
+                        showPowerupNotification('🚀 Игра началась! Управляйте змейкой!');
+                    }
+                }, 3000);
                 
                 // Декоративные эффекты
                 setInterval(() => {
