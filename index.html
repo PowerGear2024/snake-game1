@@ -1,1365 +1,645 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Battle City Mobile - Retro Edition</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-        }
-        
-        body {
-            background: linear-gradient(45deg, #1a1a2e, #16213e);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            font-family: 'Press Start 2P', 'Courier New', monospace;
-            color: #fff;
-            overflow: hidden;
-        }
-        
-        .game-container {
-            position: relative;
-            margin: 10px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
-            border: 4px solid #ecf0f1;
-            background: #000;
-        }
-        
-        #gameCanvas {
-            display: block;
-            background: #000;
-            max-width: 100vw;
-            max-height: 70vh;
-            image-rendering: pixelated;
-        }
-        
-        .hud {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.85);
-            padding: 8px;
-            border: 2px solid #f39c12;
-            border-radius: 4px;
-            font-size: 12px;
-            color: #f39c12;
-            z-index: 10;
-            text-shadow: 1px 1px #000;
-        }
-        
-        .level-info {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.85);
-            padding: 8px;
-            border: 2px solid #3498db;
-            border-radius: 4px;
-            font-size: 12px;
-            color: #3498db;
-            z-index: 10;
-            text-shadow: 1px 1px #000;
-        }
-        
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 300px;
-            padding: 15px;
-            background: rgba(0,0,0,0.9);
-            margin-top: 10px;
-            border-radius: 8px;
-        }
-        
-        .dpad {
-            position: relative;
-            width: 120px;
-            height: 120px;
-        }
-        
-        .dpad-btn {
-            position: absolute;
-            background: linear-gradient(135deg, #34495e, #2c3e50);
-            border: 3px solid #ecf0f1;
-            border-radius: 8px;
-            font-size: 20px;
-            color: #ecf0f1;
-            cursor: pointer;
-            transition: all 0.1s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-        
-        .dpad-btn:active {
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-            transform: scale(0.95);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .dpad-up { top: 0; left: 40px; width: 40px; height: 40px; }
-        .dpad-down { bottom: 0; left: 40px; width: 40px; height: 40px; }
-        .dpad-left { top: 40px; left: 0; width: 40px; height: 40px; }
-        .dpad-right { top: 40px; right: 0; width: 40px; height: 40px; }
-        .dpad-center { top: 40px; left: 40px; width: 40px; height: 40px; background: rgba(52,73,94,0.3); border: 2px solid #555; }
-        .fire-btn { width: 60px; height: 60px; border-radius: 50%; font-size: 24px; }
-        
-        .sound-btn {
-            background: linear-gradient(135deg, #34495e, #2c3e50);
-            border: 3px solid #ecf0f1;
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 16px;
-            color: #ecf0f1;
-            cursor: pointer;
-        }
-        
-        .sound-btn:active {
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-        }
-        
-        .start-screen, .game-over, .pause-menu {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, rgba(44,62,80,0.95), rgba(52,73,94,0.95));
-            padding: 20px;
-            border: 3px solid #f39c12;
-            border-radius: 8px;
-            text-align: center;
-            display: none;
-            box-shadow: 0 0 30px rgba(243,156,18,0.5);
-            z-index: 20;
-            font-size: 12px;
-            max-width: 80%;
-        }
-        
-        .start-screen h2, .game-over h2, .pause-menu h2 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px #000;
-        }
-        
-        .restart-btn, .start-btn, .resume-btn {
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-            color: #2c3e50;
-            border: none;
-            padding: 10px 20px;
-            font-size: 14px;
-            cursor: pointer;
-            margin: 10px;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-        }
-        
-        .restart-btn:hover, .start-btn:hover, .resume-btn:hover {
-            background: linear-gradient(135deg, #e67e22, #d35400);
-            transform: translateY(-2px);
-        }
-        
-        @media (max-width: 768px) {
-            .controls { padding: 10px; }
-            .dpad { width: 100px; height: 100px; }
-            .dpad-btn { font-size: 16px; }
-            .dpad-up, .dpad-down, .dpad-left, .dpad-right { width: 30px; height: 30px; }
-            .dpad-center { top: 35px; left: 35px; width: 30px; height: 30px; }
-            .dpad-up { left: 35px; }
-            .dpad-down { left: 35px; }
-            .fire-btn { width: 50px; height: 50px; font-size: 20px; }
-            .start-screen, .game-over, .pause-menu { padding: 15px; font-size: 10px; }
-            .start-screen h2, .game-over h2, .pause-menu h2 { font-size: 18px; }
-        }
-    </style>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="game-container">
-        <canvas id="gameCanvas" width="520" height="520"></canvas>
-        
-        <div class="hud">
-            <div>🏆 Очки: <span id="score">0</span></div>
-            <div>💚 Жизни: <span id="lives">3</span></div>
-            <div>⭐ Уровень: <span id="powerLevel">0</span></div>
-            <div id="powerUpStatus"></div>
-            <div>🥇 Рекорд: <span id="highScore">0</span></div>
-        </div>
-        
-        <div class="level-info">
-            <div>Уровень: <span id="level">1</span></div>
-            <div>Враги: <span id="enemies">10</span></div>
-            <div id="levelType">Классический</div>
-        </div>
-        
-        <div class="start-screen" id="startScreen">
-            <h2>Battle City</h2>
-            <p>Управление: используйте D-Pad или WASD для движения, кнопку огня или пробел для стрельбы.</p>
-            <p>Цель: уничтожьте все вражеские танки и защитите базу (🦅).</p>
-            <p>Бонусы: ⭐ улучшение, 🛡️ щит, 💣 уничтожение врагов, 🚗 жизнь, ⏰ заморозка, ⚡ скорость.</p>
-            <button class="start-btn">🚀 НАЧАТЬ ИГРУ</button>
-        </div>
-        
-        <div class="game-over" id="gameOver">
-            <h2>🎯 ИГРА ОКОНЧЕНА</h2>
-            <div>Финальный счёт: <span id="finalScore">0</span></div>
-            <div>Рекорд: <span id="finalHighScore">0</span></div>
-            <button class="restart-btn">🚀 НОВАЯ ИГРА</button>
-        </div>
-        
-        <div class="pause-menu" id="pauseMenu">
-            <h2>⏸️ ПАУЗА</h2>
-            <button class="resume-btn">▶️ Продолжить</button>
-            <button class="restart-btn">🔄 Начать заново</button>
-        </div>
-    </div>
 
-    <div class="controls">
-        <div class="dpad">
-            <button class="dpad-btn dpad-up" data-direction="up">▲</button>
-            <button class="dpad-btn dpad-down" data-direction="down">▼</button>
-            <button class="dpad-btn dpad-left" data-direction="left">◀</button>
-            <button class="dpad-btn dpad-right" data-direction="right">▶</button>
-            <div class="dpad-center"></div>
-        </div>
-        <button class="dpad-btn fire-btn" id="fireButton">💥</button>
-        <button class="sound-btn" id="soundToggle">🔊</button>
-    </div>
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, BotCommand
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
+import json
+import logging
+from datetime import datetime, timedelta
 
-    <script>
-        // Константы игры
-        const BLOCK_SIZE = 20;
-        const GRID_WIDTH = 26;
-        const GRID_HEIGHT = 26;
-        
-        const ENEMY_TYPES = {
-            BASIC: { speed: 1, health: 1, points: 100, color: '#FF4444', size: 18 },
-            FAST: { speed: 2, health: 1, points: 200, color: '#FF8844', size: 16 },
-            POWER: { speed: 1, health: 3, points: 300, color: '#44FF44', size: 20 },
-            ARMOR: { speed: 1, health: 2, points: 400, color: '#FFFF44', size: 19 }
-        };
+# Настройка логирования
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-        const POWERUP_TYPES = {
-            STAR: { name: 'Звезда', effect: 'upgrade', duration: -1, icon: '⭐' },
-            HELMET: { name: 'Шлем', effect: 'shield', duration: 8000, icon: '🛡️' },
-            SHOVEL: { name: 'Лопата', effect: 'fortify', duration: 15000, icon: '🛠️' },
-            GRENADE: { name: 'Граната', effect: 'destroy_all', duration: -1, icon: '💣' },
-            TANK: { name: 'Танк', effect: 'extra_life', duration: -1, icon: '🚗' },
-            CLOCK: { name: 'Часы', effect: 'freeze', duration: 6000, icon: '⏰' },
-            SPEED: { name: 'Скорость', effect: 'speed_boost', duration: 10000, icon: '⚡' }
-        };
+# ВАЖНО: Замените на ваш токен от @BotFather
+BOT_TOKEN = "7500806601:AAG3nSdkrXc6WBQKojXg-Nx6gAAGEcF4v4M"
 
-        // Загрузка звуков
-        const sounds = {
-            move: new Audio('data:audio/wav;base64,//snd_data_move'),
-            shoot: new Audio('data:audio/wav;base64,//snd_data_shoot'),
-            explosion: new Audio('data:audio/wav;base64,//snd_data_explosion'),
-            powerUp: new Audio('data:audio/wav;base64,//snd_data_powerup'),
-            gameOver: new Audio('data:audio/wav;base64,//snd_data_gameover')
-        };
-        let soundEnabled = true;
+# URL вашего веб-приложения
+WEBAPP_URL = "https://powergear2024.github.io/snake-game1/"
 
-        // Основной класс игры
-        class TankGame {
-            constructor() {
-                this.canvas = document.getElementById('gameCanvas');
-                this.ctx = this.canvas.getContext('2d', { alpha: false });
-                this.width = this.canvas.width;
-                this.height = this.canvas.height;
-                
-                this.score = 0;
-                this.lives = 3;
-                this.level = 1;
-                this.highScore = localStorage.getItem('battleCityHighScore') || 0;
-                this.gameState = 'start';
-                this.enemiesRemaining = 10;
-                this.enemiesOnField = 0;
-                this.maxEnemiesOnField = 3;
-                this.enemySpawnTimer = 0;
-                this.enemySpawnDelay = 120;
-                
-                this.bullets = [];
-                this.enemyBullets = [];
-                this.enemies = [];
-                this.explosions = [];
-                this.powerUps = [];
-                this.walls = [];
-                this.grass = [];
-                this.water = [];
-                this.particles = [];
-                this.enemyBases = [];
-                
-                this.enemySpawnPoints = [
-                    { x: BLOCK_SIZE, y: BLOCK_SIZE },
-                    { x: 12 * BLOCK_SIZE, y: BLOCK_SIZE },
-                    { x: 23 * BLOCK_SIZE, y: BLOCK_SIZE }
-                ];
-                
-                this.player = new Tank(12 * BLOCK_SIZE, 22 * BLOCK_SIZE, 'player');
-                this.playerBase = new Base(12 * BLOCK_SIZE, 24 * BLOCK_SIZE, 'player');
-                
-                this.playerPowerUps = {
-                    shield: 180,
-                    level: 0,
-                    frozen: false,
-                    speedBoost: 0
-                };
-                
-                this.touchControls = {
-                    up: false,
-                    down: false,
-                    left: false,
-                    right: false,
-                    fire: false
-                };
-                
-                this.levelLayouts = [
-                    this.createLevel1,
-                    this.createLevel2,
-                    this.createLevel3
-                ];
-                
-                this.bindEvents();
-                this.gameLoop();
-            }
-            
-            start() {
-                this.gameState = 'playing';
-                this.init();
-                document.getElementById('startScreen').style.display = 'none';
-                if (soundEnabled) sounds.gameOver.play();
-                setTimeout(() => this.forceSpawnEnemies(), 1000);
-            }
-            
-            init() {
-                this.createLevel();
-                this.updateHUD();
-                this.enemySpawnTimer = 0;
-            }
-            
-            forceSpawnEnemies() {
-                for (let i = 0; i < 3; i++) {
-                    if (this.enemiesRemaining > 0) {
-                        this.spawnEnemy();
-                    }
-                }
-            }
-            
-            createLevel() {
-                this.walls = [];
-                this.grass = [];
-                this.water = [];
-                this.enemyBases = [];
-                
-                const layoutIndex = (this.level - 1) % this.levelLayouts.length;
-                this.levelLayouts[layoutIndex].call(this);
-                this.createBorders();
-                this.createPlayerBaseProtection();
-                
-                document.getElementById('levelType').textContent = `Уровень ${layoutIndex + 1}`;
-            }
-            
-            createLevel1() {
-                this.enemyBases.push(new Base(2 * BLOCK_SIZE, 2 * BLOCK_SIZE, 'enemy'));
-                this.enemyBases.push(new Base(22 * BLOCK_SIZE, 2 * BLOCK_SIZE, 'enemy'));
-                
-                const obstacles = [
-                    [5, 5], [6, 5], [7, 5], [17, 5], [18, 5], [19, 5],
-                    [5, 8], [6, 8], [7, 8], [17, 8], [18, 8], [19, 8],
-                    [11, 10], [12, 10], [13, 10], [11, 11], [12, 11], [13, 11],
-                    [3, 15], [4, 15], [5, 15], [19, 15], [20, 15], [21, 15]
-                ];
-                
-                obstacles.forEach(([x, y]) => {
-                    this.walls.push({
-                        x: x * BLOCK_SIZE, y: y * BLOCK_SIZE,
-                        destructible: true, health: 1, maxHealth: 1
-                    });
-                });
-                
-                const waterAreas = [[9, 12], [10, 12], [14, 12], [15, 12]];
-                waterAreas.forEach(([x, y]) => {
-                    this.water.push({x: x * BLOCK_SIZE, y: y * BLOCK_SIZE});
-                });
-                
-                const grassAreas = [[2, 7], [3, 7], [21, 7], [22, 7], [8, 14], [9, 14], [15, 14], [16, 14]];
-                grassAreas.forEach(([x, y]) => {
-                    this.grass.push({x: x * BLOCK_SIZE, y: y * BLOCK_SIZE});
-                });
-            }
-            
-            createLevel2() {
-                this.enemyBases.push(new Base(12 * BLOCK_SIZE, 2 * BLOCK_SIZE, 'enemy'));
-                
-                const obstacles = [
-                    [3, 3], [4, 3], [20, 3], [21, 3],
-                    [8, 8], [9, 8], [10, 8], [14, 8], [15, 8], [16, 8],
-                    [3, 12], [4, 12], [20, 12], [21, 12],
-                    [10, 16], [11, 16], [12, 16], [13, 16], [14, 16]
-                ];
-                
-                obstacles.forEach(([x, y]) => {
-                    this.walls.push({
-                        x: x * BLOCK_SIZE, y: y * BLOCK_SIZE,
-                        destructible: true, health: 1, maxHealth: 1
-                    });
-                });
-                
-                const waterAreas = [[6, 6], [7, 6], [17, 6], [18, 6]];
-                waterAreas.forEach(([x, y]) => {
-                    this.water.push({x: x * BLOCK_SIZE, y: y * BLOCK_SIZE});
-                });
-                
-                const grassAreas = [[5, 10], [6, 10], [18, 10], [19, 10]];
-                grassAreas.forEach(([x, y]) => {
-                    this.grass.push({x: x * BLOCK_SIZE, y: y * BLOCK_SIZE});
-                });
-            }
-            
-            createLevel3() {
-                this.enemyBases.push(new Base(2 * BLOCK_SIZE, 2 * BLOCK_SIZE, 'enemy'));
-                this.enemyBases.push(new Base(22 * BLOCK_SIZE, 2 * BLOCK_SIZE, 'enemy'));
-                
-                const obstacles = [
-                    [5, 4], [6, 4], [7, 4], [17, 4], [18, 4], [19, 4],
-                    [10, 8], [11, 8], [12, 8], [13, 8], [14, 8],
-                    [5, 12], [6, 12], [7, 12], [17, 12], [18, 12], [19, 12],
-                    [10, 16], [11, 16], [12, 16], [13, 16], [14, 16]
-                ];
-                
-                obstacles.forEach(([x, y]) => {
-                    this.walls.push({
-                        x: x * BLOCK_SIZE, y: y * BLOCK_SIZE,
-                        destructible: true, health: 1, maxHealth: 1
-                    });
-                });
-                
-                const waterAreas = [[8, 10], [9, 10], [15, 10], [16, 10]];
-                waterAreas.forEach(([x, y]) => {
-                    this.water.push({x: x * BLOCK_SIZE, y: y * BLOCK_SIZE});
-                });
-                
-                const grassAreas = [[2, 6], [3, 6], [21, 6], [22, 6]];
-                grassAreas.forEach(([x, y]) => {
-                    this.grass.push({x: x * BLOCK_SIZE, y: y * BLOCK_SIZE});
-                });
-            }
-            
-            createBorders() {
-                for (let x = 0; x < GRID_WIDTH; x++) {
-                    if (x < 1 || (x > 2 && x < 11) || (x > 13 && x < 22) || x > 23) {
-                        this.walls.push({
-                            x: x * BLOCK_SIZE, y: 0,
-                            destructible: false, health: -1
-                        });
-                    }
-                    this.walls.push({
-                        x: x * BLOCK_SIZE, y: (GRID_HEIGHT-1) * BLOCK_SIZE,
-                        destructible: false, health: -1
-                    });
-                }
-                
-                for (let y = 1; y < GRID_HEIGHT-1; y++) {
-                    this.walls.push({
-                        x: 0, y: y * BLOCK_SIZE,
-                        destructible: false, health: -1
-                    });
-                    this.walls.push({
-                        x: (GRID_WIDTH-1) * BLOCK_SIZE, y: y * BLOCK_SIZE,
-                        destructible: false, health: -1
-                    });
-                }
-            }
-            
-            createPlayerBaseProtection() {
-                const baseProtection = [
-                    [11, 22], [12, 22], [13, 22], [11, 23], [13, 23], [11, 25], [13, 25]
-                ];
-                
-                baseProtection.forEach(([x, y]) => {
-                    this.walls.push({
-                        x: x * BLOCK_SIZE, y: y * BLOCK_SIZE,
-                        destructible: true, health: 1, maxHealth: 1
-                    });
-                });
-            }
-            
-            bindEvents() {
-                this.keys = {};
-                
-                document.addEventListener('keydown', (e) => {
-                    this.keys[e.code] = true;
-                    if (e.code === 'KeyP') this.togglePause();
-                    if (e.code === 'Space' && this.gameState === 'playing') this.touchControls.fire = true;
-                });
-                
-                document.addEventListener('keyup', (e) => {
-                    this.keys[e.code] = false;
-                    if (e.code === 'Space') this.touchControls.fire = false;
-                });
-                
-                const dpadButtons = document.querySelectorAll('.dpad-btn');
-                dpadButtons.forEach(btn => {
-                    btn.addEventListener('touchstart', (e) => {
-                        e.preventDefault();
-                        const direction = btn.dataset.direction || (btn.id === 'fireButton' ? 'fire' : null);
-                        if (direction) this.touchControls[direction] = true;
-                    });
-                    
-                    btn.addEventListener('touchend', (e) => {
-                        e.preventDefault();
-                        const direction = btn.dataset.direction || (btn.id === 'fireButton' ? 'fire' : null);
-                        if (direction) this.touchControls[direction] = false;
-                    });
-                    
-                    btn.addEventListener('mousedown', (e) => {
-                        e.preventDefault();
-                        const direction = btn.dataset.direction || (btn.id === 'fireButton' ? 'fire' : null);
-                        if (direction) this.touchControls[direction] = true;
-                    });
-                    
-                    btn.addEventListener('mouseup', (e) => {
-                        e.preventDefault();
-                        const direction = btn.dataset.direction || (btn.id === 'fireButton' ? 'fire' : null);
-                        if (direction) this.touchControls[direction] = false;
-                    });
-                });
-                
-                // Add event listeners for buttons
-                document.querySelector('.start-btn').addEventListener('click', () => this.start());
-                document.querySelectorAll('.restart-btn').forEach(btn => btn.addEventListener('click', () => this.restart()));
-                document.querySelector('.resume-btn').addEventListener('click', () => this.togglePause());
-                
-                document.getElementById('soundToggle').addEventListener('click', () => {
-                    soundEnabled = !soundEnabled;
-                    document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
-                });
-                
-                document.addEventListener('mouseup', () => {
-                    Object.keys(this.touchControls).forEach(key => {
-                        this.touchControls[key] = false;
-                    });
-                });
-            }
-            
-            togglePause() {
-                if (this.gameState === 'playing') {
-                    this.gameState = 'paused';
-                    document.getElementById('pauseMenu').style.display = 'block';
-                } else if (this.gameState === 'paused') {
-                    this.gameState = 'playing';
-                    document.getElementById('pauseMenu').style.display = 'none';
-                }
-            }
-            
-            update() {
-                if (this.gameState !== 'playing') return;
-                
-                this.updatePowerUps();
-                this.updateEnemySpawn();
-                
-                this.player.update(this);
-                
-                if (!this.playerPowerUps.frozen) {
-                    this.enemies.forEach(enemy => enemy.update(this));
-                }
-                
-                this.bullets = this.bullets.filter(bullet => bullet.update(this));
-                this.enemyBullets = this.enemyBullets.filter(bullet => bullet.update(this));
-                this.explosions = this.explosions.filter(explosion => explosion.update());
-                this.particles = this.particles.filter(particle => particle.update());
-                
-                this.checkCollisions();
-                this.checkGameConditions();
-            }
-            
-            updatePowerUps() {
-                if (this.playerPowerUps.shield > 0) this.playerPowerUps.shield--;
-                if (this.playerPowerUps.speedBoost > 0) {
-                    this.playerPowerUps.speedBoost--;
-                    if (this.playerPowerUps.speedBoost <= 0) {
-                        this.player.speed = this.player.level >= 2 ? 3 : 2; // Reset speed
-                    }
-                }
-                if (this.playerPowerUps.frozen && Date.now() > this.playerPowerUps.frozenUntil) {
-                    this.playerPowerUps.frozen = false;
-                }
-                this.updatePowerUpDisplay();
-            }
-            
-            updatePowerUpDisplay() {
-                const statusElement = document.getElementById('powerUpStatus');
-                let status = '';
-                if (this.playerPowerUps.shield > 0) status += '🛡️ ';
-                if (this.playerPowerUps.level > 0) status += '⭐'.repeat(this.playerPowerUps.level) + ' ';
-                if (this.playerPowerUps.frozen) status += '❄️ ';
-                if (this.playerPowerUps.speedBoost > 0) status += '⚡ ';
-                statusElement.textContent = status;
-                document.getElementById('powerLevel').textContent = this.playerPowerUps.level;
-            }
-            
-            updateEnemySpawn() {
-                if (this.enemiesRemaining > 0 && this.enemiesOnField < this.maxEnemiesOnField) {
-                    this.enemySpawnTimer++;
-                    if (this.enemySpawnTimer >= this.enemySpawnDelay) {
-                        this.spawnEnemy();
-                        this.enemySpawnTimer = 0;
-                    }
-                }
-            }
-            
-            spawnEnemy() {
-                if (this.enemiesRemaining <= 0) return;
-                
-                const spawnPoint = this.enemySpawnPoints[Math.floor(Math.random() * this.enemySpawnPoints.length)];
-                
-                if (this.checkCollision(spawnPoint.x, spawnPoint.y, BLOCK_SIZE, BLOCK_SIZE)) {
-                    return;
-                }
-                
-                let enemyType = 'BASIC';
-                const rand = Math.random();
-                if (rand < 0.15 * (1 + this.level * 0.1)) enemyType = 'POWER';
-                else if (rand < 0.35 * (1 + this.level * 0.1)) enemyType = 'ARMOR';
-                else if (rand < 0.6 * (1 + this.level * 0.1)) enemyType = 'FAST';
-                
-                const hasPowerUp = (10 - this.enemiesRemaining + 1) % 3 === 0;
-                
-                const enemy = new Tank(spawnPoint.x, spawnPoint.y, 'enemy', enemyType, hasPowerUp);
-                this.enemies.push(enemy);
-                this.enemiesRemaining--;
-                this.enemiesOnField++;
-                
-                this.explosions.push(new Explosion(spawnPoint.x, spawnPoint.y, 'spawn'));
-                if (soundEnabled) sounds.explosion.play();
-            }
-            
-            checkCollisions() {
-                this.bullets.forEach((bullet, bulletIndex) => {
-                    this.enemies.forEach((enemy, enemyIndex) => {
-                        if (this.isColliding(bullet, enemy)) {
-                            this.bullets.splice(bulletIndex, 1);
-                            enemy.hit();
-                            if (enemy.health <= 0) {
-                                if (enemy.hasPowerUp) this.createPowerUp(enemy.x, enemy.y);
-                                this.enemies.splice(enemyIndex, 1);
-                                this.enemiesOnField--;
-                                this.explosions.push(new Explosion(enemy.x, enemy.y));
-                                this.createParticles(enemy.x + BLOCK_SIZE/2, enemy.y + BLOCK_SIZE/2, '#FF6600');
-                                this.score += ENEMY_TYPES[enemy.enemyType].points;
-                                if (soundEnabled) sounds.explosion.play();
-                                this.updateHUD();
-                            }
-                        }
-                    });
-                });
-                
-                this.bullets.forEach((bullet, bulletIndex) => {
-                    this.enemyBases.forEach((base, baseIndex) => {
-                        if (this.isColliding(bullet, base)) {
-                            this.bullets.splice(bulletIndex, 1);
-                            base.hit();
-                            this.explosions.push(new Explosion(base.x, base.y));
-                            this.score += 1000;
-                            if (soundEnabled) sounds.explosion.play();
-                            this.updateHUD();
-                            if (base.health <= 0) this.enemyBases.splice(baseIndex, 1);
-                        }
-                    });
-                });
-                
-                this.enemyBullets.forEach((bullet, bulletIndex) => {
-                    if (this.isColliding(bullet, this.player)) {
-                        this.enemyBullets.splice(bulletIndex, 1);
-                        if (this.playerPowerUps.shield > 0) {
-                            this.playerPowerUps.shield = 0;
-                        } else {
-                            this.player.hit();
-                            this.explosions.push(new Explosion(this.player.x, this.player.y));
-                            this.createParticles(this.player.x + BLOCK_SIZE/2, this.player.y + BLOCK_SIZE/2, '#00FF00');
-                            this.lives--;
-                            this.playerPowerUps.shield = 120;
-                            if (soundEnabled) sounds.explosion.play();
-                            this.updateHUD();
-                        }
-                    }
-                });
-                
-                [...this.bullets, ...this.enemyBullets].forEach((bullet, index, array) => {
-                    if (this.isColliding(bullet, this.playerBase)) {
-                        array.splice(index, 1);
-                        this.playerBase.hit();
-                        this.explosions.push(new Explosion(this.playerBase.x, this.playerBase.y));
-                        if (soundEnabled) sounds.explosion.play();
-                        if (this.playerBase.health <= 0) this.gameOver();
-                    }
-                });
-                
-                [...this.bullets, ...this.enemyBullets].forEach((bullet, index, array) => {
-                    this.walls.forEach((wall, wallIndex) => {
-                        if (this.isColliding(bullet, wall)) {
-                            array.splice(index, 1);
-                            if (wall.destructible) {
-                                wall.health--;
-                                if (wall.health <= 0) {
-                                    this.walls.splice(wallIndex, 1);
-                                    this.explosions.push(new Explosion(wall.x, wall.y, 'small'));
-                                    this.createParticles(wall.x + BLOCK_SIZE/2, wall.y + BLOCK_SIZE/2, '#8B4513');
-                                    if (soundEnabled) sounds.explosion.play();
-                                }
-                            }
-                        }
-                    });
-                });
-                
-                this.powerUps.forEach((powerUp, index) => {
-                    if (this.isColliding(this.player, powerUp)) {
-                        this.powerUps.splice(index, 1);
-                        this.applyPowerUp(powerUp.type);
-                        this.explosions.push(new Explosion(powerUp.x, powerUp.y, 'pickup'));
-                        this.score += 500;
-                        if (soundEnabled) sounds.powerUp.play();
-                        this.updateHUD();
-                    }
-                });
-            }
-            
-            createPowerUp(x, y) {
-                const types = Object.keys(POWERUP_TYPES);
-                const randomType = types[Math.floor(Math.random() * types.length)];
-                this.powerUps.push(new PowerUp(x, y, randomType));
-            }
-            
-            applyPowerUp(type) {
-                const powerUp = POWERUP_TYPES[type];
-                switch (powerUp.effect) {
-                    case 'upgrade':
-                        this.playerPowerUps.level = Math.min(3, this.playerPowerUps.level + 1);
-                        this.player.upgrade();
-                        break;
-                    case 'shield':
-                        this.playerPowerUps.shield = powerUp.duration / 16.67;
-                        break;
-                    case 'fortify':
-                        this.createPlayerBaseProtection();
-                        break;
-                    case 'destroy_all':
-                        this.destroyAllEnemies();
-                        break;
-                    case 'extra_life':
-                        this.lives++;
-                        break;
-                    case 'freeze':
-                        this.playerPowerUps.frozen = true;
-                        this.playerPowerUps.frozenUntil = Date.now() + powerUp.duration;
-                        break;
-                    case 'speed_boost':
-                        this.playerPowerUps.speedBoost = powerUp.duration / 16.67;
-                        this.player.speed = 4;
-                        break;
-                }
-            }
-            
-            destroyAllEnemies() {
-                this.enemies.forEach(enemy => {
-                    this.explosions.push(new Explosion(enemy.x, enemy.y));
-                    this.score += ENEMY_TYPES[enemy.enemyType].points;
-                    if (soundEnabled) sounds.explosion.play();
-                });
-                this.enemiesOnField = 0;
-                this.enemies = [];
-                this.updateHUD();
-            }
-            
-            createParticles(x, y, color) {
-                for (let i = 0; i < 8; i++) {
-                    this.particles.push(new Particle(x, y, color));
-                }
-            }
-            
-            checkGameConditions() {
-                if (this.lives <= 0 || this.playerBase.health <= 0) {
-                    this.gameOver();
-                }
-                
-                if ((this.enemiesRemaining === 0 && this.enemies.length === 0) || this.enemyBases.length === 0) {
-                    this.nextLevel();
-                }
-            }
-            
-            nextLevel() {
-                this.level++;
-                this.enemiesRemaining = Math.min(20, 10 + this.level * 3);
-                this.enemiesOnField = 0;
-                this.powerUps = [];
-                this.updateHUD();
-                this.createLevel();
-                this.player.x = 12 * BLOCK_SIZE;
-                this.player.y = 22 * BLOCK_SIZE;
-                this.playerBase = new Base(12 * BLOCK_SIZE, 24 * BLOCK_SIZE, 'player');
-                setTimeout(() => this.forceSpawnEnemies(), 500);
-            }
-            
-            gameOver() {
-                this.gameState = 'gameOver';
-                if (this.score > this.highScore) {
-                    this.highScore = this.score;
-                    localStorage.setItem('battleCityHighScore', this.highScore);
-                }
-                document.getElementById('finalScore').textContent = this.score;
-                document.getElementById('finalHighScore').textContent = this.highScore;
-                document.getElementById('gameOver').style.display = 'block';
-                if (soundEnabled) sounds.gameOver.play();
-            }
-            
-            restart() {
-                this.score = 0;
-                this.lives = 3;
-                this.level = 1;
-                this.enemiesRemaining = 10;
-                this.enemiesOnField = 0;
-                this.gameState = 'playing';
-                this.bullets = [];
-                this.enemyBullets = [];
-                this.enemies = [];
-                this.explosions = [];
-                this.particles = [];
-                this.powerUps = [];
-                this.playerPowerUps = { shield: 180, level: 0, frozen: false, speedBoost: 0 };
-                this.player = new Tank(12 * BLOCK_SIZE, 22 * BLOCK_SIZE, 'player');
-                this.playerBase = new Base(12 * BLOCK_SIZE, 24 * BLOCK_SIZE, 'player');
-                this.init();
-                document.getElementById('gameOver').style.display = 'none';
-                document.getElementById('pauseMenu').style.display = 'none';
-                setTimeout(() => this.forceSpawnEnemies(), 1000);
-            }
-            
-            updateHUD() {
-                document.getElementById('score').textContent = this.score;
-                document.getElementById('lives').textContent = this.lives;
-                document.getElementById('level').textContent = this.level;
-                document.getElementById('enemies').textContent = this.enemiesRemaining + this.enemiesOnField;
-                document.getElementById('highScore').textContent = this.highScore;
-            }
-            
-            isColliding(obj1, obj2) {
-                return obj1.x < obj2.x + obj2.width &&
-                       obj1.x + obj1.width > obj2.x &&
-                       obj1.y < obj2.y + obj2.height &&
-                       obj1.y + obj1.height > obj2.y;
-            }
-            
-            checkCollision(x, y, width, height) {
-                const testObj = {x, y, width, height};
-                if (this.walls.some(wall => this.isColliding(testObj, wall))) return true;
-                if (this.water.some(water => this.isColliding(testObj, water))) return true;
-                if (this.isColliding(testObj, this.playerBase)) return true;
-                if (this.enemyBases.some(base => this.isColliding(testObj, base))) return true;
-                if (this.enemies.some(enemy => this.isColliding(testObj, enemy))) return true;
-                return false;
-            }
-            
-            findPath(startX, startY, targetX, targetY) {
-                const grid = Array(GRID_HEIGHT).fill().map(() => Array(GRID_WIDTH).fill(0));
-                this.walls.forEach(wall => {
-                    grid[Math.floor(wall.y / BLOCK_SIZE)][Math.floor(wall.x / BLOCK_SIZE)] = 1;
-                });
-                this.water.forEach(water => {
-                    grid[Math.floor(water.y / BLOCK_SIZE)][Math.floor(water.x / BLOCK_SIZE)] = 1;
-                });
-                
-                const queue = [[startX, startY, []]];
-                const visited = new Set();
-                const directions = [[0, -1], [1, 0], [0, 1], [-1, 0]];
-                
-                while (queue.length) {
-                    const [x, y, path] = queue.shift();
-                    const gridX = Math.floor(x / BLOCK_SIZE);
-                    const gridY = Math.floor(y / BLOCK_SIZE);
-                    
-                    if (gridX === Math.floor(targetX / BLOCK_SIZE) && gridY === Math.floor(targetY / BLOCK_SIZE)) {
-                        return path.length ? path[0] : null;
-                    }
-                    
-                    const key = `${gridX},${gridY}`;
-                    if (visited.has(key) || grid[gridY][gridX] === 1) continue;
-                    visited.add(key);
-                    
-                    for (let i = 0; i < 4; i++) {
-                        const [dx, dy] = directions[i];
-                        const newX = x + dx * BLOCK_SIZE;
-                        const newY = y + dy * BLOCK_SIZE;
-                        if (newX >= 0 && newX < this.width && newY >= 0 && newY < this.height) {
-                            queue.push([newX, newY, [...path, i]]);
-                        }
-                    }
-                }
-                return null;
-            }
-            
-            render() {
-                this.ctx.fillStyle = '#000';
-                this.ctx.fillRect(0, 0, this.width, this.height);
-                
-                this.water.forEach(water => this.drawWater(water));
-                this.walls.forEach(wall => this.drawWall(wall));
-                this.playerBase.render(this.ctx);
-                this.enemyBases.forEach(base => base.render(this.ctx));
-                this.player.render(this.ctx);
-                this.enemies.forEach(enemy => enemy.render(this.ctx));
-                this.grass.forEach(grass => this.drawGrass(grass));
-                this.bullets.forEach(bullet => bullet.render(this.ctx));
-                this.enemyBullets.forEach(bullet => bullet.render(this.ctx));
-                this.powerUps.forEach(powerUp => powerUp.render(this.ctx));
-                this.explosions.forEach(explosion => explosion.render(this.ctx));
-                this.particles.forEach(particle => particle.render(this.ctx));
-                
-                if (this.gameState === 'start') {
-                    document.getElementById('startScreen').style.display = 'block';
-                } else if (this.gameState === 'paused') {
-                    this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
-                    this.ctx.fillRect(0, 0, this.width, this.height);
-                }
-            }
-            
-            drawWall(wall) {
-                if (wall.destructible) {
-                    this.ctx.fillStyle = '#A52A2A';
-                    this.ctx.fillRect(wall.x, wall.y, BLOCK_SIZE, BLOCK_SIZE);
-                    this.ctx.fillStyle = '#FFFFFF';
-                    this.ctx.fillRect(wall.x + 2, wall.y + 2, 4, 4);
-                    this.ctx.fillRect(wall.x + 14, wall.y + 2, 4, 4);
-                    this.ctx.fillRect(wall.x + 2, wall.y + 14, 4, 4);
-                    this.ctx.fillRect(wall.x + 14, wall.y + 14, 4, 4);
-                } else {
-                    this.ctx.fillStyle = '#808080';
-                    this.ctx.fillRect(wall.x, wall.y, BLOCK_SIZE, BLOCK_SIZE);
-                    this.ctx.fillStyle = '#FFFFFF';
-                    this.ctx.fillRect(wall.x + 4, wall.y + 4, 12, 12);
-                }
-            }
-            
-            drawGrass(grass) {
-                this.ctx.fillStyle = '#00FF00';
-                this.ctx.fillRect(grass.x, grass.y, BLOCK_SIZE, BLOCK_SIZE);
-                this.ctx.fillStyle = '#008000';
-                for (let i = 0; i < 4; i++) {
-                    for (let j = 0; j < 4; j++) {
-                        if ((i + j) % 2 === 0) {
-                            this.ctx.fillRect(grass.x + i * 5, grass.y + j * 5, 5, 5);
-                        }
-                    }
-                }
-            }
-            
-            drawWater(water) {
-                const time = Date.now() * 0.003;
-                const offset = Math.sin(time) * 2;
-                this.ctx.fillStyle = '#0000FF';
-                this.ctx.fillRect(water.x, water.y, BLOCK_SIZE, BLOCK_SIZE);
-                this.ctx.fillStyle = '#00FFFF';
-                this.ctx.fillRect(water.x + offset, water.y + 4, BLOCK_SIZE - 8, 4);
-                this.ctx.fillRect(water.x + 4, water.y + offset, 4, BLOCK_SIZE - 8);
-            }
-            
-            gameLoop() {
-                this.update();
-                this.render();
-                requestAnimationFrame(() => this.gameLoop());
-            }
-        }
+# Словарь для хранения статистики игроков
+player_stats = {}
+
+class PlayerStats:
+    def __init__(self):
+        self.total_games = 0
+        self.best_score = 0
+        self.best_length = 0
+        self.best_level = 0
+        self.best_combo = 0
+        self.total_score = 0
+        self.total_food_eaten = 0
+        self.achievements = set()
+        self.last_played = None
+        self.games_today = 0
+        self.daily_reset = None
+
+def get_player_stats(user_id):
+    if user_id not in player_stats:
+        player_stats[user_id] = PlayerStats()
+    
+    # Сброс ежедневной статистики
+    stats = player_stats[user_id]
+    today = datetime.now().date()
+    if stats.daily_reset != today:
+        stats.games_today = 0
+        stats.daily_reset = today
+    
+    return stats
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Команда /start - главное меню игры"""
+    user = update.effective_user
+    chat = update.effective_chat
+    stats = get_player_stats(user.id)
+    
+    # Проверяем тип чата
+    if chat.type == 'private':
+        # Личный чат - полное меню с WebApp
+        welcome_text = f"""🌌 Добро пожаловать в ЗМЕЙКУ MEGA, {user.first_name}! 
+
+🚀 **НОВЫЕ ВОЗМОЖНОСТИ:**
+🎮 Виртуальный джойстик управления
+🌟 5 типов волшебной еды с бонусами  
+🌀 Порталы для телепортации
+🔥 Система комбо множителей
+💎 Эффекты призрака и ускорения
+🏆 Система достижений
+
+📊 **ВАША СТАТИСТИКА:**
+🎯 Лучший результат: {stats.best_score} очков
+🐍 Максимальная длина: {stats.best_length}
+🚀 Высший уровень: {stats.best_level}
+🔥 Лучшее комбо: x{stats.best_combo}
+🎮 Игр сыграно: {stats.total_games}
+
+Готовы покорить космос? 🌌"""
+
+        # Создаем кнопку для запуска WebApp (только в личном чате)
+        keyboard = [
+            [InlineKeyboardButton("🎮 ИГРАТЬ В ЗМЕЙКУ MEGA", web_app=WebAppInfo(url=WEBAPP_URL))],
+            [InlineKeyboardButton("🏆 Топ игроков", callback_data="leaderboard"),
+             InlineKeyboardButton("📊 Статистика", callback_data="stats")],
+            [InlineKeyboardButton("❓ Справка", callback_data="help"),
+             InlineKeyboardButton("🏅 Достижения", callback_data="achievements")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
         
-        class Tank {
-            constructor(x, y, type, enemyType = 'BASIC', hasPowerUp = false) {
-                this.x = x;
-                this.y = y;
-                this.width = BLOCK_SIZE;
-                this.height = BLOCK_SIZE;
-                this.type = type;
-                this.enemyType = enemyType;
-                this.hasPowerUp = hasPowerUp;
-                this.direction = type === 'player' ? 0 : 2;
-                this.lastShot = 0;
-                this.shootCooldown = type === 'player' ? 400 : 600;
-                this.level = 0;
-                this.animationFrame = 0;
-                
-                if (type === 'player') {
-                    this.speed = 2;
-                    this.health = 1;
-                    this.maxBullets = 1;
-                } else {
-                    const stats = ENEMY_TYPES[enemyType];
-                    this.speed = stats.speed;
-                    this.health = stats.health;
-                    this.maxHealth = stats.health;
-                    this.color = stats.color;
-                    this.maxBullets = 1;
-                    this.size = stats.size;
-                    this.aiTimer = 0;
-                    this.aiDirection = this.direction;
-                    this.aiChangeTimer = 0;
-                    this.targetDirection = this.direction;
-                }
-            }
-            
-            upgrade() {
-                this.level = Math.min(3, this.level + 1);
-                if (this.level >= 1) this.maxBullets = 2;
-                if (this.level >= 2) this.speed = 3;
-                if (this.level >= 3) this.shootCooldown = 250;
-            }
-            
-            update(game) {
-                this.animationFrame++;
-                if (this.type === 'player') {
-                    this.updatePlayer(game);
-                } else {
-                    this.updateAI(game);
-                }
-                
-                if (this.type === 'enemy' && Date.now() - this.lastShot > this.shootCooldown) {
-                    if (game.enemyBullets.length < 6) {
-                        this.shoot(game);
-                    }
-                }
-            }
-            
-            updatePlayer(game) {
-                let newX = this.x;
-                let newY = this.y;
-                let moved = false;
-                
-                if (game.keys['KeyW'] || game.keys['ArrowUp'] || game.touchControls.up) {
-                    this.direction = 0;
-                    newY -= (game.playerPowerUps.speedBoost > 0 ? 4 : this.speed);
-                    moved = true;
-                }
-                if (game.keys['KeyS'] || game.keys['ArrowDown'] || game.touchControls.down) {
-                    this.direction = 2;
-                    newY += (game.playerPowerUps.speedBoost > 0 ? 4 : this.speed);
-                    moved = true;
-                }
-                if (game.keys['KeyA'] || game.keys['ArrowLeft'] || game.touchControls.left) {
-                    this.direction = 3;
-                    newX -= (game.playerPowerUps.speedBoost > 0 ? 4 : this.speed);
-                    moved = true;
-                }
-                if (game.keys['KeyD'] || game.keys['ArrowRight'] || game.touchControls.right) {
-                    this.direction = 1;
-                    newX += (game.playerPowerUps.speedBoost > 0 ? 4 : this.speed);
-                    moved = true;
-                }
-                
-                if (game.touchControls.fire && Date.now() - this.lastShot > this.shootCooldown) {
-                    if (game.bullets.length < this.maxBullets) {
-                        this.shoot(game);
-                        if (soundEnabled) sounds.shoot.play();
-                    }
-                }
-                
-                if (moved && soundEnabled && this.animationFrame % 10 === 0) {
-                    sounds.move.play();
-                }
-                
-                if (!game.checkCollision(newX, newY, this.width, this.height)) {
-                    this.x = newX;
-                    this.y = newY;
-                }
-            }
-            
-            updateAI(game) {
-                this.aiTimer++;
-                this.aiChangeTimer++;
-                
-                if (this.aiChangeTimer > 60 + Math.random() * 60) {
-                    const target = Math.random() < 0.7 ? { x: game.playerBase.x, y: game.playerBase.y } : 
-                                  Math.random() < 0.5 ? { x: game.player.x, y: game.player.y } : 
-                                  { x: Math.random() * game.width, y: Math.random() * game.height };
-                    const path = game.findPath(this.x, this.y, target.x, target.y);
-                    if (path !== null) this.targetDirection = path;
-                    this.aiChangeTimer = 0;
-                }
-                
-                let newX = this.x;
-                let newY = this.y;
-                
-                this.direction = this.targetDirection;
-                
-                switch (this.direction) {
-                    case 0: newY -= this.speed; break;
-                    case 1: newX += this.speed; break;
-                    case 2: newY += this.speed; break;
-                    case 3: newX -= this.speed; break;
-                }
-                
-                if (!game.checkCollision(newX, newY, this.width, this.height)) {
-                    this.x = newX;
-                    this.y = newY;
-                } else {
-                    this.targetDirection = Math.floor(Math.random() * 4);
-                    this.aiChangeTimer = 0;
-                }
-            }
-            
-            shoot(game) {
-                this.lastShot = Date.now();
-                let bulletX = this.x + this.width / 2;
-                let bulletY = this.y + this.height / 2;
-                
-                switch (this.direction) {
-                    case 0: bulletY = this.y; break;
-                    case 1: bulletX = this.x + this.width; break;
-                    case 2: bulletY = this.y + this.height; break;
-                    case 3: bulletX = this.x; break;
-                }
-                
-                const bullet = new Bullet(bulletX, bulletY, this.direction, this.type);
-                if (this.type === 'player') {
-                    game.bullets.push(bullet);
-                } else {
-                    game.enemyBullets.push(bullet);
-                }
-            }
-            
-            hit() {
-                this.health--;
-            }
-            
-            render(ctx) {
-                ctx.save();
-                ctx.translate(this.x + this.width/2, this.y + this.height/2);
-                ctx.rotate(this.direction * Math.PI / 2);
-                
-                const tankSize = this.type === 'player' ? BLOCK_SIZE - 2 : (this.size || BLOCK_SIZE - 4);
-                
-                ctx.fillStyle = '#2F4F4F';
-                ctx.fillRect(-tankSize/2 - 1, -tankSize/2 - 1, tankSize + 2, 4);
-                ctx.fillRect(-tankSize/2 - 1, tankSize/2 - 3, tankSize + 2, 4);
-                
-                let bodyColor = this.type === 'player' ? '#FFD700' : this.color;
-                ctx.fillStyle = bodyColor;
-                ctx.fillRect(-tankSize/2, -tankSize/2, tankSize, tankSize);
-                
-                ctx.fillStyle = '#2F2F2F';
-                ctx.beginPath();
-                ctx.arc(0, 0, tankSize/4, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.fillStyle = '#2F2F2F';
-                ctx.fillRect(-2, -tankSize/2 - 4, 4, 8);
-                
-                if (this.type === 'enemy' && this.health < this.maxHealth) {
-                    ctx.fillStyle = '#FF0000';
-                    ctx.fillRect(-tankSize/2, -tankSize/2 - 6, tankSize, 2);
-                    ctx.fillStyle = '#00FF00';
-                    ctx.fillRect(-tankSize/2, -tankSize/2 - 6, (tankSize * this.health) / this.maxHealth, 2);
-                }
-                
-                if (this.type === 'enemy' && this.hasPowerUp) {
-                    const pulse = Math.sin(this.animationFrame * 0.2) * 0.3 + 0.7;
-                    ctx.globalAlpha = pulse;
-                    ctx.fillStyle = '#FFD700';
-                    ctx.font = '8px Press Start 2P';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('★', 0, -tankSize/2 - 10);
-                    ctx.globalAlpha = 1;
-                }
-                
-                ctx.restore();
-                
-                if (this.type === 'player' && game.playerPowerUps.shield > 0) {
-                    const shieldAlpha = (Math.sin(Date.now() * 0.03) + 1) / 2;
-                    ctx.globalAlpha = shieldAlpha * 0.8;
-                    ctx.strokeStyle = '#FFFFFF';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(this.x + this.width/2, this.y + this.height/2, this.width/2 + 2, 0, Math.PI * 2);
-                    ctx.stroke();
-                    ctx.globalAlpha = 1;
-                }
-            }
-        }
+    else:
+        # Группа/канал - упрощенное меню без WebApp
+        welcome_text = f"""🐍 **ЗМЕЙКА MEGA в группе!** 🚀
+
+Привет, {user.first_name}! Я - игровой бот Змейка MEGA!
+
+🎮 **Что я умею:**
+• Веду рейтинг лучших игроков группы
+• Показываю статистику и достижения
+• Провожу турниры и соревнования
+
+🌟 **Для игры** напишите мне в личные сообщения: @{context.bot.username}
+
+⚡ **Команды в группе:**
+/top - 🏆 Рейтинг игроков группы
+/stats - 📊 Ваша статистика  
+/rules - 📋 Правила игры
+/help - ❓ Полная справка
+
+**Начните играть в личных сообщениях и соревнуйтесь с участниками группы!** 🏆"""
+
+        # Простые кнопки для группы (без WebApp)
+        keyboard = [
+            [InlineKeyboardButton("💬 Играть в личке", url=f"https://t.me/{context.bot.username}?start=group_{chat.id}")],
+            [InlineKeyboardButton("🏆 Рейтинг группы", callback_data="leaderboard"),
+             InlineKeyboardButton("📋 Правила", callback_data="help")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.message.reply_text(welcome_text, reply_markup=reply_markup)
+
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Команда /help - подробная справка"""
+    help_text = """🐍 **СПРАВКА ПО ЗМЕЙКЕ MEGA** 🚀
+
+🎮 **УПРАВЛЕНИЕ:**
+• Виртуальный джойстик или стрелки клавиатуры
+• Центральная кнопка - пауза/старт
+• Свайпы на мобильном устройстве
+
+🍎 **ТИПЫ ЕДЫ:**
+🍎 Красные яблоки - +10 очков
+🌟 Золотые звезды - +25 очков + замедление
+💎 Алмазы - +50 очков + эффект призрака  
+⚡ Молнии - +15 очков + ускорение
+🌀 Порталы - +30 очков + телепортация
+
+🔥 **СИСТЕМА КОМБО:**
+• Быстрое поедание еды увеличивает множитель
+• Комбо x3+ дает бонусные очки
+• Чем быстрее едите, тем больше очков!
+
+🏆 **ДОСТИЖЕНИЯ:**
+🍽️ Первый пир - съесть 15 фруктов
+🏆 Мастер - набрать 300 очков
+🐍 Гигантская змея - длина 20+ сегментов
+💨 Демон скорости - достичь 6 уровня
+🔥 Мастер комбо - комбо x5
+
+⚠️ **ПРЕПЯТСТВИЯ:**
+🧱 Красные блоки появляются каждые 150 очков
+💎 Эффект призрака позволяет проходить сквозь них
+
+🌌 **ЭФФЕКТЫ:**
+• Звездное небо и космические туманности
+• Следы от движения змейки
+• Частицы при поедании еды
+• Свечение при активных бонусах
+
+Удачной игры! 🍀"""
+    
+    # Отправляем в зависимости от типа update
+    if hasattr(update, 'message'):
+        await update.message.reply_text(help_text)
+    else:
+        await update.edit_message_text(help_text)
+
+async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Команда /top - топ игроков"""
+    if not player_stats:
+        message_text = "🏆 Пока никто не играл! Станьте первым!"
+    else:
+        # Сортируем игроков по лучшему результату
+        sorted_players = sorted(
+            [(user_id, stats) for user_id, stats in player_stats.items()], 
+            key=lambda x: x[1].best_score, 
+            reverse=True
+        )
         
-        class Bullet {
-            constructor(x, y, direction, owner) {
-                this.x = x;
-                this.y = y;
-                this.width = 4;
-                this.height = 4;
-                this.direction = direction;
-                this.speed = 6;
-                this.owner = owner;
-                this.vx = 0;
-                this.vy = 0;
+        message_text = "🏆 **ТОП 10 ИГРОКОВ** 🏆\n\n"
+        
+        for i, (user_id, stats) in enumerate(sorted_players[:10], 1):
+            try:
+                user_info = await context.bot.get_chat(user_id)
+                username = user_info.first_name or f"Игрок{user_id}"
+            except:
+                username = f"Игрок{user_id}"
+            
+            medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
+            
+            message_text += (
+                f"{medal} **{username}**\n"
+                f"   🎯 {stats.best_score} очков | 🐍 {stats.best_length} длина\n"
+                f"   🚀 {stats.best_level} уровень | 🔥 x{stats.best_combo} комбо\n\n"
+            )
+    
+    # Отправляем в зависимости от типа update
+    if hasattr(update, 'message'):
+        await update.message.reply_text(message_text, parse_mode='Markdown')
+    else:
+        await update.edit_message_text(message_text, parse_mode='Markdown')
+
+async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Команда /stats - личная статистика"""
+    # Поддержка как команд, так и callback кнопок
+    if hasattr(update, 'effective_user'):
+        user = update.effective_user
+    else:
+        user = update.from_user
+    stats = get_player_stats(user.id)
+    
+    if stats.total_games == 0:
+        await update.message.reply_text("📊 Вы еще не играли! Нажмите /start чтобы начать.")
+        return
+    
+    avg_score = stats.total_score // stats.total_games if stats.total_games > 0 else 0
+    
+    # Ранг игрока
+    all_scores = [s.best_score for s in player_stats.values() if s.best_score > 0]
+    all_scores.sort(reverse=True)
+    rank = all_scores.index(stats.best_score) + 1 if stats.best_score in all_scores else len(all_scores) + 1
+    
+    stats_text = f"""📊 **СТАТИСТИКА {user.first_name}** 
+
+🏅 **РЕЙТИНГ:** #{rank} из {len(player_stats)}
+
+🎯 **РЕКОРДЫ:**
+• Лучший результат: {stats.best_score} очков
+• Максимальная длина: {stats.best_length} сегментов  
+• Высший уровень: {stats.best_level}
+• Лучшее комбо: x{stats.best_combo}
+
+📈 **ОБЩАЯ СТАТИСТИКА:**
+• Всего игр: {stats.total_games}
+• Игр сегодня: {stats.games_today}
+• Общие очки: {stats.total_score:,}
+• Средний результат: {avg_score} очков
+
+🏆 **ДОСТИЖЕНИЯ:** {len(stats.achievements)}/5
+
+{f"🎮 Последняя игра: {stats.last_played.strftime('%d.%m %H:%M')}" if stats.last_played else ""}"""
+    
+    # Определяем тип чата для правильных кнопок
+    if hasattr(update, 'effective_chat'):
+        chat_type = update.effective_chat.type
+    elif hasattr(update, 'message'):
+        chat_type = update.message.chat.type
+    else:
+        chat_type = 'private'  # По умолчанию
+    
+    if chat_type == 'private':
+        # Личный чат - кнопка с WebApp
+        keyboard = [
+            [InlineKeyboardButton("🎮 Играть снова", web_app=WebAppInfo(url=WEBAPP_URL))],
+            [InlineKeyboardButton("🏆 Топ игроков", callback_data="leaderboard")]
+        ]
+    else:
+        # Группа - обычные кнопки
+        keyboard = [
+            [InlineKeyboardButton("🎮 Играть в личке", url=f"https://t.me/{context.bot.username}")],
+            [InlineKeyboardButton("🏆 Рейтинг группы", callback_data="leaderboard")]
+        ]
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    # Отправляем в зависимости от типа update
+    if hasattr(update, 'message'):
+        await update.message.reply_text(stats_text, reply_markup=reply_markup, parse_mode='Markdown')
+    else:
+        await update.edit_message_text(stats_text, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def rules_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Команда /rules - правила игры"""
+    rules_text = """📋 **ПРАВИЛА ЗМЕЙКИ MEGA** 
+
+🎯 **ЦЕЛЬ ИГРЫ:**
+Управляйте змейкой, ешьте еду и набирайте очки, избегая столкновений со стенами, препятствиями и собственным телом.
+
+🐍 **МЕХАНИКА:**
+• Змейка постоянно движется в выбранном направлении
+• При поедании еды змейка увеличивается в длину
+• Скорость игры увеличивается с уровнем
+• Каждые 6 съеденных фруктов = новый уровень
+
+🔥 **СИСТЕМА КОМБО:**
+• Съедайте еду быстро для увеличения множителя
+• Комбо x2 и выше дают бонусные очки
+• Пауза между поеданием > 3 сек сбрасывает комбо
+
+🌀 **ПОРТАЛЫ:**
+• Редкая еда, создающая 2 портала на 15 секунд
+• Вход в один портал телепортирует в другой
+• Используйте для избежания препятствий
+
+⚡ **БОНУСНЫЕ ЭФФЕКТЫ:**
+• 🌟 Замедление - проще управлять
+• 💎 Призрак - проходите сквозь стены и препятствия  
+• ⚡ Ускорение - быстрый набор очков
+
+🏆 **ОЧКИ:**
+• Обычная еда: +10 очков
+• Золотая еда: +25 очков  
+• Молния: +15 очков
+• Алмазы: +50 очков
+• Порталы: +30 очков
+• Комбо множитель добавляет бонусы!
+
+Удачи в покорении космоса! 🚀"""
+    
+    await update.message.reply_text(rules_text, parse_mode='Markdown')
+
+async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик callback кнопок"""
+    query = update.callback_query
+    await query.answer()
+    
+    if query.data == "leaderboard":
+        await leaderboard(query, context)
+    elif query.data == "stats":
+        await stats_command(query, context)
+    elif query.data == "help":
+        await help_command(query, context)
+    elif query.data == "achievements":
+        await show_achievements(query, context)
+
+async def show_achievements(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Показать достижения игрока"""
+    # Поддержка как команд, так и callback кнопок
+    if hasattr(update, 'effective_user'):
+        user = update.effective_user
+    else:
+        user = update.from_user
+    stats = get_player_stats(user.id)
+    
+    all_achievements = {
+        'first_feast': '🍽️ Первый пир - съесть 15 фруктов',
+        'score_300': '🏆 Мастер - набрать 300 очков',
+        'long_snake': '🐍 Гигантская змея - длина 20+ сегментов',
+        'speed_demon': '💨 Демон скорости - достичь 6 уровня',
+        'combo_master': '🔥 Мастер комбо - комбо x5'
+    }
+    
+    achieved_text = "🏅 **ПОЛУЧЕННЫЕ ДОСТИЖЕНИЯ:**\n"
+    locked_text = "\n🔒 **НЕ ПОЛУЧЕНЫ:**\n"
+    
+    for achievement_id, description in all_achievements.items():
+        if achievement_id in stats.achievements:
+            achieved_text += f"✅ {description}\n"
+        else:
+            locked_text += f"❌ {description}\n"
+    
+    if len(stats.achievements) == 0:
+        achieved_text += "Пока нет достижений. Играйте больше!\n"
+    
+    achievements_text = achieved_text + locked_text + f"\n🏆 Прогресс: {len(stats.achievements)}/5 достижений"
+    
+    # Определяем тип чата для правильных кнопок
+    if hasattr(update, 'effective_chat'):
+        chat_type = update.effective_chat.type
+    elif hasattr(update, 'message'):
+        chat_type = update.message.chat.type
+    else:
+        chat_type = 'private'
+    
+    if chat_type == 'private':
+        # Личный чат - кнопка с WebApp
+        keyboard = [
+            [InlineKeyboardButton("🎮 Играть", web_app=WebAppInfo(url=WEBAPP_URL))]
+        ]
+    else:
+        # Группа - обычная кнопка
+        keyboard = [
+            [InlineKeyboardButton("🎮 Играть в личке", url=f"https://t.me/{context.bot.username}")]
+        ]
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    # Отправляем в зависимости от типа update
+    if hasattr(update, 'message'):
+        await update.message.reply_text(achievements_text, reply_markup=reply_markup, parse_mode='Markdown')
+    else:
+        await update.edit_message_text(achievements_text, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка данных от WebApp"""
+    user = update.effective_user
+    stats = get_player_stats(user.id)
+    
+    try:
+        data = json.loads(update.effective_message.web_app_data.data)
+        action = data.get('action')
+        
+        if action == 'game_over':
+            score = data.get('score', 0)
+            level = data.get('level', 1)
+            max_length = data.get('maxLength', 1)
+            max_combo = data.get('maxCombo', 0)
+            
+            # Обновляем статистику
+            stats.total_games += 1
+            stats.games_today += 1
+            stats.total_score += score
+            stats.total_food_eaten += data.get('totalFoodEaten', 0)  # Добавляем общее количество еды
+            stats.last_played = datetime.now()
+            
+            # Обновляем рекорды
+            is_new_record = False
+            records_broken = []
+            
+            if score > stats.best_score:
+                stats.best_score = score
+                is_new_record = True
+                records_broken.append(f"🎯 Новый рекорд очков: {score}")
+            
+            if max_length > stats.best_length:
+                stats.best_length = max_length
+                records_broken.append(f"🐍 Новая максимальная длина: {max_length}")
+            
+            if level > stats.best_level:
+                stats.best_level = level
+                records_broken.append(f"🚀 Новый высший уровень: {level}")
                 
-                switch (direction) {
-                    case 0: this.vy = -this.speed; break;
-                    case 1: this.vx = this.speed; break;
-                    case 2: this.vy = this.speed; break;
-                    case 3: this.vx = -this.speed; break;
-                }
-            }
+            if max_combo > stats.best_combo:
+                stats.best_combo = max_combo
+                records_broken.append(f"🔥 Новое лучшее комбо: x{max_combo}")
             
-            update(game) {
-                this.x += this.vx;
-                this.y += this.vy;
-                return this.x > 0 && this.x < game.width && this.y > 0 && this.y < game.height;
-            }
-            
-            render(ctx) {
-                ctx.fillStyle = this.owner === 'player' ? '#FFFFFF' : '#FF6600';
-                ctx.fillRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
-            }
-        }
-        
-        class Explosion {
-            constructor(x, y, type = 'normal') {
-                this.x = x;
-                this.y = y;
-                this.type = type;
-                this.life = type === 'spawn' ? 20 : type === 'small' ? 12 : type === 'pickup' ? 8 : 20;
-                this.maxLife = this.life;
-                this.radius = 0;
-                this.maxRadius = type === 'small' ? 12 : type === 'pickup' ? 8 : 20;
-            }
-            
-            update() {
-                this.life--;
-                this.radius = ((this.maxLife - this.life) / this.maxLife) * this.maxRadius;
-                return this.life > 0;
-            }
-            
-            render(ctx) {
-                const alpha = this.life / this.maxLife;
-                ctx.globalAlpha = alpha;
-                ctx.fillStyle = this.type === 'spawn' ? '#00FFFF' : this.type === 'pickup' ? '#FFD700' : '#FF6600';
-                ctx.beginPath();
-                ctx.arc(this.x + BLOCK_SIZE/2, this.y + BLOCK_SIZE/2, this.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.globalAlpha = 1;
-            }
-        }
-        
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.vx = (Math.random() - 0.5) * 4;
-                this.vy = (Math.random() - 0.5) * 4;
-                this.life = 15;
-                this.maxLife = 15;
-                this.color = color;
-                this.size = Math.random() * 2 + 1;
-            }
-            
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.vx *= 0.98;
-                this.vy *= 0.98;
-                this.life--;
-                return this.life > 0;
-            }
-            
-            render(ctx) {
-                const alpha = this.life / this.maxLife;
-                ctx.globalAlpha = alpha;
-                ctx.fillStyle = this.color;
-                ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
-                ctx.globalAlpha = 1;
-            }
-        }
-        
-        class PowerUp {
-            constructor(x, y, type) {
-                this.x = x;
-                this.y = y;
-                this.width = BLOCK_SIZE;
-                this.height = BLOCK_SIZE;
-                this.type = type;
-                this.animationTimer = 0;
-                this.lifeTime = 400;
-            }
-            
-            update() {
-                this.animationTimer++;
-                this.lifeTime--;
-                return this.lifeTime > 0;
-            }
-            
-            render(ctx) {
-                if (this.lifeTime < 120 && Math.floor(this.animationTimer / 8) % 2) return;
+            # Проверяем достижения
+            new_achievements = []
+            if stats.total_food_eaten >= 15 and 'first_feast' not in stats.achievements:
+                stats.achievements.add('first_feast')
+                new_achievements.append('🍽️ Первый пир')
                 
-                const powerUp = POWERUP_TYPES[this.type];
-                ctx.fillStyle = '#FFD700';
-                ctx.fillRect(this.x, this.y, this.width, this.height);
-                ctx.fillStyle = '#000000';
-                ctx.font = 'bold 12px Press Start 2P';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(powerUp.icon, this.x + this.width/2, this.y + this.height/2);
-                ctx.strokeStyle = '#FFFFFF';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(this.x, this.y, this.width, this.height);
-            }
-        }
-        
-        class Base {
-            constructor(x, y, owner) {
-                this.x = x;
-                this.y = y;
-                this.width = BLOCK_SIZE;
-                this.height = BLOCK_SIZE;
-                this.health = owner === 'player' ? 1 : 3;
-                this.maxHealth = this.health;
-                this.owner = owner;
-            }
+            if score >= 300 and 'score_300' not in stats.achievements:
+                stats.achievements.add('score_300')
+                new_achievements.append('🏆 Мастер')
             
-            hit() {
-                this.health--;
-            }
+            if max_length >= 20 and 'long_snake' not in stats.achievements:
+                stats.achievements.add('long_snake')
+                new_achievements.append('🐍 Гигантская змея')
             
-            render(ctx) {
-                if (this.health > 0) {
-                    ctx.fillStyle = this.owner === 'player' ? '#FFD700' : '#FF4444';
-                    ctx.fillRect(this.x, this.y, this.width, this.height);
-                    ctx.fillStyle = '#000000';
-                    ctx.font = 'bold 12px Press Start 2P';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(this.owner === 'player' ? '🦅' : '⚡', this.x + this.width/2, this.y + this.height/2);
-                    
-                    if (this.owner !== 'player' && this.health < this.maxHealth) {
-                        ctx.fillStyle = '#FF0000';
-                        ctx.fillRect(this.x, this.y - 4, this.width, 2);
-                        ctx.fillStyle = '#00FF00';
-                        ctx.fillRect(this.x, this.y - 4, (this.width * this.health) / this.maxHealth, 2);
-                    }
-                } else {
-                    ctx.fillStyle = '#8B0000';
-                    ctx.fillRect(this.x, this.y, this.width, this.height);
-                    ctx.fillStyle = '#FF0000';
-                    ctx.fillText('💀', this.x + this.width/2, this.y + this.height/2);
-                }
-                ctx.strokeStyle = '#FFFFFF';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(this.x, this.y, this.width, this.height);
-            }
-        }
+            if level >= 6 and 'speed_demon' not in stats.achievements:
+                stats.achievements.add('speed_demon')
+                new_achievements.append('💨 Демон скорости')
+                
+            if max_combo >= 5 and 'combo_master' not in stats.achievements:
+                stats.achievements.add('combo_master')
+                new_achievements.append('🔥 Мастер комбо')
+            
+            # Формируем сообщение
+            if is_new_record:
+                message = f"🎉 **НОВЫЙ РЕКОРД!** 🎉\n\n"
+            else:
+                message = f"🎮 **Игра окончена!** \n\n"
+            
+            message += f"🎯 Результат: **{score} очков**\n"
+            message += f"🐍 Длина: {max_length} | 🚀 Уровень: {level}\n"
+            message += f"🔥 Лучшее комбо: x{max_combo}\n\n"
+            
+            if records_broken:
+                message += "🏆 **Новые рекорды:**\n" + "\n".join(records_broken) + "\n\n"
+            
+            if new_achievements:
+                message += "🏅 **Новые достижения:**\n" + "\n".join(new_achievements) + "\n\n"
+            
+            # Ранг игрока
+            all_scores = [s.best_score for s in player_stats.values()]
+            all_scores.sort(reverse=True)
+            rank = all_scores.index(stats.best_score) + 1
+            message += f"📊 Ваш рейтинг: **#{rank}** из {len(player_stats)}"
+            
+            keyboard = [
+                [InlineKeyboardButton("🔄 Играть снова", web_app=WebAppInfo(url=WEBAPP_URL))],
+                [InlineKeyboardButton("🏆 Топ игроков", callback_data="leaderboard"),
+                 InlineKeyboardButton("📊 Статистика", callback_data="stats")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await update.effective_message.reply_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+            
+        elif action == 'share_score':
+            score = data.get('score', 0)
+            level = data.get('level', 1)
+            max_length = data.get('maxLength', 1)
+            max_combo = data.get('maxCombo', 0)
+            
+            share_message = (
+                f"🐍 Я набрал {score} очков в ЗМЕЙКЕ MEGA! 🚀\n"
+                f"🎯 Уровень {level} | 🐍 Длина {max_length} | 🔥 Комбо x{max_combo}\n\n"
+                f"Сможешь побить мой рекорд? 😎"
+            )
+            
+            keyboard = [
+                [InlineKeyboardButton("📤 Поделиться в чате", 
+                                    switch_inline_query=share_message)],
+                [InlineKeyboardButton("🎮 Играть самому", web_app=WebAppInfo(url=WEBAPP_URL))]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await update.effective_message.reply_text(
+                f"🎉 Отличный результат! {score} очков!\n\nПоделитесь своим достижением:",
+                reply_markup=reply_markup
+            )
+            
+    except json.JSONDecodeError:
+        await update.effective_message.reply_text("❌ Ошибка при получении данных от игры")
+    except Exception as e:
+        logger.error(f"Ошибка обработки WebApp данных: {e}")
+
+async def new_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик добавления новых участников в чат"""
+    message = update.message
+    new_members = message.new_chat_members
+    
+    # Проверяем, добавили ли нашего бота
+    bot_added = any(member.id == context.bot.id for member in new_members)
+    
+    if bot_added:
+        # Бота добавили в группу - отправляем приветствие
+        welcome_text = f"""🎉 **Привет, {message.chat.title}!** 🎉
+
+🐍 Я - **ЗМЕЙКА MEGA** - самый крутой игровой бот в Telegram!
+
+🚀 **Что я принес в вашу группу:**
+🏆 Рейтинг лучших игроков группы
+📊 Статистику и достижения каждого
+🎮 Соревнования и турниры
+🌟 Систему достижений и наград
+
+🎯 **Как начать играть:**
+1️⃣ Напишите мне в личку: @{context.bot.username}
+2️⃣ Играйте и набирайте очки
+3️⃣ Соревнуйтесь с участниками группы!
+
+⚡ **Команды для группы:**
+/top - 🏆 Рейтинг игроков группы  
+/stats - 📊 Ваша статистика
+/rules - 📋 Правила игры
+/help - ❓ Полная справка
+
+**Пусть лучший победит!** 🏆✨"""
+
+        keyboard = [
+            [InlineKeyboardButton("🎮 Начать играть", url=f"https://t.me/{context.bot.username}?start=group_{message.chat.id}")],
+            [InlineKeyboardButton("🏆 Рейтинг", callback_data="leaderboard"),
+             InlineKeyboardButton("📋 Правила", callback_data="help")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
         
-        const game = new TankGame();
-    </script>
-</body>
-</html>
+        await message.reply_text(welcome_text, reply_markup=reply_markup)
+    
+    # Приветствуем обычных новых участников
+    else:
+        for member in new_members:
+            if not member.is_bot:
+                welcome_text = f"""👋 Добро пожаловать в группу, {member.first_name}!
+
+🐍 Здесь живет игровой бот **ЗМЕЙКА MEGA**!
+
+🎮 Хочешь сразиться с участниками группы? 
+Напиши мне в личку: @{context.bot.username} и начни играть!
+
+🏆 Посмотреть рейтинг группы: /top"""
+
+                await message.reply_text(welcome_text)
+
+async def post_init(application):
+    """Настройка бота после инициализации"""
+    try:
+        commands = [
+            BotCommand("start", "🎮 Начать игру"),
+            BotCommand("help", "❓ Справка по игре"),
+            BotCommand("top", "🏆 Топ игроков"), 
+            BotCommand("stats", "📊 Моя статистика"),
+            BotCommand("rules", "📋 Правила игры")
+        ]
+        await application.bot.set_my_commands(commands)
+        print("✅ Команды бота настроены")
+    except Exception as e:
+        print(f"⚠️ Ошибка настройки команд: {e}")
+    """Настройка бота после инициализации"""
+    try:
+        commands = [
+            BotCommand("start", "🎮 Начать игру"),
+            BotCommand("help", "❓ Справка по игре"),
+            BotCommand("top", "🏆 Топ игроков"), 
+            BotCommand("stats", "📊 Моя статистика"),
+            BotCommand("rules", "📋 Правила игры")
+        ]
+        await application.bot.set_my_commands(commands)
+        print("✅ Команды бота настроены")
+    except Exception as e:
+        print(f"⚠️ Ошибка настройки команд: {e}")
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Обработчик ошибок"""
+    logger.warning(f'Update {update} caused error {context.error}')
+
+def main():
+    """Главная функция запуска бота"""
+    print("🐍 Запуск Telegram WebApp бота ЗМЕЙКА MEGA...")
+    
+    if BOT_TOKEN == "ВАШ_ТОКЕН_БОТА":
+        print("❌ ОШИБКА: Необходимо заменить BOT_TOKEN на реальный токен!")
+        print("📝 Получите токен у @BotFather в Telegram")
+        return
+    
+    if WEBAPP_URL == "https://yourusername.github.io/snake-game/index.html":
+        print("⚠️  ВНИМАНИЕ: Необходимо заменить WEBAPP_URL на реальный URL!")
+        print("🌐 Разместите HTML-файл игры на GitHub Pages или другом хостинге")
+    
+    # Создаем приложение
+    application = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
+    
+    # Добавляем обработчики команд
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("top", leaderboard))
+    application.add_handler(CommandHandler("stats", stats_command))
+    application.add_handler(CommandHandler("rules", rules_command))
+    
+    # Обработчик добавления бота в группу
+    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, new_chat_member))
+    
+    # Обработчики callback кнопок и WebApp данных
+    application.add_handler(CallbackQueryHandler(handle_callback_query))
+    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_webapp_data))
+    
+    # Обработчик ошибок
+    application.add_error_handler(error_handler)
+    
+    print("✅ Бот настроен!")
+    print("🎮 Команды: /start /help /top /stats /rules")
+    print("🚀 Пользователи могут запускать игру через /start")
+    print("🛑 Для остановки нажмите Ctrl+C")
+    
+    # Запускаем бота простым способом
+    print("🔄 Запуск polling...")
+    try:
+        application.run_polling(drop_pending_updates=True)
+    except KeyboardInterrupt:
+        print("\n🛑 Бот остановлен пользователем")
+    except Exception as e:
+        print(f"❌ Ошибка запуска: {e}")
+        print("💡 Убедитесь что:")
+        print("   1. Токен правильный")
+        print("   2. Интернет соединение работает") 
+        print("   3. Бот не запущен в другом месте")
+
+if __name__ == "__main__":
+    main()
