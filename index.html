@@ -37,7 +37,7 @@
             display: block;
             background: #000;
             max-width: 100vw;
-            max-height: 60vh;
+            max-height: 70vh;
         }
         
         .hud {
@@ -56,10 +56,10 @@
         
         .controls {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             width: 100%;
-            max-width: 600px;
+            max-width: 300px;
             padding: 20px;
             background: rgba(0,0,0,0.9);
             margin-top: 10px;
@@ -67,16 +67,16 @@
         
         .dpad {
             position: relative;
-            width: 120px;
-            height: 120px;
+            width: 140px;
+            height: 140px;
         }
         
         .dpad-btn {
             position: absolute;
             background: linear-gradient(135deg, #34495e, #2c3e50);
             border: 3px solid #ecf0f1;
-            border-radius: 8px;
-            font-size: 20px;
+            border-radius: 12px;
+            font-size: 24px;
             font-weight: bold;
             color: #ecf0f1;
             cursor: pointer;
@@ -84,48 +84,46 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
         
         .dpad-btn:active {
             background: linear-gradient(135deg, #f39c12, #e67e22);
             transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         
-        .dpad-up { top: 0; left: 40px; width: 40px; height: 40px; }
-        .dpad-down { bottom: 0; left: 40px; width: 40px; height: 40px; }
-        .dpad-left { top: 40px; left: 0; width: 40px; height: 40px; }
-        .dpad-right { top: 40px; right: 0; width: 40px; height: 40px; }
-        .dpad-center { top: 40px; left: 40px; width: 40px; height: 40px; background: rgba(52,73,94,0.5); }
-        
-        .action-buttons {
-            display: flex;
-            gap: 15px;
+        .dpad-up { 
+            top: 0; 
+            left: 50px; 
+            width: 40px; 
+            height: 40px; 
         }
-        
-        .action-btn {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            border: 4px solid #ecf0f1;
-            color: #fff;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.1s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
+        .dpad-down { 
+            bottom: 0; 
+            left: 50px; 
+            width: 40px; 
+            height: 40px; 
         }
-        
-        .action-btn:active {
-            transform: scale(0.9);
-            background: linear-gradient(135deg, #c0392b, #a93226);
+        .dpad-left { 
+            top: 50px; 
+            left: 0; 
+            width: 40px; 
+            height: 40px; 
         }
-        
-        .pause-btn {
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        .dpad-right { 
+            top: 50px; 
+            right: 0; 
+            width: 40px; 
+            height: 40px; 
+        }
+        .dpad-center { 
+            top: 50px; 
+            left: 50px; 
+            width: 40px; 
+            height: 40px; 
+            background: rgba(52,73,94,0.3); 
+            border: 2px solid #555;
         }
         
         .game-over {
@@ -180,24 +178,26 @@
             }
             
             .dpad {
-                width: 100px;
-                height: 100px;
+                width: 120px;
+                height: 120px;
             }
             
             .dpad-btn {
-                font-size: 16px;
+                font-size: 18px;
             }
             
-            .dpad-up, .dpad-down, .dpad-left, .dpad-right { width: 35px; height: 35px; }
-            .dpad-center { top: 35px; left: 35px; width: 30px; height: 30px; }
-            .dpad-up { left: 35px; }
-            .dpad-down { left: 35px; }
-            
-            .action-btn {
-                width: 70px;
-                height: 70px;
-                font-size: 14px;
+            .dpad-up, .dpad-down, .dpad-left, .dpad-right { 
+                width: 35px; 
+                height: 35px; 
             }
+            .dpad-center { 
+                top: 42px; 
+                left: 42px; 
+                width: 36px; 
+                height: 36px; 
+            }
+            .dpad-up { left: 42px; }
+            .dpad-down { left: 42px; }
         }
     </style>
 </head>
@@ -232,15 +232,6 @@
             <button class="dpad-btn dpad-left" data-direction="left">◀</button>
             <button class="dpad-btn dpad-right" data-direction="right">▶</button>
             <div class="dpad-center"></div>
-        </div>
-        
-        <div class="action-buttons">
-            <button class="action-btn" id="shootBtn">
-                🔥<br>ОГОНЬ
-            </button>
-            <button class="action-btn pause-btn" id="pauseBtn">
-                ⏸️<br>ПАУЗА
-            </button>
         </div>
     </div>
 
@@ -335,8 +326,7 @@
                     up: false,
                     down: false,
                     left: false,
-                    right: false,
-                    shoot: false
+                    right: false
                 };
                 
                 this.init();
@@ -611,23 +601,23 @@
                             this.touchControls[direction] = false;
                         }
                     });
-                });
-                
-                const shootBtn = document.getElementById('shootBtn');
-                shootBtn.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    this.touchControls.shoot = true;
-                });
-                
-                shootBtn.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    this.touchControls.shoot = false;
-                });
-                
-                const pauseBtn = document.getElementById('pauseBtn');
-                pauseBtn.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    this.togglePause();
+                    
+                    // Для мыши тоже
+                    btn.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        const direction = btn.dataset.direction;
+                        if (direction) {
+                            this.touchControls[direction] = true;
+                        }
+                    });
+                    
+                    btn.addEventListener('mouseup', (e) => {
+                        e.preventDefault();
+                        const direction = btn.dataset.direction;
+                        if (direction) {
+                            this.touchControls[direction] = false;
+                        }
+                    });
                 });
             }
             
@@ -1138,7 +1128,7 @@
             }
         }
         
-        // Класс танка
+        // Класс танка с АВТОМАТИЧЕСКОЙ стрельбой
         class Tank {
             constructor(x, y, type, enemyType = 'BASIC', hasPowerUp = false) {
                 this.x = x;
@@ -1150,7 +1140,7 @@
                 this.hasPowerUp = hasPowerUp;
                 this.direction = type === 'player' ? 0 : 2;
                 this.lastShot = 0;
-                this.shootCooldown = type === 'player' ? 150 : 300;
+                this.shootCooldown = type === 'player' ? 300 : 400; // Автоматическая стрельба каждые 300мс
                 this.level = 0;
                 this.animationFrame = 0;
                 
@@ -1177,7 +1167,7 @@
                 this.level = Math.min(3, this.level + 1);
                 if (this.level >= 1) this.maxBullets = 2;
                 if (this.level >= 2) this.speed = 2;
-                if (this.level >= 3) this.shootCooldown = 100;
+                if (this.level >= 3) this.shootCooldown = 200; // Быстрее стреляет
             }
             
             update(game) {
@@ -1186,6 +1176,19 @@
                     this.updatePlayer(game);
                 } else {
                     this.updateAI(game);
+                }
+                
+                // АВТОМАТИЧЕСКАЯ СТРЕЛЬБА для всех танков
+                if (Date.now() - this.lastShot > this.shootCooldown) {
+                    if (this.type === 'player') {
+                        if (game.bullets.length < this.maxBullets) {
+                            this.shoot(game);
+                        }
+                    } else {
+                        if (game.enemyBullets.length < 8) {
+                            this.shoot(game);
+                        }
+                    }
                 }
             }
             
@@ -1228,12 +1231,6 @@
                     this.x = newX;
                     this.y = newY;
                 }
-                
-                if ((game.keys['Space'] || game.touchControls.shoot) && Date.now() - this.lastShot > this.shootCooldown) {
-                    if (game.bullets.length < this.maxBullets) {
-                        this.shoot(game);
-                    }
-                }
             }
             
             updateAI(game) {
@@ -1271,12 +1268,6 @@
                 } else {
                     this.targetDirection = Math.floor(Math.random() * 4);
                     this.aiChangeTimer = 0;
-                }
-                
-                if (Math.random() < 0.015 && Date.now() - this.lastShot > this.shootCooldown) {
-                    if (game.enemyBullets.length < 6) {
-                        this.shoot(game);
-                    }
                 }
             }
             
