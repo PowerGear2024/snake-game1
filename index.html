@@ -1,645 +1,2522 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🐍 Змейка MEGA</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, BotCommand
-from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
-import json
-import logging
-from datetime import datetime, timedelta
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
 
-# Настройка логирования
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-logger = logging.getLogger(__name__)
+        body {
+            background: linear-gradient(135deg, 
+                #0f0f23 0%, 
+                #1e1e3f 20%, 
+                #2d1b69 40%, 
+                #4338ca 60%, 
+                #6366f1 80%, 
+                #8b5cf6 100%);
+            color: white;
+            font-family: 'Arial', sans-serif;
+            user-select: none;
+            touch-action: none;
+            display: flex;
+            flex-direction: column;
+        }
 
-# ВАЖНО: Замените на ваш токен от @BotFather
-BOT_TOKEN = "7500806601:AAG3nSdkrXc6WBQKojXg-Nx6gAAGEcF4v4M"
+        /* Улучшенное звездное небо */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
 
-# URL вашего веб-приложения
-WEBAPP_URL = "https://powergear2024.github.io/snake-game1/"
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite ease-in-out;
+            box-shadow: 0 0 10px rgba(255,255,255,0.8);
+        }
 
-# Словарь для хранения статистики игроков
-player_stats = {}
+        @keyframes twinkle {
+            0%, 100% { 
+                opacity: 0.3; 
+                transform: scale(0.8) rotate(0deg); 
+                box-shadow: 0 0 5px rgba(255,255,255,0.3);
+            }
+            50% { 
+                opacity: 1; 
+                transform: scale(1.2) rotate(180deg); 
+                box-shadow: 0 0 20px rgba(255,255,255,1);
+            }
+        }
 
-class PlayerStats:
-    def __init__(self):
-        self.total_games = 0
-        self.best_score = 0
-        self.best_length = 0
-        self.best_level = 0
-        self.best_combo = 0
-        self.total_score = 0
-        self.total_food_eaten = 0
-        self.achievements = set()
-        self.last_played = None
-        self.games_today = 0
-        self.daily_reset = None
+        .shooting-star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: linear-gradient(45deg, #fff, #4FC3F7, #00BCD4);
+            border-radius: 50%;
+            animation: shoot 4s linear infinite;
+            box-shadow: 0 0 10px rgba(255,255,255,0.8);
+        }
 
-def get_player_stats(user_id):
-    if user_id not in player_stats:
-        player_stats[user_id] = PlayerStats()
-    
-    # Сброс ежедневной статистики
-    stats = player_stats[user_id]
-    today = datetime.now().date()
-    if stats.daily_reset != today:
-        stats.games_today = 0
-        stats.daily_reset = today
-    
-    return stats
+        @keyframes shoot {
+            0% {
+                transform: translateX(-200px) translateY(200px);
+                opacity: 0;
+                box-shadow: 0 0 5px rgba(255,255,255,0.3);
+            }
+            10% {
+                opacity: 1;
+                box-shadow: 0 0 15px rgba(255,255,255,0.8);
+            }
+            90% {
+                opacity: 1;
+                box-shadow: 0 0 25px rgba(79, 195, 247, 1);
+            }
+            100% {
+                transform: translateX(100vw) translateY(-200px);
+                opacity: 0;
+                box-shadow: 0 0 5px rgba(255,255,255,0.3);
+            }
+        }
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Команда /start - главное меню игры"""
-    user = update.effective_user
-    chat = update.effective_chat
-    stats = get_player_stats(user.id)
-    
-    # Проверяем тип чата
-    if chat.type == 'private':
-        # Личный чат - полное меню с WebApp
-        welcome_text = f"""🌌 Добро пожаловать в ЗМЕЙКУ MEGA, {user.first_name}! 
+        /* Космическая туманность */
+        .nebula {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
+            animation: nebulaDrift 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 2;
+        }
 
-🚀 **НОВЫЕ ВОЗМОЖНОСТИ:**
-🎮 Виртуальный джойстик управления
-🌟 5 типов волшебной еды с бонусами  
-🌀 Порталы для телепортации
-🔥 Система комбо множителей
-💎 Эффекты призрака и ускорения
-🏆 Система достижений
+        @keyframes nebulaDrift {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(10px, -5px) scale(1.02); }
+            66% { transform: translate(-5px, 10px) scale(0.98); }
+        }
 
-📊 **ВАША СТАТИСТИКА:**
-🎯 Лучший результат: {stats.best_score} очков
-🐍 Максимальная длина: {stats.best_length}
-🚀 Высший уровень: {stats.best_level}
-🔥 Лучшее комбо: x{stats.best_combo}
-🎮 Игр сыграно: {stats.total_games}
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 10;
+        }
 
-Готовы покорить космос? 🌌"""
+        .game-header {
+            padding: min(1vh, 8px) min(2vw, 15px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 15, 35, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+            flex-shrink: 0;
+        }
 
-        # Создаем кнопку для запуска WebApp (только в личном чате)
-        keyboard = [
-            [InlineKeyboardButton("🎮 ИГРАТЬ В ЗМЕЙКУ MEGA", web_app=WebAppInfo(url=WEBAPP_URL))],
-            [InlineKeyboardButton("🏆 Топ игроков", callback_data="leaderboard"),
-             InlineKeyboardButton("📊 Статистика", callback_data="stats")],
-            [InlineKeyboardButton("❓ Справка", callback_data="help"),
-             InlineKeyboardButton("🏅 Достижения", callback_data="achievements")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
+        .score-panel {
+            display: flex;
+            gap: min(1.5vw, 10px);
+            flex-wrap: wrap;
+        }
+
+        .score-item {
+            font-size: clamp(0.6rem, 2vw, 0.9rem);
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.8), rgba(59, 130, 246, 0.2));
+            padding: min(0.6vh, 6px) min(1.8vw, 10px);
+            border-radius: min(2.5vw, 15px);
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            backdrop-filter: blur(20px);
+            animation: scoreGlow 3s ease-in-out infinite alternate;
+            white-space: nowrap;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .score-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: scoreShine 4s ease-in-out infinite;
+        }
+
+        @keyframes scoreGlow {
+            from { 
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.4);
+                transform: scale(1);
+            }
+            to { 
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 215, 0, 0.7);
+                transform: scale(1.03);
+            }
+        }
+
+        @keyframes scoreShine {
+            0%, 100% { left: -100%; }
+            50% { left: 100%; }
+        }
+
+        .game-title {
+            font-size: clamp(0.8rem, 2.5vw, 1.3rem);
+            font-weight: 900;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1, #FFEAA7, #DDA0DD);
+            background-size: 500% 500%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titleFlow 4s ease-in-out infinite, titleFloat 3s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+        }
+
+        @keyframes titleFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes titleFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-2px) rotate(0.5deg); }
+            66% { transform: translateY(2px) rotate(-0.5deg); }
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
+            padding: min(1vh, 10px);
+        }
+
+        #gameCanvas {
+            background: linear-gradient(135deg, 
+                rgba(15, 15, 35, 0.95) 0%,
+                rgba(30, 30, 63, 0.9) 25%,
+                rgba(67, 56, 202, 0.85) 50%,
+                rgba(99, 102, 241, 0.9) 75%,
+                rgba(139, 92, 246, 0.95) 100%);
+            background-size: 300% 300%;
+            animation: gradientShift 20s ease infinite;
+            border-radius: min(3vw, 25px);
+            box-shadow: 
+                0 0 60px rgba(139, 92, 246, 0.4),
+                inset 0 0 40px rgba(255,255,255,0.1),
+                0 0 120px rgba(59, 130, 246, 0.3),
+                0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 3px solid rgba(255,255,255,0.2);
+            display: block;
+            touch-action: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #gameCanvas::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 30% 40%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+            border-radius: inherit;
+            pointer-events: none;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .footer-panel {
+            padding: min(1vh, 8px) min(2vw, 15px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 15, 35, 0.9);
+            backdrop-filter: blur(20px);
+            border-top: 2px solid rgba(139, 92, 246, 0.3);
+            flex-shrink: 0;
+        }
+
+        .tournament-info {
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.8), rgba(139, 92, 246, 0.2));
+            padding: min(0.8vh, 6px) min(2vw, 12px);
+            border-radius: min(3vw, 18px);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            backdrop-filter: blur(15px);
+            font-size: clamp(0.6rem, 1.8vw, 0.8rem);
+            color: #FFD700;
+            white-space: nowrap;
+            animation: infoGlow 4s ease-in-out infinite alternate;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes infoGlow {
+            from { 
+                border-color: rgba(255, 215, 0, 0.3); 
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 15px rgba(255, 215, 0, 0.2);
+            }
+            to { 
+                border-color: rgba(255, 215, 0, 0.6); 
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 215, 0, 0.5);
+            }
+        }
+
+        .leaderboard-btn {
+            background: linear-gradient(145deg, #8b5cf6, #6366f1, #3b82f6);
+            border: none;
+            padding: min(0.8vh, 6px) min(2.5vw, 14px);
+            border-radius: min(3vw, 18px);
+            color: white;
+            font-size: clamp(0.6rem, 1.8vw, 0.8rem);
+            font-weight: 700;
+            cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.2);
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            animation: btnPulse 5s ease-in-out infinite;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        @keyframes btnPulse {
+            0%, 100% { 
+                transform: scale(1); 
+                box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4), 0 0 20px rgba(139, 92, 246, 0.2);
+            }
+            50% { 
+                transform: scale(1.05); 
+                box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6), 0 0 30px rgba(139, 92, 246, 0.4);
+            }
+        }
+
+        .leaderboard-btn:active {
+            transform: scale(0.95);
+        }
+
+        .swipe-indicator {
+            position: absolute;
+            bottom: min(2vh, 20px);
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(0.6rem, 1.8vw, 0.8rem);
+            opacity: 0.9;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.9), rgba(139, 92, 246, 0.3));
+            padding: min(1vh, 8px) min(3vw, 15px);
+            border-radius: min(4vw, 25px);
+            border: 2px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(20px);
+            animation: swipeHint 4s ease-in-out infinite;
+            white-space: nowrap;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes swipeHint {
+            0%, 100% { 
+                opacity: 0.9; 
+                transform: translateX(-50%) translateY(0px); 
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            }
+            50% { 
+                opacity: 1; 
+                transform: translateX(-50%) translateY(-5px); 
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            }
+        }
+
+        .powerup-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #FFD700, #DDA0DD);
+            background-size: 400% 400%;
+            animation: notificationBg 3s ease infinite;
+            color: white;
+            padding: min(2vh, 18px) min(4vw, 25px);
+            border-radius: min(4vw, 25px);
+            font-size: clamp(0.9rem, 3vw, 1.4rem);
+            font-weight: bold;
+            text-align: center;
+            z-index: 1001;
+            pointer-events: none;
+            display: none;
+            box-shadow: 0 0 40px rgba(255,255,255,0.6), 0 0 80px rgba(139, 92, 246, 0.4);
+            max-width: 85vw;
+            border: 3px solid rgba(255,255,255,0.7);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes notificationBg {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .powerup-show {
+            animation: powerupShow 4s ease-out forwards !important;
+        }
+
+        @keyframes powerupShow {
+            0% { 
+                opacity: 0; 
+                transform: translate(-50%, -50%) scale(0.2) rotate(-270deg); 
+                filter: blur(10px);
+            }
+            20% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1.3) rotate(0deg); 
+                filter: blur(0px);
+            }
+            80% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1) rotate(0deg); 
+            }
+            100% { 
+                opacity: 0; 
+                transform: translate(-50%, -50%) scale(0.6) rotate(270deg); 
+                filter: blur(5px);
+            }
+        }
+
+        .combo-indicator {
+            position: absolute;
+            top: min(3vh, 25px);
+            right: min(3vw, 25px);
+            background: linear-gradient(145deg, rgba(255, 215, 0, 0.95), rgba(255, 165, 0, 0.9));
+            color: #8B4513;
+            padding: min(1vh, 10px) min(2.5vw, 15px);
+            border-radius: min(3vw, 20px);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            font-weight: bold;
+            font-size: clamp(0.7rem, 2vw, 1.1rem);
+            animation: comboGlow 1.5s ease-in-out infinite alternate;
+            display: none;
+            white-space: nowrap;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.7), 0 4px 15px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes comboGlow {
+            from { 
+                box-shadow: 0 0 30px rgba(255, 215, 0, 0.7), 0 4px 15px rgba(0, 0, 0, 0.3);
+                transform: scale(1);
+            }
+            to { 
+                box-shadow: 0 0 50px rgba(255, 215, 0, 1), 0 8px 25px rgba(0, 0, 0, 0.4);
+                transform: scale(1.08);
+            }
+        }
+
+        .pause-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(2.5rem, 10vw, 5rem);
+            color: rgba(255,255,255,0.95);
+            text-shadow: 0 0 30px rgba(255,255,255,0.9), 0 0 60px rgba(139, 92, 246, 0.6);
+            animation: pausePulse 2s ease-in-out infinite;
+            pointer-events: none;
+            display: none;
+            z-index: 100;
+            filter: drop-shadow(0 0 20px rgba(255,255,255,0.8));
+        }
+
+        @keyframes pausePulse {
+            0%, 100% { 
+                opacity: 0.7; 
+                transform: translate(-50%, -50%) scale(1) rotate(0deg); 
+            }
+            50% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1.2) rotate(5deg); 
+            }
+        }
+
+        .game-over-screen, .leaderboard-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(25px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 1000;
+            padding: min(3vh, 25px);
+        }
+
+        .game-over-content, .leaderboard-content {
+            background: linear-gradient(145deg, rgba(45, 27, 105, 0.95), rgba(30, 30, 63, 0.9));
+            padding: min(3vh, 25px);
+            border-radius: min(4vw, 30px);
+            text-align: center;
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.8),
+                0 0 100px rgba(139, 92, 246, 0.3),
+                inset 0 0 30px rgba(255,255,255,0.1);
+            border: 3px solid rgba(255,255,255,0.2);
+            max-width: 90vw;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: modalAppear 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalAppear {
+            from { 
+                transform: scale(0.2) rotate(-20deg); 
+                opacity: 0; 
+                filter: blur(20px);
+            }
+            to { 
+                transform: scale(1) rotate(0deg); 
+                opacity: 1; 
+                filter: blur(0px);
+            }
+        }
+
+        .game-over-title, .leaderboard-title {
+            font-size: clamp(1.2rem, 4vw, 2.2rem);
+            margin-bottom: min(2vh, 20px);
+            background: linear-gradient(45deg, #ff6b6b, #feca57, #ff9ff3, #54a0ff);
+            background-size: 400% 400%;
+            animation: titleShine 4s ease infinite;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255,255,255,0.3);
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+        }
+
+        @keyframes titleShine {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .final-score {
+            font-size: clamp(0.8rem, 2.5vw, 1.2rem);
+            margin-bottom: min(2vh, 20px);
+            color: #FFD700;
+            font-weight: bold;
+            line-height: 1.5;
+            animation: scoreFlicker 3s ease-in-out infinite alternate;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+
+        @keyframes scoreFlicker {
+            from { 
+                text-shadow: 0 0 20px rgba(255, 215, 0, 0.8); 
+                transform: scale(1);
+            }
+            to { 
+                text-shadow: 0 0 40px rgba(255, 215, 0, 1), 0 0 60px rgba(255, 215, 0, 0.6); 
+                transform: scale(1.02);
+            }
+        }
+
+        .action-btn {
+            background: linear-gradient(145deg, #48bb78, #38a169, #2f855a);
+            border: none;
+            padding: min(1.5vh, 12px) min(4vw, 20px);
+            border-radius: min(4vw, 25px);
+            color: white;
+            font-size: clamp(0.7rem, 2.2vw, 1.1rem);
+            font-weight: 700;
+            cursor: pointer;
+            margin: min(0.8vh, 6px);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            animation: btnFloat 4s ease-in-out infinite;
+            box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes btnFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .action-btn:active {
+            transform: scale(0.95) translateY(3px);
+            box-shadow: 0 3px 10px rgba(72, 187, 120, 0.6);
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: min(1vh, 10px);
+            margin: min(0.6vh, 6px) 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(139, 92, 246, 0.1));
+            border-radius: min(2vw, 15px);
+            border-left: 4px solid #8b5cf6;
+            font-size: clamp(0.7rem, 2vw, 1rem);
+            animation: itemSlide 0.6s ease-out;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes itemSlide {
+            from { 
+                transform: translateX(-100px); 
+                opacity: 0; 
+                filter: blur(10px);
+            }
+            to { 
+                transform: translateX(0); 
+                opacity: 1; 
+                filter: blur(0px);
+            }
+        }
+
+        /* Улучшенные эффекты частиц */
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            border-radius: 50%;
+            animation: particleFloat 3s ease-out forwards;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+                box-shadow: 0 0 20px currentColor;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.3) rotate(720deg) translateY(-80px);
+                box-shadow: 0 0 5px currentColor;
+            }
+        }
+
+        /* Адаптация для маленьких экранов */
+        @media (max-height: 600px) {
+            .game-header, .footer-panel {
+                padding: 4px 10px;
+            }
+            
+            .score-item, .tournament-info, .leaderboard-btn {
+                padding: 4px 8px;
+                font-size: 0.65rem;
+            }
+        }
+
+        /* Адаптация для широких экранов */
+        @media (min-aspect-ratio: 16/9) {
+            .canvas-container {
+                max-width: 80vh;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Улучшенная космическая атмосфера -->
+    <div class="stars" id="starsContainer"></div>
+    <div class="nebula"></div>
+
+    <div class="powerup-notification" id="powerupNotification">
+        🌟 БОНУС АКТИВИРОВАН! 🌟
+    </div>
+
+    <div class="combo-indicator" id="comboIndicator">
+        🔥 КОМБО x1
+    </div>
+
+    <div class="pause-indicator" id="pauseIndicator">
+        ⏸️
+    </div>
+
+    <div class="game-container">
+        <div class="game-header">
+            <div class="game-title">🐍 ЗМЕЙКА MEGA</div>
+            <div class="score-panel">
+                <div class="score-item" id="scoreDisplay">🏆 0</div>
+                <div class="score-item" id="lengthDisplay">📏 1</div>
+                <div class="score-item" id="speedDisplay">⚡ 1</div>
+                <div class="score-item" id="timeDisplay">⏱️ 0:00</div>
+            </div>
+        </div>
         
-    else:
-        # Группа/канал - упрощенное меню без WebApp
-        welcome_text = f"""🐍 **ЗМЕЙКА MEGA в группе!** 🚀
-
-Привет, {user.first_name}! Я - игровой бот Змейка MEGA!
-
-🎮 **Что я умею:**
-• Веду рейтинг лучших игроков группы
-• Показываю статистику и достижения
-• Провожу турниры и соревнования
-
-🌟 **Для игры** напишите мне в личные сообщения: @{context.bot.username}
-
-⚡ **Команды в группе:**
-/top - 🏆 Рейтинг игроков группы
-/stats - 📊 Ваша статистика  
-/rules - 📋 Правила игры
-/help - ❓ Полная справка
-
-**Начните играть в личных сообщениях и соревнуйтесь с участниками группы!** 🏆"""
-
-        # Простые кнопки для группы (без WebApp)
-        keyboard = [
-            [InlineKeyboardButton("💬 Играть в личке", url=f"https://t.me/{context.bot.username}?start=group_{chat.id}")],
-            [InlineKeyboardButton("🏆 Рейтинг группы", callback_data="leaderboard"),
-             InlineKeyboardButton("📋 Правила", callback_data="help")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await update.message.reply_text(welcome_text, reply_markup=reply_markup)
-
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Команда /help - подробная справка"""
-    help_text = """🐍 **СПРАВКА ПО ЗМЕЙКЕ MEGA** 🚀
-
-🎮 **УПРАВЛЕНИЕ:**
-• Виртуальный джойстик или стрелки клавиатуры
-• Центральная кнопка - пауза/старт
-• Свайпы на мобильном устройстве
-
-🍎 **ТИПЫ ЕДЫ:**
-🍎 Красные яблоки - +10 очков
-🌟 Золотые звезды - +25 очков + замедление
-💎 Алмазы - +50 очков + эффект призрака  
-⚡ Молнии - +15 очков + ускорение
-🌀 Порталы - +30 очков + телепортация
-
-🔥 **СИСТЕМА КОМБО:**
-• Быстрое поедание еды увеличивает множитель
-• Комбо x3+ дает бонусные очки
-• Чем быстрее едите, тем больше очков!
-
-🏆 **ДОСТИЖЕНИЯ:**
-🍽️ Первый пир - съесть 15 фруктов
-🏆 Мастер - набрать 300 очков
-🐍 Гигантская змея - длина 20+ сегментов
-💨 Демон скорости - достичь 6 уровня
-🔥 Мастер комбо - комбо x5
-
-⚠️ **ПРЕПЯТСТВИЯ:**
-🧱 Красные блоки появляются каждые 150 очков
-💎 Эффект призрака позволяет проходить сквозь них
-
-🌌 **ЭФФЕКТЫ:**
-• Звездное небо и космические туманности
-• Следы от движения змейки
-• Частицы при поедании еды
-• Свечение при активных бонусах
-
-Удачной игры! 🍀"""
-    
-    # Отправляем в зависимости от типа update
-    if hasattr(update, 'message'):
-        await update.message.reply_text(help_text)
-    else:
-        await update.edit_message_text(help_text)
-
-async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Команда /top - топ игроков"""
-    if not player_stats:
-        message_text = "🏆 Пока никто не играл! Станьте первым!"
-    else:
-        # Сортируем игроков по лучшему результату
-        sorted_players = sorted(
-            [(user_id, stats) for user_id, stats in player_stats.items()], 
-            key=lambda x: x[1].best_score, 
-            reverse=True
-        )
+        <div class="canvas-container">
+            <canvas id="gameCanvas"></canvas>
+            <div class="swipe-indicator" id="swipeIndicator">
+                💫 Свайп для управления | Двойной тап - пауза
+            </div>
+        </div>
         
-        message_text = "🏆 **ТОП 10 ИГРОКОВ** 🏆\n\n"
+        <div class="footer-panel">
+            <div class="tournament-info" id="tournamentInfo">
+                🏆 Место: #<span id="tournamentRank">1</span>
+            </div>
+            <button class="leaderboard-btn" onclick="showLeaderboard()">
+                📊 Топ игроков
+            </button>
+            <div class="tournament-info" id="playerRank">
+                🎯 Рейтинг: <span id="playerRating">1500</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-over-screen" id="gameOverScreen">
+        <div class="game-over-content">
+            <div class="game-over-title">💀 ИГРА ОКОНЧЕНА</div>
+            <div class="final-score" id="finalScore">Результат: 0 очков</div>
+            <div id="achievementsList"></div>
+            <div id="tournamentResult"></div>
+            <div id="statisticsDisplay"></div>
+            <button class="action-btn" onclick="handleRestart()">🔄 Играть снова</button>
+            <button class="action-btn" onclick="handleShare()">📤 Поделиться</button>
+        </div>
+    </div>
+
+    <div class="leaderboard-modal" id="leaderboardModal">
+        <div class="leaderboard-content">
+            <div class="leaderboard-title">🏆 ТУРНИРНАЯ ТАБЛИЦА</div>
+            <div id="leaderboardList"></div>
+            <button class="action-btn" onclick="hideLeaderboard()" style="margin-top: min(2vh, 20px);">✖️ Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        let tg = null;
+        try {
+            if (window.Telegram && window.Telegram.WebApp) {
+                tg = window.Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+                tg.disableVerticalSwipes();
+            }
+        } catch (e) {
+            console.log('Telegram WebApp недоступен');
+        }
+
+        // Константы для оптимизации производительности
+        const TARGET_FPS = 60;
+        const FRAME_TIME = 1000 / TARGET_FPS;
         
-        for i, (user_id, stats) in enumerate(sorted_players[:10], 1):
-            try:
-                user_info = await context.bot.get_chat(user_id)
-                username = user_info.first_name or f"Игрок{user_id}"
-            except:
-                username = f"Игрок{user_id}"
-            
-            medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
-            
-            message_text += (
-                f"{medal} **{username}**\n"
-                f"   🎯 {stats.best_score} очков | 🐍 {stats.best_length} длина\n"
-                f"   🚀 {stats.best_level} уровень | 🔥 x{stats.best_combo} комбо\n\n"
-            )
-    
-    # Отправляем в зависимости от типа update
-    if hasattr(update, 'message'):
-        await update.message.reply_text(message_text, parse_mode='Markdown')
-    else:
-        await update.edit_message_text(message_text, parse_mode='Markdown')
+        // Улучшенная игровая статистика (хранится в памяти)
+        let gameStats = {
+            gamesPlayed: 0,
+            totalScore: 0,
+            bestScore: 0,
+            totalTime: 0,
+            totalFoodEaten: 0,
+            achievements: [],
+            rating: 1500,
+            tournamentRank: 1,
+            dailyBest: 0,
+            averageScore: 0,
+            winRate: 0,
+            longestGame: 0,
+            bestCombo: 0,
+            favoriteFood: 'NORMAL',
+            sessionStartTime: Date.now()
+        };
 
-async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Команда /stats - личная статистика"""
-    # Поддержка как команд, так и callback кнопок
-    if hasattr(update, 'effective_user'):
-        user = update.effective_user
-    else:
-        user = update.from_user
-    stats = get_player_stats(user.id)
-    
-    if stats.total_games == 0:
-        await update.message.reply_text("📊 Вы еще не играли! Нажмите /start чтобы начать.")
-        return
-    
-    avg_score = stats.total_score // stats.total_games if stats.total_games > 0 else 0
-    
-    # Ранг игрока
-    all_scores = [s.best_score for s in player_stats.values() if s.best_score > 0]
-    all_scores.sort(reverse=True)
-    rank = all_scores.index(stats.best_score) + 1 if stats.best_score in all_scores else len(all_scores) + 1
-    
-    stats_text = f"""📊 **СТАТИСТИКА {user.first_name}** 
-
-🏅 **РЕЙТИНГ:** #{rank} из {len(player_stats)}
-
-🎯 **РЕКОРДЫ:**
-• Лучший результат: {stats.best_score} очков
-• Максимальная длина: {stats.best_length} сегментов  
-• Высший уровень: {stats.best_level}
-• Лучшее комбо: x{stats.best_combo}
-
-📈 **ОБЩАЯ СТАТИСТИКА:**
-• Всего игр: {stats.total_games}
-• Игр сегодня: {stats.games_today}
-• Общие очки: {stats.total_score:,}
-• Средний результат: {avg_score} очков
-
-🏆 **ДОСТИЖЕНИЯ:** {len(stats.achievements)}/5
-
-{f"🎮 Последняя игра: {stats.last_played.strftime('%d.%m %H:%M')}" if stats.last_played else ""}"""
-    
-    # Определяем тип чата для правильных кнопок
-    if hasattr(update, 'effective_chat'):
-        chat_type = update.effective_chat.type
-    elif hasattr(update, 'message'):
-        chat_type = update.message.chat.type
-    else:
-        chat_type = 'private'  # По умолчанию
-    
-    if chat_type == 'private':
-        # Личный чат - кнопка с WebApp
-        keyboard = [
-            [InlineKeyboardButton("🎮 Играть снова", web_app=WebAppInfo(url=WEBAPP_URL))],
-            [InlineKeyboardButton("🏆 Топ игроков", callback_data="leaderboard")]
-        ]
-    else:
-        # Группа - обычные кнопки
-        keyboard = [
-            [InlineKeyboardButton("🎮 Играть в личке", url=f"https://t.me/{context.bot.username}")],
-            [InlineKeyboardButton("🏆 Рейтинг группы", callback_data="leaderboard")]
-        ]
-    
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    # Отправляем в зависимости от типа update
-    if hasattr(update, 'message'):
-        await update.message.reply_text(stats_text, reply_markup=reply_markup, parse_mode='Markdown')
-    else:
-        await update.edit_message_text(stats_text, reply_markup=reply_markup, parse_mode='Markdown')
-
-async def rules_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Команда /rules - правила игры"""
-    rules_text = """📋 **ПРАВИЛА ЗМЕЙКИ MEGA** 
-
-🎯 **ЦЕЛЬ ИГРЫ:**
-Управляйте змейкой, ешьте еду и набирайте очки, избегая столкновений со стенами, препятствиями и собственным телом.
-
-🐍 **МЕХАНИКА:**
-• Змейка постоянно движется в выбранном направлении
-• При поедании еды змейка увеличивается в длину
-• Скорость игры увеличивается с уровнем
-• Каждые 6 съеденных фруктов = новый уровень
-
-🔥 **СИСТЕМА КОМБО:**
-• Съедайте еду быстро для увеличения множителя
-• Комбо x2 и выше дают бонусные очки
-• Пауза между поеданием > 3 сек сбрасывает комбо
-
-🌀 **ПОРТАЛЫ:**
-• Редкая еда, создающая 2 портала на 15 секунд
-• Вход в один портал телепортирует в другой
-• Используйте для избежания препятствий
-
-⚡ **БОНУСНЫЕ ЭФФЕКТЫ:**
-• 🌟 Замедление - проще управлять
-• 💎 Призрак - проходите сквозь стены и препятствия  
-• ⚡ Ускорение - быстрый набор очков
-
-🏆 **ОЧКИ:**
-• Обычная еда: +10 очков
-• Золотая еда: +25 очков  
-• Молния: +15 очков
-• Алмазы: +50 очков
-• Порталы: +30 очков
-• Комбо множитель добавляет бонусы!
-
-Удачи в покорении космоса! 🚀"""
-    
-    await update.message.reply_text(rules_text, parse_mode='Markdown')
-
-async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработчик callback кнопок"""
-    query = update.callback_query
-    await query.answer()
-    
-    if query.data == "leaderboard":
-        await leaderboard(query, context)
-    elif query.data == "stats":
-        await stats_command(query, context)
-    elif query.data == "help":
-        await help_command(query, context)
-    elif query.data == "achievements":
-        await show_achievements(query, context)
-
-async def show_achievements(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Показать достижения игрока"""
-    # Поддержка как команд, так и callback кнопок
-    if hasattr(update, 'effective_user'):
-        user = update.effective_user
-    else:
-        user = update.from_user
-    stats = get_player_stats(user.id)
-    
-    all_achievements = {
-        'first_feast': '🍽️ Первый пир - съесть 15 фруктов',
-        'score_300': '🏆 Мастер - набрать 300 очков',
-        'long_snake': '🐍 Гигантская змея - длина 20+ сегментов',
-        'speed_demon': '💨 Демон скорости - достичь 6 уровня',
-        'combo_master': '🔥 Мастер комбо - комбо x5'
-    }
-    
-    achieved_text = "🏅 **ПОЛУЧЕННЫЕ ДОСТИЖЕНИЯ:**\n"
-    locked_text = "\n🔒 **НЕ ПОЛУЧЕНЫ:**\n"
-    
-    for achievement_id, description in all_achievements.items():
-        if achievement_id in stats.achievements:
-            achieved_text += f"✅ {description}\n"
-        else:
-            locked_text += f"❌ {description}\n"
-    
-    if len(stats.achievements) == 0:
-        achieved_text += "Пока нет достижений. Играйте больше!\n"
-    
-    achievements_text = achieved_text + locked_text + f"\n🏆 Прогресс: {len(stats.achievements)}/5 достижений"
-    
-    # Определяем тип чата для правильных кнопок
-    if hasattr(update, 'effective_chat'):
-        chat_type = update.effective_chat.type
-    elif hasattr(update, 'message'):
-        chat_type = update.message.chat.type
-    else:
-        chat_type = 'private'
-    
-    if chat_type == 'private':
-        # Личный чат - кнопка с WebApp
-        keyboard = [
-            [InlineKeyboardButton("🎮 Играть", web_app=WebAppInfo(url=WEBAPP_URL))]
-        ]
-    else:
-        # Группа - обычная кнопка
-        keyboard = [
-            [InlineKeyboardButton("🎮 Играть в личке", url=f"https://t.me/{context.bot.username}")]
-        ]
-    
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    # Отправляем в зависимости от типа update
-    if hasattr(update, 'message'):
-        await update.message.reply_text(achievements_text, reply_markup=reply_markup, parse_mode='Markdown')
-    else:
-        await update.edit_message_text(achievements_text, reply_markup=reply_markup, parse_mode='Markdown')
-
-async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработка данных от WebApp"""
-    user = update.effective_user
-    stats = get_player_stats(user.id)
-    
-    try:
-        data = json.loads(update.effective_message.web_app_data.data)
-        action = data.get('action')
-        
-        if action == 'game_over':
-            score = data.get('score', 0)
-            level = data.get('level', 1)
-            max_length = data.get('maxLength', 1)
-            max_combo = data.get('maxCombo', 0)
-            
-            # Обновляем статистику
-            stats.total_games += 1
-            stats.games_today += 1
-            stats.total_score += score
-            stats.total_food_eaten += data.get('totalFoodEaten', 0)  # Добавляем общее количество еды
-            stats.last_played = datetime.now()
-            
-            # Обновляем рекорды
-            is_new_record = False
-            records_broken = []
-            
-            if score > stats.best_score:
-                stats.best_score = score
-                is_new_record = True
-                records_broken.append(f"🎯 Новый рекорд очков: {score}")
-            
-            if max_length > stats.best_length:
-                stats.best_length = max_length
-                records_broken.append(f"🐍 Новая максимальная длина: {max_length}")
-            
-            if level > stats.best_level:
-                stats.best_level = level
-                records_broken.append(f"🚀 Новый высший уровень: {level}")
-                
-            if max_combo > stats.best_combo:
-                stats.best_combo = max_combo
-                records_broken.append(f"🔥 Новое лучшее комбо: x{max_combo}")
-            
-            # Проверяем достижения
-            new_achievements = []
-            if stats.total_food_eaten >= 15 and 'first_feast' not in stats.achievements:
-                stats.achievements.add('first_feast')
-                new_achievements.append('🍽️ Первый пир')
-                
-            if score >= 300 and 'score_300' not in stats.achievements:
-                stats.achievements.add('score_300')
-                new_achievements.append('🏆 Мастер')
-            
-            if max_length >= 20 and 'long_snake' not in stats.achievements:
-                stats.achievements.add('long_snake')
-                new_achievements.append('🐍 Гигантская змея')
-            
-            if level >= 6 and 'speed_demon' not in stats.achievements:
-                stats.achievements.add('speed_demon')
-                new_achievements.append('💨 Демон скорости')
-                
-            if max_combo >= 5 and 'combo_master' not in stats.achievements:
-                stats.achievements.add('combo_master')
-                new_achievements.append('🔥 Мастер комбо')
-            
-            # Формируем сообщение
-            if is_new_record:
-                message = f"🎉 **НОВЫЙ РЕКОРД!** 🎉\n\n"
-            else:
-                message = f"🎮 **Игра окончена!** \n\n"
-            
-            message += f"🎯 Результат: **{score} очков**\n"
-            message += f"🐍 Длина: {max_length} | 🚀 Уровень: {level}\n"
-            message += f"🔥 Лучшее комбо: x{max_combo}\n\n"
-            
-            if records_broken:
-                message += "🏆 **Новые рекорды:**\n" + "\n".join(records_broken) + "\n\n"
-            
-            if new_achievements:
-                message += "🏅 **Новые достижения:**\n" + "\n".join(new_achievements) + "\n\n"
-            
-            # Ранг игрока
-            all_scores = [s.best_score for s in player_stats.values()]
-            all_scores.sort(reverse=True)
-            rank = all_scores.index(stats.best_score) + 1
-            message += f"📊 Ваш рейтинг: **#{rank}** из {len(player_stats)}"
-            
-            keyboard = [
-                [InlineKeyboardButton("🔄 Играть снова", web_app=WebAppInfo(url=WEBAPP_URL))],
-                [InlineKeyboardButton("🏆 Топ игроков", callback_data="leaderboard"),
-                 InlineKeyboardButton("📊 Статистика", callback_data="stats")]
+        // Турнирная система с реальными данными
+        let tournament = {
+            participants: [
+                { name: "🏆 КиберМастер", score: 850, rating: 2200 },
+                { name: "⚡ Быстрая Молния", score: 720, rating: 2100 },
+                { name: "🎯 Снайпер", score: 680, rating: 2000 },
+                { name: "🚀 РакетаПро", score: 650, rating: 1950 },
+                { name: "💎 АлмазныйИгрок", score: 620, rating: 1900 },
+                { name: "🎮 Вы", score: 0, rating: 1500 }
             ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
+        };
+
+        // Создание улучшенного звездного неба с эффектами
+        function createStarField() {
+            const starsContainer = document.getElementById('starsContainer');
+            starsContainer.innerHTML = ''; // Очищаем предыдущие звезды
             
-            await update.effective_message.reply_text(message, reply_markup=reply_markup, parse_mode='Markdown')
-            
-        elif action == 'share_score':
-            score = data.get('score', 0)
-            level = data.get('level', 1)
-            max_length = data.get('maxLength', 1)
-            max_combo = data.get('maxCombo', 0)
-            
-            share_message = (
-                f"🐍 Я набрал {score} очков в ЗМЕЙКЕ MEGA! 🚀\n"
-                f"🎯 Уровень {level} | 🐍 Длина {max_length} | 🔥 Комбо x{max_combo}\n\n"
-                f"Сможешь побить мой рекорд? 😎"
-            )
-            
-            keyboard = [
-                [InlineKeyboardButton("📤 Поделиться в чате", 
-                                    switch_inline_query=share_message)],
-                [InlineKeyboardButton("🎮 Играть самому", web_app=WebAppInfo(url=WEBAPP_URL))]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            
-            await update.effective_message.reply_text(
-                f"🎉 Отличный результат! {score} очков!\n\nПоделитесь своим достижением:",
-                reply_markup=reply_markup
-            )
-            
-    except json.JSONDecodeError:
-        await update.effective_message.reply_text("❌ Ошибка при получении данных от игры")
-    except Exception as e:
-        logger.error(f"Ошибка обработки WebApp данных: {e}")
+            // Создаем больше звезд для более красивого эффекта
+            for (let i = 0; i < 200; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                const size = Math.random() * 4 + 1;
+                star.style.width = star.style.height = size + 'px';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.animationDuration = (Math.random() * 4 + 2) + 's';
+                
+                // Разные цвета звезд
+                const colors = ['#ffffff', '#ffdddd', '#ddddff', '#ddffdd', '#ffffdd'];
+                star.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                starsContainer.appendChild(star);
+            }
 
-async def new_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработчик добавления новых участников в чат"""
-    message = update.message
-    new_members = message.new_chat_members
-    
-    # Проверяем, добавили ли нашего бота
-    bot_added = any(member.id == context.bot.id for member in new_members)
-    
-    if bot_added:
-        # Бота добавили в группу - отправляем приветствие
-        welcome_text = f"""🎉 **Привет, {message.chat.title}!** 🎉
+            // Создаем падающие звезды с интервалом
+            setInterval(() => {
+                if (Math.random() < 0.15) {
+                    const shootingStar = document.createElement('div');
+                    shootingStar.className = 'shooting-star';
+                    shootingStar.style.top = Math.random() * 40 + '%';
+                    shootingStar.style.left = '-200px';
+                    
+                    // Случайный размер падающей звезды
+                    const size = Math.random() * 3 + 2;
+                    shootingStar.style.width = shootingStar.style.height = size + 'px';
+                    
+                    starsContainer.appendChild(shootingStar);
+                    
+                    setTimeout(() => {
+                        if (shootingStar.parentNode) {
+                            shootingStar.parentNode.removeChild(shootingStar);
+                        }
+                    }, 4000);
+                }
+            }, 1200);
+        }
 
-🐍 Я - **ЗМЕЙКА MEGA** - самый крутой игровой бот в Telegram!
-
-🚀 **Что я принес в вашу группу:**
-🏆 Рейтинг лучших игроков группы
-📊 Статистику и достижения каждого
-🎮 Соревнования и турниры
-🌟 Систему достижений и наград
-
-🎯 **Как начать играть:**
-1️⃣ Напишите мне в личку: @{context.bot.username}
-2️⃣ Играйте и набирайте очки
-3️⃣ Соревнуйтесь с участниками группы!
-
-⚡ **Команды для группы:**
-/top - 🏆 Рейтинг игроков группы  
-/stats - 📊 Ваша статистика
-/rules - 📋 Правила игры
-/help - ❓ Полная справка
-
-**Пусть лучший победит!** 🏆✨"""
-
-        keyboard = [
-            [InlineKeyboardButton("🎮 Начать играть", url=f"https://t.me/{context.bot.username}?start=group_{message.chat.id}")],
-            [InlineKeyboardButton("🏆 Рейтинг", callback_data="leaderboard"),
-             InlineKeyboardButton("📋 Правила", callback_data="help")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
+        // Canvas и контекст с оптимизацией
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
         
-        await message.reply_text(welcome_text, reply_markup=reply_markup)
-    
-    # Приветствуем обычных новых участников
-    else:
-        for member in new_members:
-            if not member.is_bot:
-                welcome_text = f"""👋 Добро пожаловать в группу, {member.first_name}!
+        // Оптимизация Canvas
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
 
-🐍 Здесь живет игровой бот **ЗМЕЙКА MEGA**!
+        // Адаптивная настройка canvas с улучшенным разрешением
+        function setupCanvas() {
+            const container = document.querySelector('.canvas-container');
+            const containerRect = container.getBoundingClientRect();
+            
+            const maxSize = Math.min(containerRect.width - 40, containerRect.height - 40);
+            const canvasSize = Math.floor(maxSize / 20) * 20; // Увеличиваем разрешение
+            
+            canvas.width = canvasSize;
+            canvas.height = canvasSize;
+            canvas.style.width = canvasSize + 'px';
+            canvas.style.height = canvasSize + 'px';
+            
+            window.GRID_SIZE = Math.max(12, Math.floor(canvasSize / 28)); // Более плавная сетка
+            window.GRID_COUNT = Math.floor(canvasSize / window.GRID_SIZE);
+        }
 
-🎮 Хочешь сразиться с участниками группы? 
-Напиши мне в личку: @{context.bot.username} и начни играть!
+        setupCanvas();
 
-🏆 Посмотреть рейтинг группы: /top"""
+        // Улучшенные типы еды с более красивыми эффектами
+        const FOOD_TYPES = {
+            NORMAL: { 
+                color: '#FF4444', 
+                points: 10, 
+                emoji: '🍎', 
+                probability: 0.4, 
+                effect: null,
+                glow: '#FF6666'
+            },
+            GOLDEN: { 
+                color: '#FFD700', 
+                points: 25, 
+                emoji: '🌟', 
+                effect: 'slow', 
+                probability: 0.25,
+                glow: '#FFDD33'
+            },
+            DIAMOND: { 
+                color: '#00FFFF', 
+                points: 50, 
+                emoji: '💎', 
+                effect: 'ghost', 
+                probability: 0.15,
+                glow: '#33FFFF'
+            },
+            LIGHTNING: { 
+                color: '#FFFF00', 
+                points: 15, 
+                emoji: '⚡', 
+                effect: 'speed', 
+                probability: 0.2,
+                glow: '#FFFF66'
+            },
+            PORTAL: { 
+                color: '#9C27B0', 
+                points: 30, 
+                emoji: '🌀', 
+                effect: 'teleport', 
+                probability: 0.1,
+                glow: '#CC66CC'
+            },
+            MEGA: { 
+                color: '#FF1493', 
+                points: 100, 
+                emoji: '💥', 
+                effect: 'mega', 
+                probability: 0.05,
+                glow: '#FF66AA'
+            }
+        };
 
-                await message.reply_text(welcome_text)
+        // Игровое состояние с оптимизацией
+        let gameState = {
+            snake: [{x: Math.floor(window.GRID_COUNT / 2), y: Math.floor(window.GRID_COUNT / 2)}],
+            direction: {x: 1, y: 0},
+            nextDirection: {x: 1, y: 0}, // Буферизация направления для плавности
+            food: null,
+            obstacles: [],
+            particles: [],
+            trails: [],
+            portals: [],
+            score: 0,
+            level: 1,
+            combo: 0,
+            maxCombo: 0,
+            gameRunning: false,
+            gameStarted: false,
+            baseSpeed: 150, // Базовая скорость для плавности
+            animationTime: 0,
+            lastUpdateTime: 0,
+            lastRenderTime: 0,
+            powerups: {},
+            achievements: new Set(),
+            totalFoodEaten: 0,
+            maxLength: 1,
+            lastFoodTime: 0,
+            gameStartTime: 0,
+            currentGameTime: 0,
+            isPaused: false,
+            foodStats: {},
+            interpolation: 0, // Для плавной анимации
+            frameCount: 0
+        };
 
-async def post_init(application):
-    """Настройка бота после инициализации"""
-    try:
-        commands = [
-            BotCommand("start", "🎮 Начать игру"),
-            BotCommand("help", "❓ Справка по игре"),
-            BotCommand("top", "🏆 Топ игроков"), 
-            BotCommand("stats", "📊 Моя статистика"),
-            BotCommand("rules", "📋 Правила игры")
-        ]
-        await application.bot.set_my_commands(commands)
-        print("✅ Команды бота настроены")
-    except Exception as e:
-        print(f"⚠️ Ошибка настройки команд: {e}")
-    """Настройка бота после инициализации"""
-    try:
-        commands = [
-            BotCommand("start", "🎮 Начать игру"),
-            BotCommand("help", "❓ Справка по игре"),
-            BotCommand("top", "🏆 Топ игроков"), 
-            BotCommand("stats", "📊 Моя статистика"),
-            BotCommand("rules", "📋 Правила игры")
-        ]
-        await application.bot.set_my_commands(commands)
-        print("✅ Команды бота настроены")
-    except Exception as e:
-        print(f"⚠️ Ошибка настройки команд: {e}")
+        // Улучшенная генерация еды с лучшим распределением
+        function generateFood() {
+            let newFood;
+            let attempts = 0;
+            
+            do {
+                newFood = {
+                    x: Math.floor(Math.random() * window.GRID_COUNT),
+                    y: Math.floor(Math.random() * window.GRID_COUNT),
+                    pulsePhase: Math.random() * Math.PI * 2 // Для анимации
+                };
+                attempts++;
+            } while (attempts < 100 && (
+                gameState.snake.some(segment => segment.x === newFood.x && segment.y === newFood.y) ||
+                gameState.obstacles.some(obs => obs.x === newFood.x && obs.y === newFood.y)
+            ));
+            
+            // Улучшенная вероятностная система
+            const rand = Math.random();
+            let cumulativeProbability = 0;
+            
+            // Увеличиваем шанс на редкую еду с увеличением уровня
+            const levelBonus = Math.min(0.1, gameState.level * 0.01);
+            
+            for (const [type, data] of Object.entries(FOOD_TYPES)) {
+                let adjustedProbability = data.probability;
+                if (type !== 'NORMAL') {
+                    adjustedProbability += levelBonus / 5;
+                }
+                
+                cumulativeProbability += adjustedProbability;
+                if (rand <= cumulativeProbability) {
+                    newFood.type = type;
+                    newFood.createdTime = Date.now();
+                    break;
+                }
+            }
+            
+            return newFood;
+        }
 
-async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Обработчик ошибок"""
-    logger.warning(f'Update {update} caused error {context.error}')
+        // Создание порталов с улучшенными эффектами
+        function createPortals() {
+            gameState.portals = [];
+            for (let i = 0; i < 2; i++) {
+                let portal;
+                let attempts = 0;
+                do {
+                    portal = {
+                        x: Math.floor(Math.random() * window.GRID_COUNT),
+                        y: Math.floor(Math.random() * window.GRID_COUNT),
+                        id: i,
+                        phase: Math.random() * Math.PI * 2,
+                        createdTime: Date.now()
+                    };
+                    attempts++;
+                } while (attempts < 50 && (
+                    gameState.snake.some(segment => segment.x === portal.x && segment.y === portal.y) ||
+                    gameState.obstacles.some(obs => obs.x === portal.x && obs.y === portal.y) ||
+                    (gameState.food && gameState.food.x === portal.x && gameState.food.y === portal.y)
+                ));
+                
+                if (attempts < 50) {
+                    gameState.portals.push(portal);
+                }
+            }
+        }
 
-def main():
-    """Главная функция запуска бота"""
-    print("🐍 Запуск Telegram WebApp бота ЗМЕЙКА MEGA...")
-    
-    if BOT_TOKEN == "ВАШ_ТОКЕН_БОТА":
-        print("❌ ОШИБКА: Необходимо заменить BOT_TOKEN на реальный токен!")
-        print("📝 Получите токен у @BotFather в Telegram")
-        return
-    
-    if WEBAPP_URL == "https://yourusername.github.io/snake-game/index.html":
-        print("⚠️  ВНИМАНИЕ: Необходимо заменить WEBAPP_URL на реальный URL!")
-        print("🌐 Разместите HTML-файл игры на GitHub Pages или другом хостинге")
-    
-    # Создаем приложение
-    application = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
-    
-    # Добавляем обработчики команд
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("top", leaderboard))
-    application.add_handler(CommandHandler("stats", stats_command))
-    application.add_handler(CommandHandler("rules", rules_command))
-    
-    # Обработчик добавления бота в группу
-    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, new_chat_member))
-    
-    # Обработчики callback кнопок и WebApp данных
-    application.add_handler(CallbackQueryHandler(handle_callback_query))
-    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_webapp_data))
-    
-    # Обработчик ошибок
-    application.add_error_handler(error_handler)
-    
-    print("✅ Бот настроен!")
-    print("🎮 Команды: /start /help /top /stats /rules")
-    print("🚀 Пользователи могут запускать игру через /start")
-    print("🛑 Для остановки нажмите Ctrl+C")
-    
-    # Запускаем бота простым способом
-    print("🔄 Запуск polling...")
-    try:
-        application.run_polling(drop_pending_updates=True)
-    except KeyboardInterrupt:
-        print("\n🛑 Бот остановлен пользователем")
-    except Exception as e:
-        print(f"❌ Ошибка запуска: {e}")
-        print("💡 Убедитесь что:")
-        print("   1. Токен правильный")
-        print("   2. Интернет соединение работает") 
-        print("   3. Бот не запущен в другом месте")
+        // Улучшенная генерация препятствий
+        function generateObstacles() {
+            const numObstacles = Math.min(Math.floor(gameState.score / 150), Math.floor(window.GRID_COUNT / 3));
+            gameState.obstacles = [];
+            
+            for (let i = 0; i < numObstacles; i++) {
+                let obstacle;
+                let attempts = 0;
+                do {
+                    obstacle = {
+                        x: Math.floor(Math.random() * window.GRID_COUNT),
+                        y: Math.floor(Math.random() * window.GRID_COUNT),
+                        phase: Math.random() * Math.PI * 2
+                    };
+                    attempts++;
+                } while (attempts < 30 && (
+                    gameState.snake.some(segment => segment.x === obstacle.x && segment.y === obstacle.y) ||
+                    gameState.obstacles.some(obs => obs.x === obstacle.x && obs.y === obstacle.y) ||
+                    (gameState.food && gameState.food.x === obstacle.x && gameState.food.y === obstacle.y) ||
+                    gameState.portals.some(portal => portal.x === obstacle.x && portal.y === obstacle.y) ||
+                    (Math.abs(obstacle.x - gameState.snake[0].x) <= 4 && Math.abs(obstacle.y - gameState.snake[0].y) <= 4)
+                ));
+                
+                if (attempts < 30) {
+                    gameState.obstacles.push(obstacle);
+                }
+            }
+        }
 
-if __name__ == "__main__":
-    main()
+        // Улучшенная система частиц с разными типами и физикой
+        function createParticles(x, y, color = '#FFD700', count = 15, type = 'explosion', velocity = 1) {
+            for (let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
+                const speed = (Math.random() * 10 + 5) * velocity;
+                
+                const particle = {
+                    x: x * window.GRID_SIZE + window.GRID_SIZE / 2,
+                    y: y * window.GRID_SIZE + window.GRID_SIZE / 2,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1.0,
+                    maxLife: 1.0,
+                    color: color,
+                    size: Math.random() * (window.GRID_SIZE / 1.5) + window.GRID_SIZE / 3,
+                    type: type,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: (Math.random() - 0.5) * 0.4,
+                    gravity: type === 'sparkle' ? -0.1 : 0.3,
+                    bounce: type === 'explosion' ? 0.7 : 0.9
+                };
+                
+                if (type === 'sparkle') {
+                    particle.vx *= 0.6;
+                    particle.vy *= 0.6;
+                    particle.size *= 0.7;
+                    particle.gravity = -0.2;
+                }
+                
+                gameState.particles.push(particle);
+            }
+        }
+
+        // Создание улучшенного следа змейки
+        function createTrail(x, y, isHead = false) {
+            const hasGhost = gameState.powerups.ghost && Date.now() < gameState.powerups.ghost;
+            const hasMega = gameState.powerups.mega && Date.now() < gameState.powerups.mega;
+            const hasSpeed = gameState.powerups.speed && Date.now() < gameState.powerups.speed;
+            
+            let color = '#4CAF50';
+            let intensity = 0.8;
+            
+            if (hasMega) {
+                color = '#FF1493';
+                intensity = 1.2;
+            } else if (hasGhost) {
+                color = '#00FFFF';
+                intensity = 1.0;
+            } else if (hasSpeed) {
+                color = '#FFFF00';
+                intensity = 1.1;
+            }
+            
+            gameState.trails.push({
+                x: x * window.GRID_SIZE + window.GRID_SIZE / 2,
+                y: y * window.GRID_SIZE + window.GRID_SIZE / 2,
+                life: 1.0,
+                size: isHead ? window.GRID_SIZE / 2 : window.GRID_SIZE / 3,
+                color: color,
+                intensity: intensity,
+                createdTime: Date.now()
+            });
+        }
+
+        // Оптимизированное обновление частиц с физикой
+        function updateParticles(deltaTime) {
+            const dt = deltaTime / 16.67; // Нормализация для 60 FPS
+            
+            gameState.particles = gameState.particles.filter(particle => {
+                // Физика
+                particle.x += particle.vx * dt;
+                particle.y += particle.vy * dt;
+                particle.vy += particle.gravity * dt;
+                particle.vx *= (0.98 ** dt); // Сопротивление воздуха
+                particle.rotation += particle.rotationSpeed * dt;
+                
+                // Отскоки от границ canvas для некоторых типов
+                if (particle.type === 'explosion') {
+                    if (particle.x <= 0 || particle.x >= canvas.width) {
+                        particle.vx *= -particle.bounce;
+                        particle.x = Math.max(0, Math.min(canvas.width, particle.x));
+                    }
+                    if (particle.y >= canvas.height) {
+                        particle.vy *= -particle.bounce;
+                        particle.y = canvas.height;
+                    }
+                }
+                
+                // Специальные эффекты для разных типов
+                if (particle.type === 'sparkle') {
+                    const time = Date.now() * 0.005;
+                    particle.vx += Math.sin(time + particle.x * 0.01) * 0.2 * dt;
+                    particle.vy += Math.cos(time + particle.y * 0.01) * 0.2 * dt;
+                }
+                
+                particle.life -= (particle.type === 'sparkle' ? 0.008 : 0.02) * dt;
+                
+                return particle.life > 0;
+            });
+        }
+
+        // Оптимизированное обновление следов
+        function updateTrails(deltaTime) {
+            const dt = deltaTime / 16.67;
+            
+            gameState.trails = gameState.trails.filter(trail => {
+                trail.life -= 0.05 * dt;
+                trail.size *= (0.95 ** dt);
+                return trail.life > 0;
+            });
+        }
+
+        // Улучшенная отрисовка частиц с эффектами
+        function drawParticles() {
+            ctx.save();
+            
+            gameState.particles.forEach(particle => {
+                ctx.save();
+                ctx.globalAlpha = particle.life;
+                
+                ctx.translate(particle.x, particle.y);
+                ctx.rotate(particle.rotation);
+                
+                if (particle.type === 'sparkle') {
+                    // Звездообразные частицы
+                    ctx.fillStyle = particle.color;
+                    ctx.shadowColor = particle.color;
+                    ctx.shadowBlur = 25;
+                    
+                    const spikes = 6;
+                    const outerRadius = particle.size;
+                    const innerRadius = particle.size * 0.4;
+                    
+                    ctx.beginPath();
+                    for (let i = 0; i < spikes * 2; i++) {
+                        const angle = (i * Math.PI) / spikes;
+                        const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                        const x = Math.cos(angle) * radius;
+                        const y = Math.sin(angle) * radius;
+                        
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                } else {
+                    // Круглые частицы с градиентом
+                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, particle.size);
+                    gradient.addColorStop(0, particle.color);
+                    gradient.addColorStop(0.7, particle.color + '80');
+                    gradient.addColorStop(1, 'transparent');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.shadowColor = particle.color;
+                    ctx.shadowBlur = 20;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, particle.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                ctx.restore();
+            });
+            
+            ctx.restore();
+        }
+
+        // Улучшенная отрисовка следов с градиентами
+        function drawTrails() {
+            ctx.save();
+            
+            gameState.trails.forEach(trail => {
+                ctx.save();
+                ctx.globalAlpha = trail.life * 0.6;
+                
+                const gradient = ctx.createRadialGradient(
+                    trail.x, trail.y, 0,
+                    trail.x, trail.y, trail.size * trail.intensity
+                );
+                gradient.addColorStop(0, trail.color);
+                gradient.addColorStop(0.5, trail.color + '80');
+                gradient.addColorStop(1, 'transparent');
+                
+                ctx.fillStyle = gradient;
+                ctx.shadowColor = trail.color;
+                ctx.shadowBlur = 15 * trail.intensity;
+                ctx.beginPath();
+                ctx.arc(trail.x, trail.y, trail.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+            
+            ctx.restore();
+        }
+
+        // Улучшенный показ уведомлений с анимацией
+        function showPowerupNotification(text) {
+            const notification = document.getElementById('powerupNotification');
+            notification.textContent = text;
+            notification.style.display = 'block';
+            notification.className = 'powerup-notification powerup-show';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+                notification.className = 'powerup-notification';
+            }, 4000);
+        }
+
+        // Обновление комбо с улучшенными эффектами
+        function updateCombo() {
+            const now = Date.now();
+            if (now - gameState.lastFoodTime < 2000) {
+                gameState.combo++;
+                gameState.maxCombo = Math.max(gameState.maxCombo, gameState.combo);
+                
+                if (gameState.combo >= 3) {
+                    const comboIndicator = document.getElementById('comboIndicator');
+                    comboIndicator.textContent = `🔥 КОМБО x${gameState.combo}`;
+                    comboIndicator.style.display = 'block';
+                    
+                    // Создаем красивые искры от комбо
+                    createParticles(
+                        Math.floor(window.GRID_COUNT * 0.85),
+                        Math.floor(window.GRID_COUNT * 0.15),
+                        '#FFD700', 12, 'sparkle', 1.5
+                    );
+                    
+                    setTimeout(() => {
+                        comboIndicator.style.display = 'none';
+                    }, 2000);
+                }
+            } else {
+                gameState.combo = 1;
+            }
+            
+            gameState.lastFoodTime = now;
+        }
+
+        // Применение эффектов еды с улучшенными уведомлениями
+        function applyFoodEffect(foodType) {
+            const food = FOOD_TYPES[foodType];
+            if (food.effect) {
+                switch (food.effect) {
+                    case 'slow':
+                        gameState.powerups.slow = Date.now() + 10000;
+                        showPowerupNotification('🌟 ЗАМЕДЛЕНИЕ на 10 сек!');
+                        break;
+                    case 'ghost':
+                        gameState.powerups.ghost = Date.now() + 15000;
+                        showPowerupNotification('💎 ПРИЗРАК на 15 сек!');
+                        break;
+                    case 'speed':
+                        gameState.powerups.speed = Date.now() + 8000;
+                        showPowerupNotification('⚡ УСКОРЕНИЕ на 8 сек!');
+                        break;
+                    case 'teleport':
+                        createPortals();
+                        showPowerupNotification('🌀 ПОРТАЛЫ АКТИВИРОВАНЫ!');
+                        setTimeout(() => {
+                            gameState.portals = [];
+                        }, 25000);
+                        break;
+                    case 'mega':
+                        gameState.powerups.mega = Date.now() + 20000;
+                        showPowerupNotification('💥 МЕГА БОНУС на 20 сек!');
+                        break;
+                }
+            }
+        }
+
+        // Улучшенная проверка достижений
+        function checkAchievements() {
+            const achievements = [];
+            
+            if (gameState.totalFoodEaten === 15 && !gameState.achievements.has('first_feast')) {
+                achievements.push('🍽️ Первый пир: съели 15 фруктов');
+                gameState.achievements.add('first_feast');
+            }
+            
+            if (gameState.score >= 300 && !gameState.achievements.has('score_300')) {
+                achievements.push('🏆 Мастер: набрали 300 очков');
+                gameState.achievements.add('score_300');
+            }
+            
+            if (gameState.maxLength >= 20 && !gameState.achievements.has('long_snake')) {
+                achievements.push('🐍 Гигантская змея: длина 20+');
+                gameState.achievements.add('long_snake');
+            }
+            
+            if (gameState.level >= 6 && !gameState.achievements.has('speed_demon')) {
+                achievements.push('💨 Демон скорости: уровень 6');
+                gameState.achievements.add('speed_demon');
+            }
+
+            if (gameState.maxCombo >= 5 && !gameState.achievements.has('combo_master')) {
+                achievements.push('🔥 Мастер комбо: комбо x5');
+                gameState.achievements.add('combo_master');
+            }
+
+            if (gameState.currentGameTime >= 300000 && !gameState.achievements.has('endurance')) {
+                achievements.push('⏰ Выносливость: играли 5+ минут');
+                gameState.achievements.add('endurance');
+            }
+            
+            return achievements;
+        }
+
+        // Обновление времени игры с плавной анимацией
+        function updateGameTime() {
+            if (gameState.gameRunning && !gameState.isPaused) {
+                gameState.currentGameTime = Date.now() - gameState.gameStartTime;
+                const minutes = Math.floor(gameState.currentGameTime / 60000);
+                const seconds = Math.floor((gameState.currentGameTime % 60000) / 1000);
+                document.getElementById('timeDisplay').textContent = `⏱️ ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+
+        // Обновление турнирной информации с анимацией
+        function updateTournamentInfo() {
+            tournament.participants[5].score = Math.max(tournament.participants[5].score, gameState.score);
+            tournament.participants.sort((a, b) => b.score - a.score);
+            
+            const playerIndex = tournament.participants.findIndex(p => p.name === "🎮 Вы");
+            const rank = playerIndex + 1;
+            
+            const rankElement = document.getElementById('tournamentRank');
+            const ratingElement = document.getElementById('playerRating');
+            
+            rankElement.textContent = rank;
+            ratingElement.textContent = gameStats.rating;
+            
+            gameStats.tournamentRank = rank;
+        }
+
+        // Показать турнирную таблицу с анимацией
+        function showLeaderboard() {
+            const modal = document.getElementById('leaderboardModal');
+            const list = document.getElementById('leaderboardList');
+            
+            list.innerHTML = tournament.participants.map((player, index) => `
+                <div class="leaderboard-item" style="${player.name === '🎮 Вы' ? 'border-left-color: #FFD700; background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(139, 92, 246, 0.1));' : ''} animation-delay: ${index * 0.1}s">
+                    <span>${index + 1}. ${player.name}</span>
+                    <span>${player.score} очков (⭐${player.rating})</span>
+                </div>
+            `).join('');
+            
+            modal.style.display = 'flex';
+        }
+
+        // Скрыть турнирную таблицу
+        function hideLeaderboard() {
+            document.getElementById('leaderboardModal').style.display = 'none';
+        }
+
+        // Изменение направления с буферизацией
+        function changeDirection(dx, dy) {
+            const newDirection = {x: dx, y: dy};
+            
+            if (gameState.snake.length > 1 && 
+                newDirection.x === -gameState.direction.x && 
+                newDirection.y === -gameState.direction.y) {
+                return;
+            }
+            
+            gameState.nextDirection = newDirection;
+            
+            if (!gameState.gameStarted) {
+                startGame();
+            } else if (gameState.isPaused) {
+                resumeGame();
+            }
+        }
+
+        // Старт игры с оптимизацией
+        function startGame() {
+            gameState.gameStarted = true;
+            gameState.gameRunning = true;
+            gameState.isPaused = false;
+            gameState.gameStartTime = Date.now();
+            gameState.lastUpdateTime = Date.now();
+            gameState.lastRenderTime = Date.now();
+            document.getElementById('swipeIndicator').style.display = 'none';
+            document.getElementById('pauseIndicator').style.display = 'none';
+            gameLoop();
+        }
+
+        // Пауза/продолжение
+        function togglePause() {
+            if (!gameState.gameStarted) {
+                startGame();
+                return;
+            }
+            
+            if (gameState.gameRunning) {
+                pauseGame();
+            } else {
+                resumeGame();
+            }
+        }
+
+        function pauseGame() {
+            gameState.gameRunning = false;
+            gameState.isPaused = true;
+            document.getElementById('pauseIndicator').style.display = 'block';
+        }
+
+        function resumeGame() {
+            gameState.gameRunning = true;
+            gameState.isPaused = false;
+            gameState.gameStartTime = Date.now() - gameState.currentGameTime;
+            gameState.lastUpdateTime = Date.now();
+            gameState.lastRenderTime = Date.now();
+            document.getElementById('pauseIndicator').style.display = 'none';
+            gameLoop();
+        }
+
+        // Оптимизированное обновление игры
+        function update(deltaTime) {
+            if (!gameState.gameRunning) return false;
+
+            updateGameTime();
+            
+            // Буферизация направления для плавности
+            if (gameState.nextDirection.x !== gameState.direction.x || 
+                gameState.nextDirection.y !== gameState.direction.y) {
+                gameState.direction = {...gameState.nextDirection};
+            }
+
+            const currentTime = Date.now();
+            const moveSpeed = getCurrentSpeed();
+            
+            if (currentTime - gameState.lastUpdateTime >= moveSpeed) {
+                createTrail(gameState.snake[0].x, gameState.snake[0].y, true);
+
+                const head = {
+                    x: gameState.snake[0].x + gameState.direction.x,
+                    y: gameState.snake[0].y + gameState.direction.y
+                };
+
+                // Проверка телепортации через порталы
+                const portal = gameState.portals.find(p => p.x === head.x && p.y === head.y);
+                if (portal) {
+                    const otherPortal = gameState.portals.find(p => p.id !== portal.id);
+                    if (otherPortal) {
+                        head.x = otherPortal.x;
+                        head.y = otherPortal.y;
+                        createParticles(head.x, head.y, '#9C27B0', 25, 'explosion', 2);
+                        showPowerupNotification('🌀 ТЕЛЕПОРТАЦИЯ!');
+                    }
+                }
+
+                // Проверка столкновений со стенами
+                const hasGhost = gameState.powerups.ghost && Date.now() < gameState.powerups.ghost;
+                if (!hasGhost && (head.x < 0 || head.x >= window.GRID_COUNT || head.y < 0 || head.y >= window.GRID_COUNT)) {
+                    gameOver();
+                    return false;
+                }
+                
+                // Телепортация при эффекте призрака
+                if (hasGhost) {
+                    if (head.x < 0) head.x = window.GRID_COUNT - 1;
+                    if (head.x >= window.GRID_COUNT) head.x = 0;
+                    if (head.y < 0) head.y = window.GRID_COUNT - 1;
+                    if (head.y >= window.GRID_COUNT) head.y = 0;
+                }
+
+                // Проверка столкновения с телом
+                if (gameState.snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                    gameOver();
+                    return false;
+                }
+
+                // Проверка столкновения с препятствиями
+                if (!hasGhost && gameState.obstacles.some(obs => obs.x === head.x && obs.y === head.y)) {
+                    gameOver();
+                    return false;
+                }
+
+                gameState.snake.unshift(head);
+
+                // Проверка поедания еды
+                if (gameState.food && head.x === gameState.food.x && head.y === gameState.food.y) {
+                    const foodType = gameState.food.type;
+                    const foodData = FOOD_TYPES[foodType];
+                    
+                    // Обновляем статистику еды
+                    gameState.foodStats[foodType] = (gameState.foodStats[foodType] || 0) + 1;
+                    
+                    updateCombo();
+                    let basePoints = foodData.points;
+                    
+                    // Бонусы от эффектов
+                    if (gameState.powerups.mega && Date.now() < gameState.powerups.mega) {
+                        basePoints *= 2;
+                    }
+                    
+                    const bonusPoints = basePoints * Math.max(1, gameState.combo - 1) * 0.4;
+                    const totalPoints = Math.floor(basePoints + bonusPoints);
+                    
+                    gameState.score += totalPoints;
+                    gameState.totalFoodEaten++;
+                    gameState.maxLength = Math.max(gameState.maxLength, gameState.snake.length);
+                    
+                    // Обновляем интерфейс
+                    document.getElementById('scoreDisplay').textContent = `🏆 ${gameState.score}`;
+                    document.getElementById('lengthDisplay').textContent = `📏 ${gameState.snake.length}`;
+                    
+                    // Создаем эффектные частицы
+                    createParticles(gameState.food.x, gameState.food.y, foodData.color, 25, 'explosion', 1.5);
+                    if (foodType !== 'NORMAL') {
+                        createParticles(gameState.food.x, gameState.food.y, '#FFD700', 15, 'sparkle', 1.2);
+                    }
+                    
+                    // Применяем эффект еды
+                    applyFoodEffect(foodType);
+                    
+                    // Генерируем новую еду
+                    gameState.food = generateFood();
+                    
+                    // Увеличиваем уровень и скорость
+                    const newLevel = Math.floor(gameState.totalFoodEaten / 4) + 1;
+                    if (newLevel > gameState.level) {
+                        gameState.level = newLevel;
+                        document.getElementById('speedDisplay').textContent = `⚡ ${gameState.level}`;
+                        showPowerupNotification(`🚀 УРОВЕНЬ ${gameState.level}!`);
+                    }
+                    
+                    // Проверяем достижения
+                    const newAchievements = checkAchievements();
+                    newAchievements.forEach((achievement, index) => {
+                        setTimeout(() => showPowerupNotification(achievement), 2500 + index * 1500);
+                    });
+                    
+                    // Добавляем препятствия
+                    if (gameState.score % 150 === 0 && gameState.score > 0) {
+                        generateObstacles();
+                        createParticles(Math.floor(window.GRID_COUNT/2), Math.floor(window.GRID_COUNT/2), '#ff6b6b', 30, 'explosion', 2);
+                        showPowerupNotification('⚠️ НОВЫЕ ПРЕПЯТСТВИЯ!');
+                    }
+                    
+                    // Обновляем турнир
+                    updateTournamentInfo();
+                    
+                    // Вибрация
+                    if (tg && tg.HapticFeedback) {
+                        tg.HapticFeedback.impactOccurred('light');
+                    }
+                } else {
+                    gameState.snake.pop();
+                }
+                
+                gameState.lastUpdateTime = currentTime;
+            }
+
+            return true;
+        }
+
+        // Получение текущей скорости с учетом эффектов
+        function getCurrentSpeed() {
+            let speed = Math.max(50, gameState.baseSpeed - (gameState.level - 1) * 12);
+            
+            if (gameState.powerups.slow && Date.now() < gameState.powerups.slow) {
+                speed *= 2.0;
+            }
+            if (gameState.powerups.speed && Date.now() < gameState.powerups.speed) {
+                speed *= 0.3;
+            }
+            
+            return speed;
+        }
+
+        // Оптимизированная отрисовка игры с 60 FPS
+        function draw(currentTime) {
+            gameState.frameCount++;
+            gameState.animationTime = currentTime * 0.002;
+            
+            // Очистка canvas с оптимизацией
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Рисуем улучшенную сетку с эффектами
+            const hasGhost = gameState.powerups.ghost && Date.now() < gameState.powerups.ghost;
+            const hasMega = gameState.powerups.mega && Date.now() < gameState.powerups.mega;
+            const hasSpeed = gameState.powerups.speed && Date.now() < gameState.powerups.speed;
+            
+            // Динамическая сетка с красивыми эффектами
+            ctx.save();
+            for (let i = 0; i <= window.GRID_COUNT; i++) {
+                for (let j = 0; j <= window.GRID_COUNT; j++) {
+                    const x = i * window.GRID_SIZE;
+                    const y = j * window.GRID_SIZE;
+                    
+                    // Волновой эффект с улучшенной математикой
+                    const wave1 = Math.sin(gameState.animationTime * 3 + i * 0.3 + j * 0.3) * 0.15 + 0.85;
+                    const wave2 = Math.cos(gameState.animationTime * 2 + i * 0.2 + j * 0.4) * 0.1 + 0.9;
+                    const wave = wave1 * wave2;
+                    
+                    const alpha = 0.02 + Math.sin(gameState.animationTime * 1.5 + i * 0.15 + j * 0.15) * 0.015;
+                    
+                    if (hasMega) {
+                        ctx.strokeStyle = `rgba(255, 20, 147, ${alpha * wave})`;
+                    } else if (hasGhost) {
+                        ctx.strokeStyle = `rgba(0, 255, 255, ${alpha * wave})`;
+                    } else if (hasSpeed) {
+                        ctx.strokeStyle = `rgba(255, 255, 0, ${alpha * wave})`;
+                    } else {
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * wave})`;
+                    }
+                    
+                    ctx.lineWidth = 0.5;
+                    
+                    if (i < window.GRID_COUNT) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, y);
+                        ctx.lineTo(x + window.GRID_SIZE, y);
+                        ctx.stroke();
+                    }
+                    
+                    if (j < window.GRID_COUNT) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, y);
+                        ctx.lineTo(x, y + window.GRID_SIZE);
+                        ctx.stroke();
+                    }
+                }
+            }
+            ctx.restore();
+
+            // Отрисовка следов и частиц
+            drawTrails();
+            updateTrails(16.67);
+
+            // Рисуем порталы с мощными эффектами
+            gameState.portals.forEach((portal, index) => {
+                const x = portal.x * window.GRID_SIZE;
+                const y = portal.y * window.GRID_SIZE;
+                const time = (Date.now() - portal.createdTime) * 0.005;
+                const pulse = Math.sin(time * 10 + index * Math.PI) * 0.4 + 1.2;
+                const rotation = time * 6 + index * Math.PI;
+                
+                ctx.save();
+                ctx.translate(x + window.GRID_SIZE/2, y + window.GRID_SIZE/2);
+                
+                // Внешнее вращающееся кольцо
+                ctx.rotate(rotation);
+                const portalGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, window.GRID_SIZE/2 * pulse);
+                portalGradient.addColorStop(0, 'rgba(156, 39, 176, 0.95)');
+                portalGradient.addColorStop(0.3, 'rgba(233, 30, 99, 0.8)');
+                portalGradient.addColorStop(0.6, 'rgba(63, 81, 181, 0.6)');
+                portalGradient.addColorStop(1, 'rgba(139, 92, 246, 0.3)');
+                
+                ctx.fillStyle = portalGradient;
+                ctx.shadowColor = '#9C27B0';
+                ctx.shadowBlur = 40 * pulse;
+                ctx.beginPath();
+                ctx.arc(0, 0, (window.GRID_SIZE-2)/2 * pulse, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Внутреннее кольцо
+                ctx.rotate(-rotation * 2);
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.arc(0, 0, (window.GRID_SIZE-8)/2 * pulse, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Центральная точка
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.beginPath();
+                ctx.arc(0, 0, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            });
+
+            // Рисуем препятствия с красивыми градиентами
+            gameState.obstacles.forEach((obstacle, index) => {
+                const x = obstacle.x * window.GRID_SIZE;
+                const y = obstacle.y * window.GRID_SIZE;
+                const time = gameState.animationTime + index * 0.8;
+                const pulse = Math.sin(time * 4) * 0.25 + 1.1;
+                
+                const alpha = hasGhost ? 0.3 : 0.95;
+                
+                const obsGradient = ctx.createRadialGradient(
+                    x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, 0,
+                    x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, window.GRID_SIZE/2 * pulse
+                );
+                obsGradient.addColorStop(0, `rgba(255, 69, 58, ${alpha})`);
+                obsGradient.addColorStop(0.4, `rgba(255, 45, 85, ${alpha * 0.8})`);
+                obsGradient.addColorStop(0.8, `rgba(175, 82, 222, ${alpha * 0.6})`);
+                obsGradient.addColorStop(1, `rgba(139, 92, 246, ${alpha * 0.3})`);
+                
+                ctx.fillStyle = obsGradient;
+                if (!hasGhost) {
+                    ctx.shadowColor = '#FF453A';
+                    ctx.shadowBlur = 20 * pulse;
+                }
+                ctx.beginPath();
+                ctx.arc(x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, (window.GRID_SIZE-3)/2 * pulse, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+
+            // Рисуем СУПЕР красивую змейку с эффектами
+            gameState.snake.forEach((segment, index) => {
+                const x = segment.x * window.GRID_SIZE;
+                const y = segment.y * window.GRID_SIZE;
+                
+                if (index === 0) {
+                    // СУПЕР голова змейки с мощными эффектами
+                    const headTime = gameState.animationTime * 12;
+                    const headPulse = Math.sin(headTime) * 0.2 + 1.15;
+                    const headRotation = Math.sin(headTime * 0.5) * 0.1;
+                    
+                    let headColors = ['#00E676', '#00C853', '#00A040', '#00731C']; // Яркие зеленые
+                    let shadowColor = '#00E676';
+                    let eyeColor = '#1B5E20';
+                    
+                    if (hasMega) {
+                        headColors = ['#FF1493', '#E91E63', '#C2185B', '#AD1457'];
+                        shadowColor = '#FF1493';
+                        eyeColor = '#8B0000';
+                    } else if (hasGhost) {
+                        headColors = ['#00FFFF', '#00E5FF', '#00BCD4', '#00838F'];
+                        shadowColor = '#00FFFF';
+                        eyeColor = '#004D40';
+                    } else if (hasSpeed) {
+                        headColors = ['#FFFF00', '#FFD600', '#FFC107', '#FF8F00'];
+                        shadowColor = '#FFFF00';
+                        eyeColor = '#F57F17';
+                    }
+                    
+                    ctx.save();
+                    ctx.translate(x + window.GRID_SIZE/2, y + window.GRID_SIZE/2);
+                    ctx.rotate(headRotation);
+                    
+                    // Основная голова с многослойным градиентом
+                    const headGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, window.GRID_SIZE/2 * headPulse);
+                    headGradient.addColorStop(0, headColors[0]);
+                    headGradient.addColorStop(0.3, headColors[1]);
+                    headGradient.addColorStop(0.7, headColors[2]);
+                    headGradient.addColorStop(1, headColors[3]);
+                    
+                    ctx.fillStyle = headGradient;
+                    ctx.shadowColor = shadowColor;
+                    ctx.shadowBlur = 30 * headPulse;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, (window.GRID_SIZE-1)/2 * headPulse, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Дополнительное свечение
+                    ctx.shadowBlur = 50 * headPulse;
+                    ctx.shadowColor = shadowColor + '40';
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    
+                    // Красивые глаза с бликами и зрачками
+                    const eyeOffset = window.GRID_SIZE * 0.28;
+                    const eyeSize = window.GRID_SIZE * 0.18;
+                    const eyePulse = Math.sin(headTime * 1.5) * 0.1 + 1;
+                    
+                    // Белки глаз с градиентом
+                    const eyeGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, eyeSize * eyePulse);
+                    eyeGradient.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+                    eyeGradient.addColorStop(0.7, 'rgba(240, 240, 240, 0.9)');
+                    eyeGradient.addColorStop(1, 'rgba(200, 200, 200, 0.8)');
+                    
+                    ctx.fillStyle = eyeGradient;
+                    ctx.shadowColor = 'white';
+                    ctx.shadowBlur = 10;
+                    
+                    // Левый глаз
+                    ctx.save();
+                    ctx.translate(-eyeOffset, -eyeOffset/2);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, eyeSize * eyePulse, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    
+                    // Правый глаз
+                    ctx.save();
+                    ctx.translate(eyeOffset, -eyeOffset/2);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, eyeSize * eyePulse, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    
+                    ctx.shadowBlur = 0;
+                    
+                    // Зрачки с анимацией
+                    ctx.fillStyle = eyeColor;
+                    const pupilSize = eyeSize * 0.65;
+                    const pupilOffset = Math.sin(headTime * 0.3) * 2;
+                    
+                    // Левый зрачок
+                    ctx.beginPath();
+                    ctx.arc(-eyeOffset + pupilOffset, -eyeOffset/2, pupilSize, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Правый зрачок
+                    ctx.beginPath();
+                    ctx.arc(eyeOffset + pupilOffset, -eyeOffset/2, pupilSize, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Блики в глазах с анимацией
+                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                    const glareSize = eyeSize * 0.35;
+                    const glareOffset = pupilSize/3;
+                    
+                    // Блики
+                    ctx.beginPath();
+                    ctx.arc(-eyeOffset + glareOffset, -eyeOffset/2 - glareOffset, glareSize, 0, Math.PI * 2);
+                    ctx.arc(eyeOffset + glareOffset, -eyeOffset/2 - glareOffset, glareSize, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Маленькие дополнительные блики
+                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                    const smallGlare = glareSize * 0.4;
+                    ctx.beginPath();
+                    ctx.arc(-eyeOffset - glareOffset/2, -eyeOffset/2 + glareOffset/2, smallGlare, 0, Math.PI * 2);
+                    ctx.arc(eyeOffset - glareOffset/2, -eyeOffset/2 + glareOffset/2, smallGlare, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                    
+                } else {
+                    // Улучшенное тело змейки с плавными переходами
+                    const bodyTime = gameState.animationTime * 8 + index * 0.5;
+                    const bodyPulse = Math.sin(bodyTime) * 0.12 + 1.05;
+                    const sizeMultiplier = Math.max(0.4, 1 - index * 0.015);
+                    const alpha = hasGhost ? 0.5 : 0.95;
+                    
+                    let bodyColors = ['#4CAF50', '#43A047', '#388E3C', '#2E7D32']; // Зеленые оттенки
+                    if (hasMega) {
+                        bodyColors = ['#E91E63', '#D81B60', '#C2185B', '#AD1457'];
+                    } else if (hasGhost) {
+                        bodyColors = ['#26C6DA', '#00BCD4', '#00ACC1', '#0097A7'];
+                    } else if (hasSpeed) {
+                        bodyColors = ['#FFEB3B', '#FDD835', '#FBC02D', '#F9A825'];
+                    }
+                    
+                    // Многослойный градиент для тела
+                    const bodyGradient = ctx.createRadialGradient(
+                        x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, 0,
+                        x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, window.GRID_SIZE/2 * bodyPulse * sizeMultiplier
+                    );
+                    
+                    const alphaHex = Math.floor(alpha * 255).toString(16).padStart(2, '0');
+                    bodyGradient.addColorStop(0, bodyColors[0] + alphaHex);
+                    bodyGradient.addColorStop(0.4, bodyColors[1] + Math.floor(alpha * 220).toString(16).padStart(2, '0'));
+                    bodyGradient.addColorStop(0.7, bodyColors[2] + Math.floor(alpha * 180).toString(16).padStart(2, '0'));
+                    bodyGradient.addColorStop(1, bodyColors[3] + Math.floor(alpha * 120).toString(16).padStart(2, '0'));
+                    
+                    ctx.fillStyle = bodyGradient;
+                    
+                    // Свечение для особых эффектов
+                    if (hasMega || hasGhost || hasSpeed) {
+                        ctx.shadowColor = bodyColors[0];
+                        ctx.shadowBlur = 15 * bodyPulse;
+                    }
+                    
+                    ctx.beginPath();
+                    ctx.arc(x + window.GRID_SIZE/2, y + window.GRID_SIZE/2, (window.GRID_SIZE-2)/2 * bodyPulse * sizeMultiplier, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    
+                    // Улучшенные чешуйки на теле
+                    if (index % 2 === 0) {
+                        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                        const scaleSize = window.GRID_SIZE/6 * sizeMultiplier;
+                        ctx.beginPath();
+                        ctx.arc(x + window.GRID_SIZE/2 - window.GRID_SIZE/3, y + window.GRID_SIZE/2 - window.GRID_SIZE/6, scaleSize, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.beginPath();
+                        ctx.arc(x + window.GRID_SIZE/2 + window.GRID_SIZE/3, y + window.GRID_SIZE/2 + window.GRID_SIZE/6, scaleSize, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            });
+
+            // Рисуем еду с СУПЕР мощными эффектами
+            if (gameState.food) {
+                const foodX = gameState.food.x * window.GRID_SIZE;
+                const foodY = gameState.food.y * window.GRID_SIZE;
+                const foodTime = gameState.animationTime + (gameState.food.pulsePhase || 0);
+                const foodPulse = Math.sin(foodTime * 10) * 0.35 + 1.25;
+                const rotation = foodTime * 4;
+                const foodData = FOOD_TYPES[gameState.food.type];
+                
+                ctx.save();
+                ctx.translate(foodX + window.GRID_SIZE/2, foodY + window.GRID_SIZE/2);
+                
+                if (gameState.food.type !== 'NORMAL') {
+                    ctx.rotate(rotation);
+                }
+                
+                // Создаем многослойный градиент для еды
+                const foodGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, window.GRID_SIZE/2 * foodPulse);
+                
+                switch (gameState.food.type) {
+                    case 'GOLDEN':
+                        foodGradient.addColorStop(0, '#FFFF8D');
+                        foodGradient.addColorStop(0.3, '#FFD700');
+                        foodGradient.addColorStop(0.6, '#FFA500');
+                        foodGradient.addColorStop(1, '#FF8C00');
+                        ctx.shadowColor = '#FFD700';
+                        ctx.shadowBlur = 35 * foodPulse;
+                        break;
+                    case 'DIAMOND':
+                        foodGradient.addColorStop(0, '#F0FFFF');
+                        foodGradient.addColorStop(0.2, '#E0FFFF');
+                        foodGradient.addColorStop(0.5, '#00FFFF');
+                        foodGradient.addColorStop(0.8, '#0080FF');
+                        foodGradient.addColorStop(1, '#0040FF');
+                        ctx.shadowColor = '#00FFFF';
+                        ctx.shadowBlur = 40 * foodPulse;
+                        break;
+                    case 'LIGHTNING':
+                        foodGradient.addColorStop(0, '#FFFFCC');
+                        foodGradient.addColorStop(0.3, '#FFFF99');
+                        foodGradient.addColorStop(0.5, '#FFFF00');
+                        foodGradient.addColorStop(0.8, '#FFD700');
+                        foodGradient.addColorStop(1, '#FFA500');
+                        ctx.shadowColor = '#FFFF00';
+                        ctx.shadowBlur = 45 * foodPulse;
+                        break;
+                    case 'PORTAL':
+                        foodGradient.addColorStop(0, '#E1BEE7');
+                        foodGradient.addColorStop(0.3, '#DDA0DD');
+                        foodGradient.addColorStop(0.5, '#9C27B0');
+                        foodGradient.addColorStop(0.7, '#E91E63');
+                        foodGradient.addColorStop(1, '#3F51B5');
+                        ctx.shadowColor = '#9C27B0';
+                        ctx.shadowBlur = 35 * foodPulse;
+                        break;
+                    case 'MEGA':
+                        foodGradient.addColorStop(0, '#FFE4E1');
+                        foodGradient.addColorStop(0.2, '#FFB6C1');
+                        foodGradient.addColorStop(0.4, '#FF1493');
+                        foodGradient.addColorStop(0.7, '#FF69B4');
+                        foodGradient.addColorStop(1, '#FF20B2');
+                        ctx.shadowColor = '#FF1493';
+                        ctx.shadowBlur = 50 * foodPulse;
+                        break;
+                    default:
+                        foodGradient.addColorStop(0, '#FF9999');
+                        foodGradient.addColorStop(0.4, '#FF6B6B');
+                        foodGradient.addColorStop(0.7, '#FF4444');
+                        foodGradient.addColorStop(1, '#FF0000');
+                        ctx.shadowColor = '#FF4444';
+                        ctx.shadowBlur = 25 * foodPulse;
+                }
+                
+                ctx.fillStyle = foodGradient;
+                ctx.beginPath();
+                ctx.arc(0, 0, (window.GRID_SIZE-2)/2 * foodPulse, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Мощный центральный блик
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(255,255,255,0.95)';
+                ctx.beginPath();
+                ctx.arc(-window.GRID_SIZE/5, -window.GRID_SIZE/5, window.GRID_SIZE/6 * foodPulse, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Дополнительные блики для особых типов
+                if (gameState.food.type !== 'NORMAL') {
+                    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                    ctx.beginPath();
+                    ctx.arc(window.GRID_SIZE/5, window.GRID_SIZE/5, window.GRID_SIZE/10 * foodPulse, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Дополнительный мини-блик
+                    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                    ctx.beginPath();
+                    ctx.arc(window.GRID_SIZE/8, -window.GRID_SIZE/8, window.GRID_SIZE/20 * foodPulse, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                ctx.restore();
+            }
+
+            // Рисуем частицы
+            drawParticles();
+            updateParticles(16.67);
+
+            // Улучшенные индикаторы эффектов
+            let effectY = Math.max(30, canvas.height * 0.08);
+            const fontSize = Math.max(16, canvas.width * 0.04);
+            ctx.font = `bold ${fontSize}px Arial`;
+            
+            const drawEffect = (text, color, shadowColor) => {
+                ctx.fillStyle = color;
+                ctx.shadowColor = shadowColor;
+                ctx.shadowBlur = 25;
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 3;
+                ctx.strokeText(text, 30, effectY);
+                ctx.fillText(text, 30, effectY);
+                ctx.shadowBlur = 0;
+                effectY += fontSize + 10;
+            };
+            
+            if (gameState.powerups.mega && Date.now() < gameState.powerups.mega) {
+                drawEffect('💥 МЕГА БОНУС', '#FF1493', '#FF69B4');
+            }
+            if (gameState.powerups.ghost && Date.now() < gameState.powerups.ghost) {
+                drawEffect('💎 ПРИЗРАК', '#00FFFF', '#26C6DA');
+            }
+            if (gameState.powerups.speed && Date.now() < gameState.powerups.speed) {
+                drawEffect('⚡ УСКОРЕНИЕ', '#FFFF00', '#FFC107');
+            }
+            if (gameState.powerups.slow && Date.now() < gameState.powerups.slow) {
+                drawEffect('🌟 ЗАМЕДЛЕНИЕ', '#FFD700', '#FFA500');
+            }
+        }.addColorStop(0.2, '#E0FFFF');
+                        foodGradient.addColorStop(0.5, '#00FFFF');
+                        foodGradient.addColorStop(0.8, '#0080FF');
+                        foodGradient.addColorStop(1, '#0040FF');
+                        ctx.shadowColor = '#00FFFF';
+                        ctx.shadowBlur = 40 * foodPulse;
+                        break;
+                    case 'LIGHTNING':
+                        foodGradient.addColorStop(0, '#FFFFCC');
+                        foodGradient.addColorStop(0.3, '#FFFF99');
+                        foodGradient.addColorStop(0.5, '#FFFF00');
+                        foodGradient.addColorStop(0.8, '#FFD700');
+                        foodGradient.addColorStop(1, '#FFA500');
+                        ctx.shadowColor = '#FFFF00';
+                        ctx.shadowBlur = 45 * foodPulse;
+                        break;
+                    case 'PORTAL':
+                        foodGradient.addColorStop(0, '#E1BEE7');
+                        foodGradient.addColorStop(0.3, '#DDA0DD');
+                        foodGradient.addColorStop(0.5, '#9C27B0');
+                        foodGradient.addColorStop(0.7, '#E91E63');
+                        foodGradient.addColorStop(1, '#3F51B5');
+                        ctx.shadowColor = '#9C27B0';
+                        ctx.shadowBlur = 35 * foodPulse;
+                        break;
+                    case 'MEGA':
+                        foodGradient.addColorStop(0, '#FFE4E1');
+                        foodGradient.addColorStop(0.2, '#FFB6C1');
+                        foodGradient.addColorStop(0.4, '#FF1493');
+                        foodGradient.addColorStop(0.7, '#FF69B4');
+                        foodGradient.addColorStop(1, '#FF20B2');
+                        ctx.shadowColor = '#FF1493';
+                        ctx.shadowBlur = 50 * foodPulse;
+                        break;
+                    default:
+                        foodGradient.addColorStop(0, '#FF9999');
+                        foodGradient.addColorStop(0.4, '#FF6B6B');
+                        foodGradient.addColorStop(0.7, '#FF4444');
+                        foodGradient.addColorStop(1, '#FF0000');
+                        ctx.shadowColor = '#FF4444';
+                        ctx.shadowBlur = 25 * foodPulse;
+                }
+                
+                ctx.fillStyle = foodGradient;
+                ctx.beginPath();
+                ctx.arc(0, 0, (window.GRID_SIZE-2)/2 * foodPulse, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Мощный центральный блик
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(255,255,255,0.95)';
+                ctx.beginPath();
+                ctx.arc(-window.GRID_SIZE/5, -window.GRID_SIZE/5, window.GRID_SIZE/6 * foodPulse, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Дополнительные блики для особых типов
+                if (gameState.food.type !== 'NORMAL') {
+                    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                    ctx.beginPath();
+                    ctx.arc(window.GRID_SIZE/5, window.GRID_SIZE/5, window.GRID_SIZE/10 * foodPulse, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Дополнительный мини-блик
+                    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                    ctx.beginPath();
+                    ctx.arc(window.GRID_SIZE/8, -window.GRID_SIZE/8, window.GRID_SIZE/20 * foodPulse, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                ctx.restore();
+            }
+
+            // Рисуем частицы
+            drawParticles();
+            updateParticles(16.67);
+
+            // Улучшенные индикаторы эффектов
+            let effectY = Math.max(30, canvas.height * 0.08);
+            const fontSize = Math.max(16, canvas.width * 0.04);
+            ctx.font = `bold ${fontSize}px Arial`;
+            
+            const drawEffect = (text, color, shadowColor) => {
+                ctx.fillStyle = color;
+                ctx.shadowColor = shadowColor;
+                ctx.shadowBlur = 25;
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 3;
+                ctx.strokeText(text, 30, effectY);
+                ctx.fillText(text, 30, effectY);
+                ctx.shadowBlur = 0;
+                effectY += fontSize + 10;
+            };
+            
+            if (gameState.powerups.mega && Date.now() < gameState.powerups.mega) {
+                drawEffect('💥 МЕГА БОНУС', '#FF1493', '#FF69B4');
+            }
+            if (gameState.powerups.ghost && Date.now() < gameState.powerups.ghost) {
+                drawEffect('💎 ПРИЗРАК', '#00FFFF', '#26C6DA');
+            }
+            if (gameState.powerups.speed && Date.now() < gameState.powerups.speed) {
+                drawEffect('⚡ УСКОРЕНИЕ', '#FFFF00', '#FFC107');
+            }
+            if (gameState.powerups.slow && Date.now() < gameState.powerups.slow) {
+                drawEffect('🌟 ЗАМЕДЛЕНИЕ', '#FFD700', '#FFA500');
+            }
+        }
+
+        // Оптимизированный главный игровой цикл с 60 FPS
+        function gameLoop(currentTime = 0) {
+            if (!gameState.gameRunning) return;
+
+            const deltaTime = currentTime - gameState.lastRenderTime;
+            
+            // Ограничиваем FPS для стабильности
+            if (deltaTime >= FRAME_TIME) {
+                const updated = update(deltaTime);
+                if (!updated) return;
+                gameState.lastRenderTime = currentTime;
+            }
+            
+            // Рендерим каждый кадр для плавности
+            draw(currentTime);
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Улучшенное окончание игры с эффектами
+        function gameOver() {
+            gameState.gameRunning = false;
+            gameState.gameStarted = false;
+            
+            // Обновляем расширенную статистику
+            gameStats.gamesPlayed++;
+            gameStats.totalScore += gameState.score;
+            gameStats.totalTime += gameState.currentGameTime;
+            gameStats.totalFoodEaten += gameState.totalFoodEaten;
+            gameStats.bestScore = Math.max(gameStats.bestScore, gameState.score);
+            gameStats.longestGame = Math.max(gameStats.longestGame, gameState.currentGameTime);
+            gameStats.bestCombo = Math.max(gameStats.bestCombo, gameState.maxCombo);
+            gameStats.achievements = Array.from(gameState.achievements);
+            
+            // Определяем любимую еду
+            let maxCount = 0;
+            let favoriteFood = 'NORMAL';
+            for (const [type, count] of Object.entries(gameState.foodStats)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    favoriteFood = type;
+                }
+            }
+            gameStats.favoriteFood = favoriteFood;
+            
+            // Пересчитываем статистику
+            gameStats.averageScore = Math.floor(gameStats.totalScore / gameStats.gamesPlayed);
+            gameStats.winRate = Math.floor((gameStats.gamesPlayed > 0 ? (gameStats.bestScore > 200 ? 1 : 0) : 0) * 100);
+            
+            // Обновляем дневной рекорд
+            gameStats.dailyBest = Math.max(gameStats.dailyBest, gameState.score);
+            
+            // Обновляем рейтинг
+            const ratingChange = Math.floor(gameState.score / 40) - Math.floor(Math.random() * 15);
+            gameStats.rating = Math.max(1000, gameStats.rating + ratingChange);
+            
+            // Эпический взрыв частиц с задержкой
+            gameState.snake.forEach((segment, index) => {
+                setTimeout(() => {
+                    createParticles(segment.x, segment.y, '#ff6b6b', 30, 'explosion', 2.5);
+                    if (index === 0) {
+                        // Особый эффект для головы
+                        createParticles(segment.x, segment.y, '#FFD700', 20, 'sparkle', 2);
+                    }
+                }, index * 80);
+            });
+            
+            // Показываем достижения
+            const achievementsList = document.getElementById('achievementsList');
+            if (gameState.achievements.size > 0) {
+                const achievementNames = {
+                    'first_feast': '🍽️ Первый пир',
+                    'score_300': '🏆 Мастер',
+                    'long_snake': '🐍 Гигантская змея',
+                    'speed_demon': '💨 Демон скорости',
+                    'combo_master': '🔥 Мастер комбо',
+                    'endurance': '⏰ Выносливость'
+                };
+                
+                achievementsList.innerHTML = '<div style="margin-bottom: 20px; font-size: 15px; color: #FFD700; line-height: 1.4;">🏆 ДОСТИЖЕНИЯ:<br>' + 
+                    Array.from(gameState.achievements).map(a => achievementNames[a] || a).join('<br>') + '</div>';
+            } else {
+                achievementsList.innerHTML = '';
+            }
+            
+            // Показываем расширенную статистику
+            const statisticsDisplay = document.getElementById('statisticsDisplay');
+            const foodEmojis = { NORMAL: '🍎', GOLDEN: '🌟', DIAMOND: '💎', LIGHTNING: '⚡', PORTAL: '🌀', MEGA: '💥' };
+            
+            statisticsDisplay.innerHTML = `
+                <div style="margin-bottom: 20px; font-size: 13px; color: #90EE90; line-height: 1.5;">
+                    📊 ПОДРОБНАЯ СТАТИСТИКА:<br>
+                    🎮 Всего игр: ${gameStats.gamesPlayed}<br>
+                    📈 Средний счет: ${gameStats.averageScore}<br>
+                    ⏱️ Общее время: ${Math.floor(gameStats.totalTime / 60000)}:${Math.floor((gameStats.totalTime % 60000) / 1000).toString().padStart(2, '0')}<br>
+                    🍎 Всего съедено: ${gameStats.totalFoodEaten}<br>
+                    ❤️ Любимая еда: ${foodEmojis[gameStats.favoriteFood] || '🍎'}<br>
+                    🏆 Лучший комбо: x${gameStats.bestCombo}
+                </div>
+            `;
+            
+            // Турнирный результат
+            updateTournamentInfo();
+            const tournamentResult = document.getElementById('tournamentResult');
+            tournamentResult.innerHTML = `<div style="margin-bottom: 20px; font-size: 15px; color: #FFD700; line-height: 1.4;">
+                🏆 Турнирное место: #${gameStats.tournamentRank}<br>
+                📈 Изменение рейтинга: ${ratingChange >= 0 ? '+' : ''}${ratingChange}<br>
+                ⭐ Текущий рейтинг: ${gameStats.rating}
+            </div>`;
+            
+            document.getElementById('finalScore').innerHTML = 
+                `Результат: ${gameState.score} очков<br>` +
+                `Личный рекорд: ${gameStats.bestScore} очков<br>` +
+                `Максимальная длина: ${gameState.maxLength}<br>` +
+                `Достигнутый уровень: ${gameState.level}<br>` +
+                `Лучшее комбо: x${gameState.maxCombo}<br>` +
+                `Время игры: ${Math.floor(gameState.currentGameTime / 60000)}:${Math.floor((gameState.currentGameTime % 60000) / 1000).toString().padStart(2, '0')}`;
+            
+            setTimeout(() => {
+                document.getElementById('gameOverScreen').style.display = 'flex';
+            }, 2000);
+            
+            // Отправляем данные в Telegram
+            if (tg && tg.sendData) {
+                tg.sendData(JSON.stringify({
+                    action: 'game_over',
+                    score: gameState.score,
+                    level: gameState.level,
+                    maxLength: gameState.maxLength,
+                    maxCombo: gameState.maxCombo,
+                    gameTime: gameState.currentGameTime,
+                    achievements: Array.from(gameState.achievements),
+                    tournamentRank: gameStats.tournamentRank,
+                    rating: gameStats.rating,
+                    statistics: gameStats,
+                    totalFoodEaten: gameState.totalFoodEaten
+                }));
+            }
+            
+            if (tg && tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('heavy');
+            }
+        }
+
+        // Перезапуск игры с сохранением статистики
+        function restartGame() {
+            setupCanvas();
+            
+            gameState = {
+                snake: [{x: Math.floor(window.GRID_COUNT / 2), y: Math.floor(window.GRID_COUNT / 2)}],
+                direction: {x: 1, y: 0},
+                nextDirection: {x: 1, y: 0},
+                food: generateFood(),
+                obstacles: [],
+                particles: [],
+                trails: [],
+                portals: [],
+                score: 0,
+                level: 1,
+                combo: 0,
+                maxCombo: 0,
+                gameRunning: false,
+                gameStarted: false,
+                baseSpeed: 150,
+                animationTime: 0,
+                lastUpdateTime: 0,
+                lastRenderTime: 0,
+                powerups: {},
+                achievements: new Set(gameStats.achievements),
+                totalFoodEaten: 0,
+                maxLength: 1,
+                lastFoodTime: 0,
+                gameStartTime: 0,
+                currentGameTime: 0,
+                isPaused: false,
+                foodStats: {},
+                interpolation: 0,
+                frameCount: 0
+            };
+            
+            document.getElementById('scoreDisplay').textContent = '🏆 0';
+            document.getElementById('lengthDisplay').textContent = '📏 1';
+            document.getElementById('speedDisplay').textContent = '⚡ 1';
+            document.getElementById('timeDisplay').textContent = '⏱️ 0:00';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('comboIndicator').style.display = 'none';
+            document.getElementById('pauseIndicator').style.display = 'none';
+            document.getElementById('swipeIndicator').style.display = 'block';
+            
+            updateTournamentInfo();
+            draw(0);
+        }
+
+        // Поделиться результатом
+        function shareScore() {
+            const text = `🐍 Змейка MEGA\n🏆 Набрал ${gameState.score} очков!\n📏 Длина: ${gameState.maxLength}\n⚡ Уровень: ${gameState.level}\n🔥 Лучшее комбо: x${gameState.maxCombo}\n🏆 Место в турнире: #${gameStats.tournamentRank}\n🎯 Рейтинг: ${gameStats.rating}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Змейка MEGA',
+                    text: text,
+                    url: window.location.href
+                });
+            } else if (tg && tg.sendData) {
+                tg.sendData(JSON.stringify({
+                    action: 'share_score',
+                    text: text,
+                    score: gameState.score,
+                    level: gameState.level,
+                    maxLength: gameState.maxLength,
+                    maxCombo: gameState.maxCombo,
+                    tournamentRank: gameStats.tournamentRank,
+                    rating: gameStats.rating
+                }));
+            }
+        }
+
+        // Обработчики событий
+        function handleRestart() {
+            restartGame();
+        }
+
+        function handleShare() {
+            shareScore();
+        }
+
+        // Управление с клавиатуры
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    e.preventDefault();
+                    changeDirection(0, -1);
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    e.preventDefault();
+                    changeDirection(0, 1);
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    e.preventDefault();
+                    changeDirection(-1, 0);
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    e.preventDefault();
+                    changeDirection(1, 0);
+                    break;
+                case ' ':
+                case 'Enter':
+                    e.preventDefault();
+                    togglePause();
+                    break;
+            }
+        });
+
+        // Улучшенное сенсорное управление с жестами
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchStartTime = 0;
+        let lastTouchTime = 0;
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchStartTime = Date.now();
+        }, {passive: false});
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            
+            const touchEndTime = Date.now();
+            const touchDuration = touchEndTime - touchStartTime;
+            
+            // Двойной тап для паузы
+            if (touchDuration < 200 && touchEndTime - lastTouchTime < 400) {
+                togglePause();
+                lastTouchTime = 0;
+                return;
+            }
+            
+            lastTouchTime = touchEndTime;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            
+            const minSwipeDistance = Math.min(25, Math.max(canvas.width, canvas.height) * 0.06);
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (Math.abs(deltaX) > minSwipeDistance) {
+                    changeDirection(deltaX > 0 ? 1 : -1, 0);
+                }
+            } else {
+                if (Math.abs(deltaY) > minSwipeDistance) {
+                    changeDirection(0, deltaY > 0 ? 1 : -1);
+                }
+            }
+        }, {passive: false});
+
+        // Предотвращение скролла
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, {passive: false});
+
+        // Обработка изменения размера окна с оптимизацией
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                setupCanvas();
+                if (!gameState.gameRunning) {
+                    draw(0);
+                }
+            }, 150);
+        });
+
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                setupCanvas();
+                if (!gameState.gameRunning) {
+                    draw(0);
+                }
+            }, 400);
+        });
+
+        // Инициализация игры с эффектами
+        function initGame() {
+            createStarField();
+            gameState.food = generateFood();
+            updateTournamentInfo();
+            draw(0);
+            
+            // Показываем приветственное сообщение
+            setTimeout(() => {
+                if (!gameState.gameStarted) {
+                    showPowerupNotification('🌟 Добро пожаловать в ЗМЕЙКУ MEGA! 🚀');
+                }
+            }, 1500);
+            
+            // Запускаем фоновые эффекты
+            setInterval(() => {
+                if (!gameState.gameRunning && !gameState.gameStarted) {
+                    // Создаем декоративные частицы в главном меню
+                    const randomX = Math.floor(Math.random() * window.GRID_COUNT);
+                    const randomY = Math.floor(Math.random() * window.GRID_COUNT);
+                    createParticles(randomX, randomY, '#8b5cf6', 5, 'sparkle', 0.5);
+                }
+            }, 3000);
+        }
+
+        // Запуск с проверкой готовности
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGame);
+        } else {
+            initGame();
+        }
+    </script>
+</body>
+</html>
