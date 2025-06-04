@@ -163,10 +163,24 @@
             z-index: 1;
         }
 
-        .sync-status {
+        .debug-info {
             position: fixed;
             top: 20px;
             left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            z-index: 1002;
+            max-width: 300px;
+            font-family: monospace;
+        }
+
+        .sync-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
             background: rgba(76, 175, 80, 0.9);
             color: white;
             padding: 10px 20px;
@@ -581,6 +595,11 @@
                 height: 60px;
                 font-size: 24px;
             }
+            
+            .debug-info {
+                font-size: 10px;
+                max-width: 200px;
+            }
         }
 
         .love-ripple {
@@ -606,12 +625,16 @@
     <div class="floating-hearts"></div>
     <div class="particles"></div>
     
-    <div id="syncStatus" class="sync-status">🟢 Подключено</div>
+    <div id="debugInfo" class="debug-info">
+        Загрузка...
+    </div>
+    
+    <div id="syncStatus" class="sync-status">🔄 Подключение...</div>
     
     <div class="container">
         <div class="header">
             <h1>💕 Наши заметки любви 💕</h1>
-            <p>Ваш чат синхронизируется автоматически</p>
+            <p>Синхронизируется автоматически</p>
         </div>
         
         <div class="notes-board" id="notesBoard">
@@ -628,19 +651,30 @@
 
     <script>
         let tg = window.Telegram.WebApp;
-        let currentUser = tg.initDataUnsafe?.user?.id || 829741830; // Твой ID по умолчанию
+        let currentUser = tg.initDataUnsafe?.user?.id || 829741830;
         let currentUsername = tg.initDataUnsafe?.user?.first_name || 'Аноним';
         let notes = [];
         let lastSyncTime = Date.now();
+        let syncInterval;
+        let debugLog = [];
 
-        // ID пользователей для определения "своих" и "чужих" сообщений
-        const USER_IDS = [608326842, 829741830]; // Её и твой ID
+        // ID пользователей
+        const USER_IDS = [608326842, 829741830];
 
         tg.ready();
         tg.expand();
         tg.setHeaderColor('#667eea');
 
-        console.log(`Пользователь: ${currentUsername} (ID: ${currentUser})`);
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.push(`${timestamp}: ${message}`);
+            if (debugLog.length > 10) debugLog.shift();
+            
+            const debugEl = document.getElementById('debugInfo');
+            debugEl.innerHTML = debugLog.join('<br>');
+            
+            console.log(`[${timestamp}] ${message}`);
+        }
 
         function setSyncStatus(status, message) {
             const statusEl = document.getElementById('syncStatus');
@@ -666,20 +700,23 @@
                 try {
                     notes = JSON.parse(savedNotes);
                     displayNotes();
-                    console.log(`Загружено ${notes.length} заметок из localStorage`);
+                    log(`Загружено ${notes.length} заметок`);
                 } catch (e) {
-                    console.error('Ошибка загрузки из localStorage:', e);
+                    log('Ошибка загрузки localStorage');
                     notes = [];
                 }
+            } else {
+                notes = [];
+                log('localStorage пуст');
             }
         }
 
         function saveNotesToLocal() {
             try {
                 localStorage.setItem('loveNotes', JSON.stringify(notes));
-                console.log(`Сохранено ${notes.length} заметок в localStorage`);
+                log(`Сохранено ${notes.length} заметок`);
             } catch (e) {
-                console.error('Ошибка сохранения в localStorage:', e);
+                log('Ошибка сохранения localStorage');
             }
         }
 
@@ -753,6 +790,8 @@
                         💕 Ваша история любви начнется с первой заметки... 💕
                         <br><br>
                         ✨ Напишите что-то особенное ✨
+                        <br><br>
+                        👤 Вы: ${currentUsername} (ID: ${currentUser})
                     </div>
                 `;
                 return;
@@ -779,7 +818,7 @@
                     <div class="note-pin">${pinSymbol}</div>
                     <div class="note-content">${note.text}</div>
                     <div class="note-meta">
-                        <span class="note-author">${note.username}</span>
+                        <span class="note-author">${note.username} (${note.user_id})</span>
                         <span class="note-time">${timeStr}</span>
                     </div>
                 `;
@@ -801,15 +840,18 @@
             const messageText = document.getElementById('messageText');
             const text = messageText.value.trim();
             
-            if (!text) return;
+            if (!text) {
+                log('Пустое сообщение');
+                return;
+            }
             
-            console.log('Отправка заметки:', text);
+            log(`Отправка: "${text}"`);
             
             // Создаем эффект отправки
             const rect = document.getElementById('sendBtn').getBoundingClientRect();
             createRipple(rect.left + rect.width/2, rect.top + rect.height/2);
             
-            // Добавляем заметку локально сразу для быстрого отображения
+            // Добавляем заметку локально сразу
             const note = {
                 id: Date.now(),
                 user_id: currentUser,
@@ -831,10 +873,13 @@
                 setSyncStatus('syncing', '🔄 Отправка...');
                 
                 try {
-                    tg.sendData(JSON.stringify({
+                    const sendData = {
                         type: 'send_message',
                         message: text
-                    }));
+                    };
+                    
+                    tg.sendData(JSON.stringify(sendData));
+                    log('Отправлено через sendData');
                     
                     setTimeout(() => {
                         setSyncStatus('', '🟢 Отправлено');
@@ -845,9 +890,12 @@
                     }
                     
                 } catch (error) {
-                    console.error('Ошибка отправки:', error);
+                    log(`Ошибка отправки: ${error.message}`);
                     setSyncStatus('error', '❌ Ошибка');
                 }
+            } else {
+                log('tg.sendData недоступен');
+                setSyncStatus('error', '❌ Нет связи');
             }
             
             setTimeout(() => {
@@ -861,70 +909,53 @@
             textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
         }
 
-        // Обработка входящих сообщений от бота
-        function handleIncomingMessage(message) {
-            console.log('Получено сообщение от бота:', message);
-            
-            // Ищем SYNC_DATA в сообщении
-            if (message.includes('SYNC_DATA:')) {
+        function requestSync() {
+            if (tg.sendData) {
+                log('Запрос синхронизации...');
+                setSyncStatus('syncing', '🔄 Синхронизация...');
+                
                 try {
-                    const jsonStart = message.indexOf('{');
-                    const jsonData = message.substring(jsonStart);
-                    const syncData = JSON.parse(jsonData);
-                    
-                    if (syncData.type === 'sync_update' && syncData.messages) {
-                        const oldCount = notes.length;
-                        notes = syncData.messages;
-                        saveNotesToLocal();
-                        displayNotes();
-                        
-                        console.log(`Синхронизировано: ${notes.length} заметок`);
-                        setSyncStatus('', '🟢 Синхронизировано');
-                        
-                        // Если появились новые сообщения
-                        if (notes.length > oldCount) {
-                            createHeartBurst();
-                            document.title = `💕 (${notes.length - oldCount}) Новые заметки!`;
-                            
-                            if (tg.HapticFeedback) {
-                                tg.HapticFeedback.notificationOccurred('success');
-                            }
-                            
-                            setTimeout(() => {
-                                document.title = '💕 Заметки любви';
-                            }, 5000);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Ошибка парсинга sync данных:', error);
-                }
-            }
-        }
-
-        // Периодически запрашиваем синхронизацию
-        function startSyncPolling() {
-            setInterval(() => {
-                if (tg.sendData && Date.now() - lastSyncTime > 20000) {
-                    console.log('Запрос синхронизации...');
-                    setSyncStatus('syncing', '🔄 Синхронизация...');
-                    
                     tg.sendData(JSON.stringify({
                         type: 'get_messages'
                     }));
                     
-                    lastSyncTime = Date.now();
-                    
                     setTimeout(() => {
-                        setSyncStatus('', '🟢 Подключено');
+                        setSyncStatus('', '🟢 Обновлено');
                     }, 3000);
+                    
+                } catch (error) {
+                    log(`Ошибка синхронизации: ${error.message}`);
+                    setSyncStatus('error', '❌ Ошибка');
                 }
-            }, 20000); // Каждые 20 секунд
+            } else {
+                log('tg.sendData недоступен для синхронизации');
+            }
         }
 
-        // Слушаем сообщения от Telegram (если поддерживается)
+        function startSyncPolling() {
+            // Первая синхронизация через 3 секунды
+            setTimeout(() => {
+                requestSync();
+            }, 3000);
+            
+            // Затем каждые 15 секунд
+            syncInterval = setInterval(() => {
+                if (Date.now() - lastSyncTime > 15000) {
+                    requestSync();
+                    lastSyncTime = Date.now();
+                }
+            }, 15000);
+            
+            log('Автосинхронизация запущена');
+        }
+
+        // Слушаем все возможные события Telegram WebApp
         if (tg.onEvent) {
-            tg.onEvent('message_received', function(event) {
-                handleIncomingMessage(event.data);
+            // Стандартные события
+            ['themeChanged', 'viewportChanged', 'mainButtonClicked', 'backButtonClicked'].forEach(eventName => {
+                tg.onEvent(eventName, function(eventData) {
+                    log(`Событие ${eventName}: ${JSON.stringify(eventData)}`);
+                });
             });
         }
 
@@ -957,7 +988,7 @@
 
         // Инициализация
         window.addEventListener('load', () => {
-            console.log('Приложение запущено');
+            log(`Загрузка: ${currentUsername} (${currentUser})`);
             
             createSparkles();
             createFloatingHearts();
@@ -965,39 +996,18 @@
             loadNotesFromLocal();
             startSyncPolling();
             
-            // Сразу запрашиваем синхронизацию
+            setSyncStatus('', '🟢 Готово');
+            
             setTimeout(() => {
-                if (tg.sendData) {
-                    console.log('Первичная синхронизация...');
-                    tg.sendData(JSON.stringify({
-                        type: 'get_messages'
-                    }));
-                }
                 document.getElementById('messageText').focus();
-            }, 2000);
+            }, 1000);
         });
 
-        // Симуляция входящих сообщений (для тестирования)
-        // Убери это в продакшене!
-        /*
+        // Показываем доступные методы Telegram WebApp
         setTimeout(() => {
-            const testSync = {
-                type: 'sync_update',
-                messages: [
-                    {
-                        id: 1,
-                        user_id: 608326842,
-                        username: 'Любимая',
-                        text: 'Привет, мой дорогой! 💕',
-                        timestamp: new Date().toISOString(),
-                        type: 'note'
-                    }
-                ]
-            };
-            
-            handleIncomingMessage('🔄 SYNC_DATA: ' + JSON.stringify(testSync));
-        }, 5000);
-        */
+            const methods = Object.getOwnPropertyNames(tg).filter(prop => typeof tg[prop] === 'function');
+            log(`TG методы: ${methods.join(', ')}`);
+        }, 2000);
     </script>
 </body>
 </html>
