@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤡 Клоун</title>
+    <title>🖕 Средний палец</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -75,11 +75,11 @@
         }
 
         .clown {
-            font-size: 200px;
+            font-size: 250px;
             animation: bounce 2s infinite, pulse 1s infinite alternate;
             cursor: pointer;
             transition: transform 0.3s;
-            filter: drop-shadow(0 0 20px rgba(255,255,255,0.8));
+            filter: drop-shadow(0 0 30px rgba(255,0,0,0.8));
         }
 
         @keyframes bounce {
@@ -160,8 +160,8 @@
     <div class="stars"></div>
     
     <div class="clown-container">
-        <div class="clown" onclick="showMiddleFinger()">🤡</div>
-        <div class="text">Нажми на клоуна! 🎪</div>
+        <div class="clown" onclick="showMiddleFinger()">🖕</div>
+        <div class="text">Нажми на палец! 🖕</div>
     </div>
 
     <script>
@@ -172,7 +172,7 @@
 
         function createStars() {
             const starsContainer = document.querySelector('.stars');
-            const starSymbols = ['⭐', '✨', '💫', '🌟'];
+            const starSymbols = ['🖕', '🤡', '💀', '🔥', '⭐'];
             
             setInterval(() => {
                 const star = document.createElement('div');
@@ -180,30 +180,39 @@
                 star.textContent = starSymbols[Math.floor(Math.random() * starSymbols.length)];
                 star.style.left = Math.random() * 100 + '%';
                 star.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                star.style.fontSize = (Math.random() * 20 + 15) + 'px';
+                star.style.fontSize = (Math.random() * 25 + 20) + 'px';
                 starsContainer.appendChild(star);
                 
                 setTimeout(() => {
                     star.remove();
                 }, 10000);
-            }, 500);
+            }, 400);
         }
 
         function createConfetti() {
-            const colors = ['#ff0066', '#6600ff', '#00ff99', '#ffcc00', '#ff3366', '#33ff66'];
+            const colors = ['#ff0066', '#ff3300', '#990000', '#cc0000', '#ff6600'];
+            const symbols = ['🖕', '🤡', '💀', '🔥', '💥'];
             
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < 70; i++) {
                 setTimeout(() => {
                     const confetti = document.createElement('div');
                     confetti.className = 'confetti';
                     confetti.style.left = Math.random() * 100 + '%';
-                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.fontSize = (Math.random() * 30 + 20) + 'px';
+                    
+                    if (Math.random() > 0.5) {
+                        confetti.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                        confetti.style.background = 'none';
+                    } else {
+                        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    }
+                    
                     confetti.style.animationDelay = Math.random() * 2 + 's';
                     confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
                     document.body.appendChild(confetti);
                     
-                    setTimeout(() => confetti.remove(), 5000);
-                }, i * 50);
+                    setTimeout(() => confetti.remove(), 6000);
+                }, i * 30);
             }
         }
 
@@ -216,6 +225,9 @@
             setTimeout(() => {
                 const middleFinger = document.createElement('div');
                 middleFinger.className = 'middle-finger';
+                middleFinger.style.fontSize = '300px';
+                middleFinger.style.color = '#ff0066';
+                middleFinger.style.textShadow = '0 0 50px #ff0066, 0 0 100px #ff0066';
                 middleFinger.textContent = '🖕';
                 document.body.appendChild(middleFinger);
                 
@@ -224,10 +236,10 @@
                 setTimeout(() => {
                     middleFinger.remove();
                     explosion.remove();
-                }, 2000);
+                }, 3000);
             }, 500);
             
-            navigator.vibrate && navigator.vibrate([200, 100, 200]);
+            navigator.vibrate && navigator.vibrate([200, 100, 200, 100, 200]);
         }
 
         createStars();
