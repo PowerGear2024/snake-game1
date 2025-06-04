@@ -6,6 +6,8 @@
     <title>💕 Заметки любви</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -13,10 +15,10 @@
         }
 
         body {
-            font-family: 'Cursive', 'Arial', sans-serif;
-            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe);
-            background-size: 400% 400%;
-            animation: gradientShift 12s ease infinite;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe, #ff9a9e, #fecfef, #ffecd2);
+            background-size: 600% 600%;
+            animation: gradientShift 15s ease infinite;
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
@@ -24,8 +26,39 @@
 
         @keyframes gradientShift {
             0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+            25% { background-position: 100% 50%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
             100% { background-position: 0% 50%; }
+        }
+
+        .aurora {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.3;
+            z-index: 1;
+        }
+
+        .aurora::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 80%, rgba(255, 107, 157, 0.6) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(79, 172, 254, 0.6) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(240, 147, 251, 0.6) 0%, transparent 50%);
+            animation: auroraMove 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes auroraMove {
+            0% { transform: translate(0px, 0px) rotate(0deg); }
+            100% { transform: translate(50px, 100px) rotate(180deg); }
         }
 
         .sparkles {
@@ -33,14 +66,14 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 1;
+            z-index: 2;
         }
 
         .sparkle {
             position: absolute;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 12px;
-            animation: sparkleMove 8s infinite linear;
+            color: rgba(255, 255, 255, 0.9);
+            animation: sparkleMove 12s infinite linear;
+            filter: drop-shadow(0 0 6px currentColor);
         }
 
         @keyframes sparkleMove {
@@ -48,8 +81,14 @@
                 transform: translateY(100vh) rotate(0deg) scale(0);
                 opacity: 0;
             }
-            10% { opacity: 1; transform: translateY(90vh) rotate(36deg) scale(1); }
-            90% { opacity: 1; transform: translateY(10vh) rotate(324deg) scale(1); }
+            10% { 
+                opacity: 1; 
+                transform: translateY(90vh) rotate(36deg) scale(1);
+            }
+            90% { 
+                opacity: 1; 
+                transform: translateY(10vh) rotate(324deg) scale(1.2);
+            }
             100% {
                 transform: translateY(-10vh) rotate(360deg) scale(0);
                 opacity: 0;
@@ -61,130 +100,261 @@
             z-index: 10;
             min-height: 100vh;
             padding: 20px;
+            backdrop-filter: blur(5px);
         }
 
         .header {
             text-align: center;
             margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 30px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(25px);
+            border-radius: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
         }
 
         .header h1 {
+            font-family: 'Dancing Script', cursive;
             color: white;
-            font-size: 28px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            animation: headerPulse 3s infinite;
-            margin-bottom: 10px;
+            font-size: 42px;
+            font-weight: 700;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 30px rgba(255,255,255,0.5);
+            animation: headerPulse 4s infinite ease-in-out;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
         }
 
         @keyframes headerPulse {
-            0%, 100% { transform: scale(1); text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-            50% { transform: scale(1.05); text-shadow: 0 4px 20px rgba(255,255,255,0.5); }
+            0%, 100% { 
+                transform: scale(1); 
+                text-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 30px rgba(255,255,255,0.5);
+            }
+            50% { 
+                transform: scale(1.05); 
+                text-shadow: 0 6px 30px rgba(0,0,0,0.4), 0 0 40px rgba(255,107,157,0.8);
+            }
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.9);
+            font-size: 16px;
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+        }
+
+        .connection-status {
+            padding: 15px 20px;
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            margin-bottom: 25px;
+            border-radius: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .status-online {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.8), rgba(102, 187, 106, 0.8));
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+        }
+
+        .status-offline {
+            background: linear-gradient(135deg, rgba(244, 67, 54, 0.8), rgba(229, 115, 115, 0.8));
+            box-shadow: 0 8px 25px rgba(244, 67, 54, 0.3);
         }
 
         .notes-board {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            margin-bottom: 140px;
             padding: 20px 0;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .note {
-            background: linear-gradient(135deg, #ffeb3b, #fff176);
-            border-radius: 0 20px 20px 20px;
-            padding: 20px;
+            border-radius: 25px 25px 5px 25px;
+            padding: 25px 30px;
             position: relative;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-            transform: rotate(-2deg);
-            transition: all 0.3s ease;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
-            animation: noteAppear 0.6s ease-out;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            animation: noteAppear 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(15px);
+            overflow: hidden;
+            transform-origin: center center;
         }
 
-        .note:nth-child(even) {
-            background: linear-gradient(135deg, #e1f5fe, #b3e5fc);
-            transform: rotate(1deg);
+        .note::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
         }
 
-        .note:nth-child(3n) {
-            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
-            transform: rotate(-1deg);
+        .note:hover::before {
+            left: 100%;
         }
 
-        .note:nth-child(4n) {
-            background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
-            transform: rotate(2deg);
+        .note.own {
+            background: linear-gradient(135deg, #ff6b9d, #ff8a95, #ffa8a8);
+            align-self: flex-end;
+            max-width: 85%;
+            border-radius: 25px 5px 25px 25px;
+            transform: translateX(10px);
+            animation: slideInRight 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .note:nth-child(5n) {
-            background: linear-gradient(135deg, #fff3e0, #ffcc80);
-            transform: rotate(-1.5deg);
+        .note.other {
+            background: linear-gradient(135deg, #4facfe, #00f2fe, #48cae4);
+            align-self: flex-start;
+            max-width: 85%;
+            transform: translateX(-10px);
+            animation: slideInLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideInRight {
+            0% {
+                opacity: 0;
+                transform: translateX(100px) scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(10px) scale(1);
+            }
+        }
+
+        @keyframes slideInLeft {
+            0% {
+                opacity: 0;
+                transform: translateX(-100px) scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-10px) scale(1);
+            }
         }
 
         @keyframes noteAppear {
             0% {
                 opacity: 0;
-                transform: scale(0.5) rotate(180deg);
+                transform: scale(0.3) rotate(180deg);
+                filter: blur(10px);
             }
-            70% {
+            50% {
                 transform: scale(1.1) rotate(-5deg);
+                filter: blur(2px);
             }
             100% {
                 opacity: 1;
-                transform: scale(1) rotate(-2deg);
+                transform: scale(1) rotate(0deg);
+                filter: blur(0px);
             }
         }
 
         .note:hover {
-            transform: rotate(0deg) scale(1.05);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2), 0 10px 25px rgba(0, 0, 0, 0.15);
             z-index: 100;
         }
 
-        .note::before {
-            content: '📌';
+        .note.own:hover {
+            transform: translateX(10px) translateY(-8px) scale(1.02);
+        }
+
+        .note.other:hover {
+            transform: translateX(-10px) translateY(-8px) scale(1.02);
+        }
+
+        .note-pin {
             position: absolute;
-            top: -10px;
-            right: 15px;
-            font-size: 20px;
+            top: -12px;
+            right: 20px;
+            font-size: 24px;
             transform: rotate(45deg);
-            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+            filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.4));
+            animation: pinWiggle 3s infinite ease-in-out;
+        }
+
+        @keyframes pinWiggle {
+            0%, 100% { transform: rotate(45deg); }
+            50% { transform: rotate(35deg); }
+        }
+
+        .note.own .note-pin {
+            right: 20px;
+        }
+
+        .note.other .note-pin {
+            left: 20px;
         }
 
         .note-content {
-            font-size: 16px;
-            line-height: 1.5;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-weight: 500;
-            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+            font-size: 18px;
+            line-height: 1.6;
+            color: white;
+            margin-bottom: 20px;
+            font-weight: 400;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
         }
 
         .note-meta {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 12px;
-            color: #34495e;
-            opacity: 0.8;
-            border-top: 1px dashed rgba(0,0,0,0.2);
-            padding-top: 10px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.9);
+            opacity: 0.9;
+            border-top: 1px dashed rgba(255,255,255,0.4);
+            padding-top: 15px;
+            position: relative;
+            z-index: 1;
         }
 
         .note-author {
-            font-weight: bold;
-            color: #8e44ad;
+            font-weight: 600;
+            font-size: 14px;
         }
 
         .note-time {
             font-style: italic;
+            font-weight: 300;
         }
 
         .input-area {
@@ -192,79 +362,117 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            padding: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(25px);
+            padding: 25px;
+            border-top: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
             z-index: 1000;
         }
 
         .input-container {
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
             display: flex;
-            gap: 15px;
+            gap: 20px;
             align-items: flex-end;
         }
 
         #messageText {
             flex: 1;
-            padding: 15px 20px;
-            border: 3px solid #e3f2fd;
-            border-radius: 20px;
-            background: white;
+            padding: 20px 25px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.9);
             font-size: 16px;
             font-family: inherit;
             outline: none;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             resize: none;
-            min-height: 50px;
-            max-height: 120px;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+            min-height: 60px;
+            max-height: 150px;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.1), 0 4px 15px rgba(0,0,0,0.1);
+            color: #333;
+            font-weight: 400;
+        }
+
+        #messageText::placeholder {
+            color: #999;
+            font-style: italic;
         }
 
         #messageText:focus {
-            border-color: #2196f3;
+            border-color: rgba(255, 107, 157, 0.8);
             transform: scale(1.02);
-            box-shadow: 0 5px 20px rgba(33, 150, 243, 0.3);
+            box-shadow: 0 8px 30px rgba(255, 107, 157, 0.3), inset 0 4px 10px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.95);
         }
 
         .send-btn {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             border: none;
             border-radius: 50%;
-            background: linear-gradient(135deg, #ff6b9d, #c44569);
+            background: linear-gradient(135deg, #ff6b9d, #c44569, #8e44ad);
             color: white;
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.4);
+            box-shadow: 0 8px 25px rgba(255, 107, 157, 0.4), 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .send-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .send-btn:hover::before {
+            transform: translateX(100%);
         }
 
         .send-btn:hover {
-            transform: scale(1.1) rotate(15deg);
-            box-shadow: 0 8px 25px rgba(255, 107, 157, 0.6);
+            transform: scale(1.15) rotate(15deg);
+            box-shadow: 0 15px 40px rgba(255, 107, 157, 0.6), 0 8px 25px rgba(0,0,0,0.2);
         }
 
         .send-btn:active {
             transform: scale(0.95);
         }
 
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .empty-state {
             text-align: center;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 18px;
-            margin-top: 50px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 20px;
+            font-weight: 300;
+            margin-top: 80px;
             animation: fadeIn 2s ease-in;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         @keyframes fadeIn {
-            0% { opacity: 0; transform: translateY(20px); }
+            0% { opacity: 0; transform: translateY(30px); }
             100% { opacity: 1; transform: translateY(0); }
         }
 
@@ -273,55 +481,132 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 2;
+            z-index: 3;
         }
 
         .floating-heart {
             position: absolute;
-            color: rgba(255, 182, 193, 0.6);
-            font-size: 16px;
-            animation: heartFloat 10s infinite linear;
+            font-size: 20px;
+            animation: heartFloat 15s infinite linear;
+            filter: drop-shadow(0 0 8px currentColor);
         }
 
         @keyframes heartFloat {
             0% {
-                transform: translateY(100vh) translateX(0px) rotate(0deg);
+                transform: translateY(100vh) translateX(0px) rotate(0deg) scale(0);
                 opacity: 0;
             }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
+            10% { 
+                opacity: 1;
+                transform: translateY(90vh) translateX(10px) rotate(36deg) scale(1);
+            }
+            90% { 
+                opacity: 1;
+                transform: translateY(10vh) translateX(90px) rotate(324deg) scale(1.2);
+            }
             100% {
-                transform: translateY(-100px) translateX(50px) rotate(360deg);
+                transform: translateY(-10vh) translateX(100px) rotate(360deg) scale(0);
+                opacity: 0;
+            }
+        }
+
+        .particles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: particleFloat 10s infinite linear;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(100vh) translateX(0px) scale(0);
+                opacity: 0;
+            }
+            10% { 
+                opacity: 1;
+                transform: translateY(90vh) translateX(20px) scale(1);
+            }
+            90% { 
+                opacity: 1;
+                transform: translateY(10vh) translateX(80px) scale(1);
+            }
+            100% {
+                transform: translateY(-10vh) translateX(100px) scale(0);
                 opacity: 0;
             }
         }
 
         @media (max-width: 768px) {
             .notes-board {
-                grid-template-columns: 1fr;
-                gap: 15px;
-                padding: 10px;
+                padding: 15px;
+                gap: 20px;
             }
             
             .container {
-                padding: 10px;
+                padding: 15px;
             }
             
             .note {
-                margin: 0 auto;
-                max-width: 100%;
+                max-width: 95%;
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 36px;
+            }
+            
+            .input-area {
+                padding: 20px 15px;
+            }
+            
+            .send-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+        }
+
+        .love-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,107,157,0.3) 0%, transparent 70%);
+            transform: scale(0);
+            animation: ripple 2s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
             }
         }
     </style>
 </head>
 <body>
+    <div class="aurora"></div>
     <div class="sparkles"></div>
     <div class="floating-hearts"></div>
+    <div class="particles"></div>
     
     <div class="container">
         <div class="header">
             <h1>💕 Наши заметки любви 💕</h1>
-            <p style="color: rgba(255,255,255,0.9); margin-top: 10px;">Каждая заметка - это частичка нашего сердца</p>
+            <p>Место где живут наши сердца вместе</p>
+        </div>
+        
+        <div id="connectionStatus" class="connection-status status-offline">
+            🔄 Подключение к серверу любви...
         </div>
         
         <div class="notes-board" id="notesBoard">
@@ -331,48 +616,103 @@
     
     <div class="input-area">
         <div class="input-container">
-            <textarea id="messageText" placeholder="Напиши заметку о любви..." maxlength="300"></textarea>
-            <button class="send-btn" onclick="addNote()">💕</button>
+            <textarea id="messageText" placeholder="Напиши что-то особенное..." maxlength="500"></textarea>
+            <button class="send-btn" onclick="addNote()" id="sendBtn">💕</button>
         </div>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         let currentUser = tg.initDataUnsafe?.user?.id || Math.random().toString(36).substr(2, 9);
+        let currentUsername = tg.initDataUnsafe?.user?.first_name || 'Аноним';
         let notes = [];
+        let isConnected = false;
+
+        // ИЗМЕНИ НА IP СВОЕГО IPHONE!
+        const SERVER_URL = 'http://192.168.1.100:8080'; // Найди свой IP в настройках WiFi
 
         tg.ready();
         tg.expand();
+        tg.setHeaderColor('#667eea');
 
-        function createSparkles() {
-            const sparklesContainer = document.querySelector('.sparkles');
-            setInterval(() => {
-                const sparkle = document.createElement('div');
-                sparkle.className = 'sparkle';
-                sparkle.innerHTML = '✨';
-                sparkle.style.left = Math.random() * 100 + '%';
-                sparkle.style.animationDuration = (Math.random() * 4 + 6) + 's';
-                sparklesContainer.appendChild(sparkle);
-                
-                setTimeout(() => sparkle.remove(), 8000);
-            }, 1500);
+        function createRipple(x, y) {
+            const ripple = document.createElement('div');
+            ripple.className = 'love-ripple';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.style.width = '20px';
+            ripple.style.height = '20px';
+            document.body.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 2000);
         }
 
-        function createFloatingHearts() {
-            const heartsContainer = document.querySelector('.floating-hearts');
-            setInterval(() => {
-                const heart = document.createElement('div');
-                heart.className = 'floating-heart';
-                heart.innerHTML = ['💕', '💖', '💗', '💘'][Math.floor(Math.random() * 4)];
-                heart.style.left = Math.random() * 100 + '%';
-                heart.style.animationDuration = (Math.random() * 5 + 8) + 's';
-                heartsContainer.appendChild(heart);
-                
-                setTimeout(() => heart.remove(), 10000);
-            }, 2000);
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('connectionStatus');
+            const sendBtn = document.getElementById('sendBtn');
+            
+            isConnected = connected;
+            
+            if (connected) {
+                statusEl.className = 'connection-status status-online';
+                statusEl.innerHTML = '🟢 Связь с сердцем установлена';
+                sendBtn.disabled = false;
+            } else {
+                statusEl.className = 'connection-status status-offline';
+                statusEl.innerHTML = '🔴 Поиск твоего сердца...';
+                sendBtn.disabled = true;
+            }
         }
 
-        function loadNotes() {
+        async function loadNotesFromServer() {
+            try {
+                const response = await fetch(`${SERVER_URL}/messages`);
+                if (response.ok) {
+                    const newNotes = await response.json();
+                    const hasNewMessages = newNotes.length > notes.length;
+                    notes = newNotes;
+                    updateConnectionStatus(true);
+                    displayNotes();
+                    
+                    if (hasNewMessages && notes.length > 0) {
+                        createHeartBurst();
+                    }
+                    return true;
+                } else {
+                    throw new Error('Server error');
+                }
+            } catch (error) {
+                updateConnectionStatus(false);
+                loadNotesFromLocal();
+                return false;
+            }
+        }
+
+        async function saveNoteToServer(noteText) {
+            try {
+                const response = await fetch(`${SERVER_URL}/add_message`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        user_id: currentUser,
+                        username: currentUsername,
+                        text: noteText
+                    })
+                });
+
+                if (response.ok) {
+                    updateConnectionStatus(true);
+                    return true;
+                } else {
+                    throw new Error('Server error');
+                }
+            } catch (error) {
+                updateConnectionStatus(false);
+                return false;
+            }
+        }
+
+        function loadNotesFromLocal() {
             const savedNotes = localStorage.getItem('loveNotes');
             if (savedNotes) {
                 notes = JSON.parse(savedNotes);
@@ -380,30 +720,101 @@
             }
         }
 
-        function saveNotes() {
+        function saveNotesToLocal() {
             localStorage.setItem('loveNotes', JSON.stringify(notes));
+        }
+
+        function createSparkles() {
+            const sparklesContainer = document.querySelector('.sparkles');
+            const sparkleSymbols = ['✨', '⭐', '💫', '🌟', '✦', '❋'];
+            
+            setInterval(() => {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.innerHTML = sparkleSymbols[Math.floor(Math.random() * sparkleSymbols.length)];
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.fontSize = (Math.random() * 8 + 12) + 'px';
+                sparkle.style.animationDuration = (Math.random() * 6 + 8) + 's';
+                sparkle.style.color = `hsl(${Math.random() * 60 + 300}, 70%, 80%)`;
+                sparklesContainer.appendChild(sparkle);
+                
+                setTimeout(() => sparkle.remove(), 12000);
+            }, 800);
+        }
+
+        function createFloatingHearts() {
+            const heartsContainer = document.querySelector('.floating-hearts');
+            const heartSymbols = ['💕', '💖', '💗', '💘', '💝', '💓', '💯', '💌'];
+            
+            setInterval(() => {
+                const heart = document.createElement('div');
+                heart.className = 'floating-heart';
+                heart.innerHTML = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.color = `hsl(${Math.random() * 60 + 300}, 80%, 70%)`;
+                heart.style.animationDuration = (Math.random() * 8 + 12) + 's';
+                heartsContainer.appendChild(heart);
+                
+                setTimeout(() => heart.remove(), 15000);
+            }, 1500);
+        }
+
+        function createParticles() {
+            const particlesContainer = document.querySelector('.particles');
+            
+            setInterval(() => {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 5 + 8) + 's';
+                particle.style.animationDelay = Math.random() * 2 + 's';
+                particlesContainer.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 10000);
+            }, 200);
+        }
+
+        function createHeartBurst() {
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    createRipple(
+                        Math.random() * window.innerWidth,
+                        Math.random() * window.innerHeight
+                    );
+                }, i * 100);
+            }
         }
 
         function displayNotes() {
             const notesBoard = document.getElementById('notesBoard');
             
             if (notes.length === 0) {
-                notesBoard.innerHTML = '<div class="empty-state">💕 Пока нет заметок... Напиши первую! 💕</div>';
+                notesBoard.innerHTML = `
+                    <div class="empty-state">
+                        💕 Наша история любви начнется с первой заметки... 💕
+                        <br><br>
+                        ✨ Напиши что-то особенное ✨
+                    </div>
+                `;
                 return;
             }
             
             notesBoard.innerHTML = '';
             
-            notes.reverse().forEach((note, index) => {
+            notes.forEach((note, index) => {
                 const noteDiv = document.createElement('div');
-                noteDiv.className = 'note';
-                noteDiv.style.animationDelay = (index * 0.1) + 's';
+                const isOwn = note.user_id == currentUser;
+                noteDiv.className = `note ${isOwn ? 'own' : 'other'}`;
+                noteDiv.style.animationDelay = (index * 0.15) + 's';
                 
                 const date = new Date(note.timestamp);
                 const timeStr = date.toLocaleDateString('ru-RU') + ' ' + 
                               date.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'});
                 
+                const pinSymbol = isOwn ? '💕' : '💖';
+                
                 noteDiv.innerHTML = `
+                    <div class="note-pin">${pinSymbol}</div>
                     <div class="note-content">${note.text}</div>
                     <div class="note-meta">
                         <span class="note-author">${note.username}</span>
@@ -411,65 +822,90 @@
                     </div>
                 `;
                 
-                noteDiv.addEventListener('click', () => {
-                    noteDiv.style.transform = 'scale(0) rotate(180deg)';
-                    noteDiv.style.opacity = '0';
-                    setTimeout(() => {
-                        notes = notes.filter(n => n.id !== note.id);
-                        saveNotes();
-                        displayNotes();
-                    }, 300);
-                });
-                
                 notesBoard.appendChild(noteDiv);
             });
+            
+            setTimeout(() => {
+                notesBoard.scrollTop = notesBoard.scrollHeight;
+            }, 100);
         }
 
-        function addNote() {
+        async function addNote() {
             const messageText = document.getElementById('messageText');
             const text = messageText.value.trim();
             
-            if (!text) return;
+            if (!text || !isConnected) return;
             
-            const note = {
-                id: Date.now(),
-                user_id: currentUser,
-                username: tg.initDataUnsafe?.user?.first_name || 'Аноним',
-                text: text,
-                timestamp: new Date().toISOString(),
-                type: 'note'
-            };
-            
-            notes.push(note);
-            saveNotes();
-            displayNotes();
-            
-            if (tg.sendData) {
-                tg.sendData(JSON.stringify({
-                    type: 'send_message',
-                    message: text
-                }));
-            }
+            // Создаем эффект отправки
+            const rect = document.getElementById('sendBtn').getBoundingClientRect();
+            createRipple(rect.left + rect.width/2, rect.top + rect.height/2);
             
             messageText.value = '';
             autoResize();
             
+            const success = await saveNoteToServer(text);
+            
+            if (success) {
+                setTimeout(() => loadNotesFromServer(), 300);
+                
+                if (tg.sendData) {
+                    tg.sendData(JSON.stringify({
+                        type: 'send_message',
+                        message: text
+                    }));
+                }
+                
+                tg.HapticFeedback.impactOccurred('light');
+            } else {
+                const note = {
+                    id: Date.now(),
+                    user_id: currentUser,
+                    username: currentUsername,
+                    text: text,
+                    timestamp: new Date().toISOString(),
+                    type: 'note'
+                };
+                
+                notes.push(note);
+                saveNotesToLocal();
+                displayNotes();
+            }
+            
             setTimeout(() => {
-                messageText.focus();
+                document.getElementById('messageText').focus();
             }, 100);
         }
 
         function autoResize() {
             const textarea = document.getElementById('messageText');
             textarea.style.height = 'auto';
-            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+        }
+
+        function startPolling() {
+            setInterval(async () => {
+                if (isConnected) {
+                    const oldCount = notes.length;
+                    await loadNotesFromServer();
+                    
+                    if (notes.length > oldCount) {
+                        const newMessages = notes.length - oldCount;
+                        document.title = `💕 (${newMessages}) Новая заметка!`;
+                        tg.HapticFeedback.notificationOccurred('success');
+                        
+                        setTimeout(() => {
+                            document.title = '💕 Заметки любви';
+                        }, 5000);
+                    }
+                }
+            }, 2000);
         }
 
         document.getElementById('messageText').addEventListener('input', function() {
             autoResize();
             
-            if (this.value.length > 0) {
-                tg.MainButton.setText('Добавить заметку 💕');
+            if (this.value.length > 0 && isConnected) {
+                tg.MainButton.setText('Отправить с любовью 💕');
                 tg.MainButton.show();
             } else {
                 tg.MainButton.hide();
@@ -483,46 +919,38 @@
             }
         });
 
+        document.addEventListener('click', function(e) {
+            createRipple(e.clientX, e.clientY);
+        });
+
         tg.MainButton.onClick(() => {
             addNote();
         });
 
-        window.addEventListener('load', () => {
+        window.addEventListener('load', async () => {
             createSparkles();
             createFloatingHearts();
-            loadNotes();
+            createParticles();
+            
+            const serverAvailable = await loadNotesFromServer();
+            
+            if (serverAvailable) {
+                startPolling();
+            } else {
+                setInterval(async () => {
+                    if (!isConnected) {
+                        await loadNotesFromServer();
+                        if (isConnected) {
+                            startPolling();
+                        }
+                    }
+                }, 8000);
+            }
             
             setTimeout(() => {
                 document.getElementById('messageText').focus();
-            }, 500);
+            }, 1000);
         });
-
-        setInterval(() => {
-            const inspirationNotes = [
-                "💕 Каждый день с тобой - это подарок",
-                "🌟 Твоя улыбка освещает мой мир",
-                "💖 В твоих глазах я вижу вечность",
-                "🌹 Ты делаешь меня лучше",
-                "💫 Наша любовь сильнее времени",
-                "🦋 С тобой я чувствую себя живым",
-                "💝 Ты мое самое большое счастье"
-            ];
-            
-            if (Math.random() < 0.05 && notes.length > 0) {
-                const inspNote = {
-                    id: Date.now() + Math.random(),
-                    user_id: 'universe',
-                    username: '💕 Вселенная',
-                    text: inspirationNotes[Math.floor(Math.random() * inspirationNotes.length)],
-                    timestamp: new Date().toISOString(),
-                    type: 'inspiration'
-                };
-                
-                notes.push(inspNote);
-                saveNotes();
-                displayNotes();
-            }
-        }, 45000);
     </script>
 </body>
 </html>
