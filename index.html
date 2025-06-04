@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🖕 Средний палец</title>
+    <title>🤡 Клоун</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -14,36 +14,84 @@
         }
 
         body {
-            background: linear-gradient(45deg, #ff0066, #6600ff, #00ff99, #ffcc00);
-            background-size: 400% 400%;
-            animation: gradientShift 3s ease infinite;
+            background: linear-gradient(45deg, #ff0066, #6600ff, #00ff99, #ffcc00, #ff3366, #33ff66);
+            background-size: 600% 600%;
+            animation: gradientShift 6s ease infinite;
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: Arial, sans-serif;
+            font-family: 'Arial Black', Arial, sans-serif;
+            perspective: 1500px;
+            transition: all 0.3s ease;
         }
 
         @keyframes gradientShift {
             0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+            20% { background-position: 100% 50%; }
+            40% { background-position: 50% 0%; }
+            60% { background-position: 50% 100%; }
+            80% { background-position: 100% 0%; }
             100% { background-position: 0% 50%; }
         }
 
         .circus-bg {
             position: absolute;
-            width: 100%;
-            height: 100%;
+            width: 200%;
+            height: 200%;
             background: 
-                radial-gradient(circle at 20% 20%, rgba(255,255,0,0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255,0,255,0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 60%, rgba(0,255,255,0.3) 0%, transparent 50%);
-            animation: float 4s ease-in-out infinite;
+                radial-gradient(circle at 20% 20%, rgba(255,255,0,0.3) 0%, transparent 70%),
+                radial-gradient(circle at 80% 80%, rgba(255,0,255,0.3) 0%, transparent 70%),
+                radial-gradient(circle at 40% 60%, rgba(0,255,255,0.3) 0%, transparent 70%),
+                radial-gradient(circle at 60% 20%, rgba(255,100,0,0.2) 0%, transparent 60%);
+            animation: floatSlow 8s ease-in-out infinite, rotateSlow 30s linear infinite;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(2deg); }
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            25% { transform: translateY(-40px) scale(1.02); }
+            50% { transform: translateY(20px) scale(0.98); }
+            75% { transform: translateY(-20px) scale(1.01); }
+        }
+
+        @keyframes rotateSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle, rgba(255,255,255,0.8), transparent);
+            border-radius: 50%;
+            animation: particleFloat 12s linear infinite;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(100vh) rotate(0deg) scale(0);
+                opacity: 0;
+            }
+            5% {
+                opacity: 1;
+                transform: translateY(95vh) rotate(18deg) scale(1);
+            }
+            95% {
+                opacity: 1;
+                transform: translateY(-5vh) rotate(342deg) scale(1);
+            }
+            100% {
+                transform: translateY(-10vh) rotate(360deg) scale(0);
+                opacity: 0;
+            }
         }
 
         .stars {
@@ -54,61 +102,149 @@
 
         .star {
             position: absolute;
-            color: white;
-            font-size: 20px;
-            animation: twinkle 2s infinite, fall 10s linear infinite;
+            animation: twinkleSmooth 4s ease-in-out infinite, fallSmooth 15s linear infinite;
+            text-shadow: 0 0 15px currentColor;
         }
 
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); }
+        @keyframes twinkleSmooth {
+            0%, 100% { 
+                opacity: 0.4; 
+                transform: scale(1) rotate(0deg);
+                filter: blur(0px);
+            }
+            50% { 
+                opacity: 1; 
+                transform: scale(1.3) rotate(180deg);
+                filter: blur(0.5px);
+            }
         }
 
-        @keyframes fall {
-            to { transform: translateY(100vh) rotate(360deg); }
+        @keyframes fallSmooth {
+            to { 
+                transform: translateY(120vh) rotate(360deg) translateX(50px);
+            }
         }
 
         .clown-container {
             text-align: center;
             z-index: 10;
             position: relative;
+            transform-style: preserve-3d;
         }
 
         .clown {
-            font-size: 250px;
-            animation: bounce 2s infinite, pulse 1s infinite alternate;
+            font-size: 300px;
+            animation: bounceSmooth 4s ease-in-out infinite, pulseSmooth 3s ease-in-out infinite alternate;
             cursor: pointer;
-            transition: transform 0.3s;
-            filter: drop-shadow(0 0 30px rgba(255,0,0,0.8));
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 0 50px rgba(255,200,0,0.8)) drop-shadow(0 0 100px rgba(255,100,100,0.4));
+            transform-style: preserve-3d;
         }
 
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-30px); }
-            60% { transform: translateY(-15px); }
+        @keyframes bounceSmooth {
+            0%, 100% { 
+                transform: translateY(0) rotateX(0deg); 
+            }
+            25% { 
+                transform: translateY(-30px) rotateX(5deg); 
+            }
+            50% { 
+                transform: translateY(-60px) rotateX(-5deg); 
+            }
+            75% { 
+                transform: translateY(-20px) rotateX(2deg); 
+            }
         }
 
-        @keyframes pulse {
-            from { transform: scale(1); }
-            to { transform: scale(1.1); }
+        @keyframes pulseSmooth {
+            from { 
+                transform: scale(1) rotateY(0deg); 
+                filter: hue-rotate(0deg) drop-shadow(0 0 50px rgba(255,200,0,0.8));
+            }
+            to { 
+                transform: scale(1.1) rotateY(10deg); 
+                filter: hue-rotate(30deg) drop-shadow(0 0 80px rgba(255,200,0,1));
+            }
         }
 
         .clown:hover {
-            transform: scale(1.2) rotate(10deg);
+            transform: scale(1.2) rotate(10deg) rotateY(20deg);
+            filter: drop-shadow(0 0 80px rgba(255,200,0,1)) drop-shadow(0 0 150px rgba(255,100,100,0.8));
+            animation-play-state: paused;
         }
 
-        .middle-finger {
-            font-size: 150px;
+        .clown:active {
+            transform: scale(0.95) rotate(-5deg);
+            transition: all 0.15s ease;
+        }
+
+        .message-container {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0);
-            animation: appear 0.5s ease-out forwards;
             z-index: 20;
+            text-align: center;
+            opacity: 0;
         }
 
-        @keyframes appear {
-            to { transform: translate(-50%, -50%) scale(1) rotate(360deg); }
+        .message-text {
+            font-size: 60px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 
+                3px 3px 0px #000,
+                6px 6px 0px rgba(0,0,0,0.5),
+                0 0 30px rgba(255,0,0,1),
+                0 0 60px rgba(255,100,0,0.8),
+                0 0 90px rgba(255,200,0,0.6);
+            animation: textAppear 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards,
+                       textGlow 2s ease-in-out infinite 2s,
+                       textFloat 3s ease-in-out infinite 2s;
+            letter-spacing: 3px;
+            line-height: 1.2;
+        }
+
+        @keyframes textAppear {
+            0% {
+                transform: scale(0) rotateY(-180deg);
+                opacity: 0;
+                filter: blur(20px);
+            }
+            50% {
+                transform: scale(1.2) rotateY(0deg);
+                opacity: 0.8;
+                filter: blur(5px);
+            }
+            100% {
+                transform: scale(1) rotateY(0deg);
+                opacity: 1;
+                filter: blur(0px);
+            }
+        }
+
+        @keyframes textGlow {
+            0%, 100% {
+                text-shadow: 
+                    3px 3px 0px #000,
+                    6px 6px 0px rgba(0,0,0,0.5),
+                    0 0 30px rgba(255,0,0,1),
+                    0 0 60px rgba(255,100,0,0.8);
+            }
+            50% {
+                text-shadow: 
+                    3px 3px 0px #000,
+                    6px 6px 0px rgba(0,0,0,0.5),
+                    0 0 50px rgba(255,0,0,1),
+                    0 0 100px rgba(255,100,0,1),
+                    0 0 150px rgba(255,200,0,0.8);
+            }
+        }
+
+        @keyframes textFloat {
+            0%, 100% { transform: translateY(0px) rotateZ(0deg); }
+            33% { transform: translateY(-15px) rotateZ(1deg); }
+            66% { transform: translateY(10px) rotateZ(-1deg); }
         }
 
         .explosion {
@@ -116,52 +252,149 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 50px;
-            animation: explode 1s ease-out forwards;
+            font-size: 120px;
+            animation: explodeSmooth 3s ease-out forwards;
             z-index: 15;
         }
 
-        @keyframes explode {
-            0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(3) rotate(720deg); opacity: 0; }
+        @keyframes explodeSmooth {
+            0% { 
+                transform: translate(-50%, -50%) scale(0) rotate(0deg);
+                opacity: 1;
+                filter: drop-shadow(0 0 50px rgba(255,255,0,1));
+            }
+            20% {
+                transform: translate(-50%, -50%) scale(1.5) rotate(72deg);
+                opacity: 1;
+            }
+            40% {
+                transform: translate(-50%, -50%) scale(3) rotate(144deg);
+                opacity: 0.9;
+            }
+            60% {
+                transform: translate(-50%, -50%) scale(5) rotate(216deg);
+                opacity: 0.6;
+            }
+            80% {
+                transform: translate(-50%, -50%) scale(7) rotate(288deg);
+                opacity: 0.3;
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(10) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .shockwave {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border: 3px solid rgba(255,255,255,0.9);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: shockwaveExpand 2s ease-out forwards;
+            z-index: 5;
+        }
+
+        @keyframes shockwaveExpand {
+            0% {
+                width: 0;
+                height: 0;
+                border-color: rgba(255,255,255,0.9);
+            }
+            50% {
+                width: 150vw;
+                height: 150vw;
+                border-color: rgba(255,255,255,0.5);
+            }
+            100% {
+                width: 300vw;
+                height: 300vw;
+                border-color: rgba(255,255,255,0);
+            }
         }
 
         .confetti {
             position: absolute;
-            width: 10px;
-            height: 10px;
-            background: #ff0066;
-            animation: confetti-fall 3s linear infinite;
+            animation: confetti-fall 5s ease-in-out infinite;
+            font-size: 35px;
         }
 
         @keyframes confetti-fall {
-            to {
-                transform: translateY(100vh) rotate(720deg);
+            0% {
+                transform: translateY(-100vh) rotate(0deg) scale(0);
+                opacity: 0;
+            }
+            5% {
+                opacity: 1;
+                transform: translateY(-90vh) rotate(90deg) scale(1);
+            }
+            95% {
+                opacity: 0.8;
+                transform: translateY(100vh) rotate(900deg) scale(0.8);
+            }
+            100% {
+                transform: translateY(110vh) rotate(1080deg) scale(0);
                 opacity: 0;
             }
         }
 
         .text {
             color: white;
-            font-size: 24px;
-            margin-top: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            animation: glow 2s ease-in-out infinite alternate;
+            font-size: 32px;
+            margin-top: 40px;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.8);
+            animation: textGlowSmooth 4s ease-in-out infinite alternate, textFloatSmooth 5s ease-in-out infinite;
+            font-weight: bold;
+            letter-spacing: 2px;
         }
 
-        @keyframes glow {
-            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(255,255,255,0.5); }
-            to { text-shadow: 2px 2px 4px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,1); }
+        @keyframes textGlowSmooth {
+            from { 
+                text-shadow: 4px 4px 8px rgba(0,0,0,0.8), 0 0 30px rgba(255,255,255,0.6);
+                transform: scale(1);
+            }
+            to { 
+                text-shadow: 4px 4px 8px rgba(0,0,0,0.8), 0 0 50px rgba(255,255,255,1), 0 0 80px rgba(255,200,100,0.8);
+                transform: scale(1.03);
+            }
+        }
+
+        @keyframes textFloatSmooth {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.4), transparent);
+            animation: rippleEffect 0.8s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes rippleEffect {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(6);
+                opacity: 0;
+            }
         }
     </style>
 </head>
 <body>
     <div class="circus-bg"></div>
+    <div class="particles"></div>
     <div class="stars"></div>
     
     <div class="clown-container">
-        <div class="clown" onclick="showMiddleFinger()">🖕</div>
-        <div class="text">Нажми на палец! 🖕</div>
+        <div class="clown" onclick="showMessage(event)">🤡</div>
+        <div class="text">Нажми на клоуна! 🎪</div>
     </div>
 
     <script>
@@ -170,86 +403,169 @@
             window.Telegram.WebApp.expand();
         }
 
+        function createParticles() {
+            const particlesContainer = document.querySelector('.particles');
+            
+            setInterval(() => {
+                for (let i = 0; i < 2; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 3 + 's';
+                    particle.style.animationDuration = (Math.random() * 6 + 10) + 's';
+                    particle.style.background = `radial-gradient(circle, hsla(${Math.random() * 360}, 100%, 80%, 0.8), transparent)`;
+                    particlesContainer.appendChild(particle);
+                    
+                    setTimeout(() => particle.remove(), 12000);
+                }
+            }, 300);
+        }
+
         function createStars() {
             const starsContainer = document.querySelector('.stars');
-            const starSymbols = ['🖕', '🤡', '💀', '🔥', '⭐'];
+            const starSymbols = ['🤡', '🎪', '🎭', '⭐', '✨', '💫', '🌟', '🎨'];
             
             setInterval(() => {
                 const star = document.createElement('div');
                 star.className = 'star';
                 star.textContent = starSymbols[Math.floor(Math.random() * starSymbols.length)];
                 star.style.left = Math.random() * 100 + '%';
-                star.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                star.style.fontSize = (Math.random() * 25 + 20) + 'px';
+                star.style.animationDuration = (Math.random() * 5 + 12) + 's';
+                star.style.fontSize = (Math.random() * 25 + 25) + 'px';
+                star.style.color = `hsla(${Math.random() * 360}, 100%, 70%, 0.9)`;
                 starsContainer.appendChild(star);
                 
-                setTimeout(() => {
-                    star.remove();
-                }, 10000);
+                setTimeout(() => star.remove(), 15000);
             }, 400);
         }
 
         function createConfetti() {
-            const colors = ['#ff0066', '#ff3300', '#990000', '#cc0000', '#ff6600'];
-            const symbols = ['🖕', '🤡', '💀', '🔥', '💥'];
+            const symbols = ['🤡', '🎪', '🎭', '🎨', '✨', '💫', '🌟', '🎊', '🎉'];
             
-            for (let i = 0; i < 70; i++) {
+            for (let i = 0; i < 80; i++) {
                 setTimeout(() => {
                     const confetti = document.createElement('div');
                     confetti.className = 'confetti';
                     confetti.style.left = Math.random() * 100 + '%';
-                    confetti.style.fontSize = (Math.random() * 30 + 20) + 'px';
-                    
-                    if (Math.random() > 0.5) {
-                        confetti.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                        confetti.style.background = 'none';
-                    } else {
-                        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    }
-                    
+                    confetti.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                    confetti.style.color = `hsla(${Math.random() * 360}, 100%, 70%, 0.9)`;
                     confetti.style.animationDelay = Math.random() * 2 + 's';
-                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    confetti.style.animationDuration = (Math.random() * 3 + 4) + 's';
                     document.body.appendChild(confetti);
                     
-                    setTimeout(() => confetti.remove(), 6000);
+                    setTimeout(() => confetti.remove(), 7000);
                 }, i * 30);
             }
         }
 
-        function showMiddleFinger() {
+        function createRipple(event) {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            const rect = event.target.getBoundingClientRect();
+            const size = 80;
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = (event.clientX - rect.left - size / 2) + 'px';
+            ripple.style.top = (event.clientY - rect.top - size / 2) + 'px';
+            event.target.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 800);
+        }
+
+        function showMessage(event) {
+            createRipple(event);
+            
+            // Шокволна
+            const shockwave = document.createElement('div');
+            shockwave.className = 'shockwave';
+            document.body.appendChild(shockwave);
+            
+            // Взрыв
             const explosion = document.createElement('div');
             explosion.className = 'explosion';
             explosion.textContent = '💥';
             document.body.appendChild(explosion);
             
+            // Плавная встряска экрана
+            document.body.style.transform = 'translate(3px, 3px)';
             setTimeout(() => {
-                const middleFinger = document.createElement('div');
-                middleFinger.className = 'middle-finger';
-                middleFinger.style.fontSize = '300px';
-                middleFinger.style.color = '#ff0066';
-                middleFinger.style.textShadow = '0 0 50px #ff0066, 0 0 100px #ff0066';
-                middleFinger.textContent = '🖕';
-                document.body.appendChild(middleFinger);
+                document.body.style.transform = 'translate(-3px, -3px)';
+            }, 100);
+            setTimeout(() => {
+                document.body.style.transform = 'translate(0px, 0px)';
+            }, 200);
+            
+            setTimeout(() => {
+                // Контейнер для сообщения
+                const messageContainer = document.createElement('div');
+                messageContainer.className = 'message-container';
+                
+                const messageText = document.createElement('div');
+                messageText.className = 'message-text';
+                messageText.innerHTML = 'Гуляй лесом<br>клоун';
+                
+                messageContainer.appendChild(messageText);
+                document.body.appendChild(messageContainer);
+                
+                // Анимация появления
+                setTimeout(() => {
+                    messageContainer.style.transform = 'translate(-50%, -50%) scale(1)';
+                    messageContainer.style.opacity = '1';
+                }, 100);
                 
                 createConfetti();
                 
                 setTimeout(() => {
-                    middleFinger.remove();
-                    explosion.remove();
-                }, 3000);
-            }, 500);
+                    messageContainer.style.transform = 'translate(-50%, -50%) scale(0)';
+                    messageContainer.style.opacity = '0';
+                    setTimeout(() => {
+                        messageContainer.remove();
+                        explosion.remove();
+                        shockwave.remove();
+                    }, 1000);
+                }, 5000);
+            }, 1000);
             
-            navigator.vibrate && navigator.vibrate([200, 100, 200, 100, 200]);
+            // Вибрация
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200, 100, 300]);
+            }
+            
+            // Плавное изменение цвета фона
+            let colorShift = 0;
+            const colorInterval = setInterval(() => {
+                document.body.style.filter = `hue-rotate(${colorShift}deg) brightness(1.1) saturate(1.2)`;
+                colorShift += 20;
+                if (colorShift >= 360) {
+                    clearInterval(colorInterval);
+                    setTimeout(() => {
+                        document.body.style.filter = 'none';
+                    }, 500);
+                }
+            }, 150);
         }
 
+        // Инициализация
+        createParticles();
         createStars();
         
+        // Плавные динамические эффекты фона
         setInterval(() => {
-            document.body.style.filter = `hue-rotate(${Math.random() * 360}deg)`;
+            const randomHue = Math.random() * 40;
+            document.querySelector('.circus-bg').style.filter = `hue-rotate(${randomHue}deg) brightness(1.05)`;
             setTimeout(() => {
-                document.body.style.filter = 'none';
-            }, 200);
-        }, 3000);
+                document.querySelector('.circus-bg').style.filter = 'none';
+            }, 1000);
+        }, 6000);
+
+        // Мягкие вспышки
+        setInterval(() => {
+            if (Math.random() > 0.8) {
+                document.body.style.filter = 'brightness(1.3) contrast(1.2)';
+                setTimeout(() => {
+                    document.body.style.filter = 'none';
+                }, 200);
+            }
+        }, 4000);
     </script>
 </body>
 </html>
