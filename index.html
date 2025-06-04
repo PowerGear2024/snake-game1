@@ -173,21 +173,13 @@
             backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             animation: pulse 2s infinite;
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.8), rgba(102, 187, 106, 0.8));
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
         }
 
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.02); }
-        }
-
-        .status-online {
-            background: linear-gradient(135deg, rgba(76, 175, 80, 0.8), rgba(102, 187, 106, 0.8));
-            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
-        }
-
-        .status-offline {
-            background: linear-gradient(135deg, rgba(244, 67, 54, 0.8), rgba(229, 115, 115, 0.8));
-            box-shadow: 0 8px 25px rgba(244, 67, 54, 0.3);
         }
 
         .notes-board {
@@ -546,6 +538,34 @@
             }
         }
 
+        .sync-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4caf50;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            animation: syncPulse 2s infinite;
+            z-index: 1001;
+        }
+
+        .sync-indicator.syncing {
+            background: #ff9800;
+            animation: syncSpin 1s infinite;
+        }
+
+        @keyframes syncPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        @keyframes syncSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 768px) {
             .notes-board {
                 padding: 15px;
@@ -598,6 +618,7 @@
     <div class="sparkles"></div>
     <div class="floating-hearts"></div>
     <div class="particles"></div>
+    <div class="sync-indicator" id="syncIndicator"></div>
     
     <div class="container">
         <div class="header">
@@ -605,8 +626,8 @@
             <p>Место где живут наши сердца вместе</p>
         </div>
         
-        <div id="connectionStatus" class="connection-status status-offline">
-            🔄 Подключение к серверу любви...
+        <div id="connectionStatus" class="connection-status">
+            🟢 Подключено через Telegram
         </div>
         
         <div class="notes-board" id="notesBoard">
@@ -626,10 +647,7 @@
         let currentUser = tg.initDataUnsafe?.user?.id || Math.random().toString(36).substr(2, 9);
         let currentUsername = tg.initDataUnsafe?.user?.first_name || 'Аноним';
         let notes = [];
-        let isConnected = false;
-
-        // ИЗМЕНИ НА IP СВОЕГО IPHONE!
-        const SERVER_URL = 'http://192.168.1.100:8080'; // Найди свой IP в настройках WiFi
+        let lastSyncTime = Date.now();
 
         tg.ready();
         tg.expand();
@@ -647,68 +665,12 @@
             setTimeout(() => ripple.remove(), 2000);
         }
 
-        function updateConnectionStatus(connected) {
-            const statusEl = document.getElementById('connectionStatus');
-            const sendBtn = document.getElementById('sendBtn');
-            
-            isConnected = connected;
-            
-            if (connected) {
-                statusEl.className = 'connection-status status-online';
-                statusEl.innerHTML = '🟢 Связь с сердцем установлена';
-                sendBtn.disabled = false;
+        function setSyncIndicator(syncing) {
+            const indicator = document.getElementById('syncIndicator');
+            if (syncing) {
+                indicator.classList.add('syncing');
             } else {
-                statusEl.className = 'connection-status status-offline';
-                statusEl.innerHTML = '🔴 Поиск твоего сердца...';
-                sendBtn.disabled = true;
-            }
-        }
-
-        async function loadNotesFromServer() {
-            try {
-                const response = await fetch(`${SERVER_URL}/messages`);
-                if (response.ok) {
-                    const newNotes = await response.json();
-                    const hasNewMessages = newNotes.length > notes.length;
-                    notes = newNotes;
-                    updateConnectionStatus(true);
-                    displayNotes();
-                    
-                    if (hasNewMessages && notes.length > 0) {
-                        createHeartBurst();
-                    }
-                    return true;
-                } else {
-                    throw new Error('Server error');
-                }
-            } catch (error) {
-                updateConnectionStatus(false);
-                loadNotesFromLocal();
-                return false;
-            }
-        }
-
-        async function saveNoteToServer(noteText) {
-            try {
-                const response = await fetch(`${SERVER_URL}/add_message`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        user_id: currentUser,
-                        username: currentUsername,
-                        text: noteText
-                    })
-                });
-
-                if (response.ok) {
-                    updateConnectionStatus(true);
-                    return true;
-                } else {
-                    throw new Error('Server error');
-                }
-            } catch (error) {
-                updateConnectionStatus(false);
-                return false;
+                indicator.classList.remove('syncing');
             }
         }
 
@@ -834,41 +796,39 @@
             const messageText = document.getElementById('messageText');
             const text = messageText.value.trim();
             
-            if (!text || !isConnected) return;
+            if (!text) return;
             
             // Создаем эффект отправки
             const rect = document.getElementById('sendBtn').getBoundingClientRect();
             createRipple(rect.left + rect.width/2, rect.top + rect.height/2);
             
+            // Добавляем заметку локально сразу
+            const note = {
+                id: Date.now(),
+                user_id: currentUser,
+                username: currentUsername,
+                text: text,
+                timestamp: new Date().toISOString(),
+                type: 'note'
+            };
+            
+            notes.push(note);
+            saveNotesToLocal();
+            displayNotes();
+            
             messageText.value = '';
             autoResize();
             
-            const success = await saveNoteToServer(text);
-            
-            if (success) {
-                setTimeout(() => loadNotesFromServer(), 300);
+            // Отправляем через Telegram
+            if (tg.sendData) {
+                setSyncIndicator(true);
+                tg.sendData(JSON.stringify({
+                    type: 'send_message',
+                    message: text
+                }));
                 
-                if (tg.sendData) {
-                    tg.sendData(JSON.stringify({
-                        type: 'send_message',
-                        message: text
-                    }));
-                }
-                
+                setTimeout(() => setSyncIndicator(false), 2000);
                 tg.HapticFeedback.impactOccurred('light');
-            } else {
-                const note = {
-                    id: Date.now(),
-                    user_id: currentUser,
-                    username: currentUsername,
-                    text: text,
-                    timestamp: new Date().toISOString(),
-                    type: 'note'
-                };
-                
-                notes.push(note);
-                saveNotesToLocal();
-                displayNotes();
             }
             
             setTimeout(() => {
@@ -882,29 +842,46 @@
             textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
         }
 
-        function startPolling() {
-            setInterval(async () => {
-                if (isConnected) {
-                    const oldCount = notes.length;
-                    await loadNotesFromServer();
+        // Периодически запрашиваем синхронизацию
+        function startSyncPolling() {
+            setInterval(() => {
+                // Запрашиваем обновления каждые 15 секунд
+                if (tg.sendData && Date.now() - lastSyncTime > 15000) {
+                    setSyncIndicator(true);
+                    tg.sendData(JSON.stringify({
+                        type: 'get_messages'
+                    }));
+                    lastSyncTime = Date.now();
                     
-                    if (notes.length > oldCount) {
-                        const newMessages = notes.length - oldCount;
-                        document.title = `💕 (${newMessages}) Новая заметка!`;
+                    setTimeout(() => setSyncIndicator(false), 1000);
+                }
+            }, 15000);
+        }
+
+        // Обработка событий от Telegram
+        tg.onEvent('web_app_data_received', function(eventData) {
+            try {
+                const data = JSON.parse(eventData.detail.data);
+                if (data.type === 'sync_messages' && data.messages) {
+                    const oldLength = notes.length;
+                    notes = data.messages;
+                    saveNotesToLocal();
+                    displayNotes();
+                    
+                    if (notes.length > oldLength) {
+                        createHeartBurst();
                         tg.HapticFeedback.notificationOccurred('success');
-                        
-                        setTimeout(() => {
-                            document.title = '💕 Заметки любви';
-                        }, 5000);
                     }
                 }
-            }, 2000);
-        }
+            } catch (e) {
+                console.log('Sync error:', e);
+            }
+        });
 
         document.getElementById('messageText').addEventListener('input', function() {
             autoResize();
             
-            if (this.value.length > 0 && isConnected) {
+            if (this.value.length > 0) {
                 tg.MainButton.setText('Отправить с любовью 💕');
                 tg.MainButton.show();
             } else {
@@ -927,30 +904,46 @@
             addNote();
         });
 
-        window.addEventListener('load', async () => {
+        window.addEventListener('load', () => {
             createSparkles();
             createFloatingHearts();
             createParticles();
-            
-            const serverAvailable = await loadNotesFromServer();
-            
-            if (serverAvailable) {
-                startPolling();
-            } else {
-                setInterval(async () => {
-                    if (!isConnected) {
-                        await loadNotesFromServer();
-                        if (isConnected) {
-                            startPolling();
-                        }
-                    }
-                }, 8000);
-            }
+            loadNotesFromLocal();
+            startSyncPolling();
             
             setTimeout(() => {
                 document.getElementById('messageText').focus();
             }, 1000);
         });
+
+        // Добавляем случайные романтичные заметки
+        setInterval(() => {
+            const romanticMessages = [
+                "💕 Каждый момент с тобой драгоценен",
+                "🌟 Ты освещаешь мой мир",
+                "💖 В твоих глазах я вижу навсегда",
+                "🌹 Ты делаешь меня счастливее",
+                "💫 Наша любовь безгранична",
+                "🦋 С тобой я могу летать",
+                "💝 Ты мое величайшее сокровище"
+            ];
+            
+            if (Math.random() < 0.03 && notes.length > 2) {
+                const inspNote = {
+                    id: Date.now() + Math.random(),
+                    user_id: 'universe',
+                    username: '💕 Вселенная',
+                    text: romanticMessages[Math.floor(Math.random() * romanticMessages.length)],
+                    timestamp: new Date().toISOString(),
+                    type: 'inspiration'
+                };
+                
+                notes.push(inspNote);
+                saveNotesToLocal();
+                displayNotes();
+                createHeartBurst();
+            }
+        }, 60000);
     </script>
 </body>
 </html>
