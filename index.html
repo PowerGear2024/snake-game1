@@ -163,23 +163,38 @@
             z-index: 1;
         }
 
-        .connection-status {
-            padding: 15px 20px;
-            text-align: center;
+        .sync-status {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(76, 175, 80, 0.9);
             color: white;
-            font-size: 14px;
-            margin-bottom: 25px;
+            padding: 10px 20px;
             border-radius: 25px;
+            font-size: 14px;
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            z-index: 1001;
             animation: pulse 2s infinite;
-            background: linear-gradient(135deg, rgba(76, 175, 80, 0.8), rgba(102, 187, 106, 0.8));
-            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+        }
+
+        .sync-status.syncing {
+            background: rgba(255, 152, 0, 0.9);
+            animation: syncSpin 1s infinite;
+        }
+
+        .sync-status.error {
+            background: rgba(244, 67, 54, 0.9);
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+
+        @keyframes syncSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .notes-board {
@@ -538,34 +553,6 @@
             }
         }
 
-        .sync-indicator {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #4caf50;
-            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
-            animation: syncPulse 2s infinite;
-            z-index: 1001;
-        }
-
-        .sync-indicator.syncing {
-            background: #ff9800;
-            animation: syncSpin 1s infinite;
-        }
-
-        @keyframes syncPulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
-        }
-
-        @keyframes syncSpin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         @media (max-width: 768px) {
             .notes-board {
                 padding: 15px;
@@ -618,16 +605,13 @@
     <div class="sparkles"></div>
     <div class="floating-hearts"></div>
     <div class="particles"></div>
-    <div class="sync-indicator" id="syncIndicator"></div>
+    
+    <div id="syncStatus" class="sync-status">🟢 Подключено</div>
     
     <div class="container">
         <div class="header">
             <h1>💕 Наши заметки любви 💕</h1>
-            <p>Место где живут наши сердца вместе</p>
-        </div>
-        
-        <div id="connectionStatus" class="connection-status">
-            🟢 Подключено через Telegram
+            <p>Ваш чат синхронизируется автоматически</p>
         </div>
         
         <div class="notes-board" id="notesBoard">
@@ -644,14 +628,25 @@
 
     <script>
         let tg = window.Telegram.WebApp;
-        let currentUser = tg.initDataUnsafe?.user?.id || Math.random().toString(36).substr(2, 9);
+        let currentUser = tg.initDataUnsafe?.user?.id || 829741830; // Твой ID по умолчанию
         let currentUsername = tg.initDataUnsafe?.user?.first_name || 'Аноним';
         let notes = [];
         let lastSyncTime = Date.now();
 
+        // ID пользователей для определения "своих" и "чужих" сообщений
+        const USER_IDS = [608326842, 829741830]; // Её и твой ID
+
         tg.ready();
         tg.expand();
         tg.setHeaderColor('#667eea');
+
+        console.log(`Пользователь: ${currentUsername} (ID: ${currentUser})`);
+
+        function setSyncStatus(status, message) {
+            const statusEl = document.getElementById('syncStatus');
+            statusEl.className = `sync-status ${status}`;
+            statusEl.textContent = message;
+        }
 
         function createRipple(x, y) {
             const ripple = document.createElement('div');
@@ -665,25 +660,27 @@
             setTimeout(() => ripple.remove(), 2000);
         }
 
-        function setSyncIndicator(syncing) {
-            const indicator = document.getElementById('syncIndicator');
-            if (syncing) {
-                indicator.classList.add('syncing');
-            } else {
-                indicator.classList.remove('syncing');
-            }
-        }
-
         function loadNotesFromLocal() {
             const savedNotes = localStorage.getItem('loveNotes');
             if (savedNotes) {
-                notes = JSON.parse(savedNotes);
-                displayNotes();
+                try {
+                    notes = JSON.parse(savedNotes);
+                    displayNotes();
+                    console.log(`Загружено ${notes.length} заметок из localStorage`);
+                } catch (e) {
+                    console.error('Ошибка загрузки из localStorage:', e);
+                    notes = [];
+                }
             }
         }
 
         function saveNotesToLocal() {
-            localStorage.setItem('loveNotes', JSON.stringify(notes));
+            try {
+                localStorage.setItem('loveNotes', JSON.stringify(notes));
+                console.log(`Сохранено ${notes.length} заметок в localStorage`);
+            } catch (e) {
+                console.error('Ошибка сохранения в localStorage:', e);
+            }
         }
 
         function createSparkles() {
@@ -737,7 +734,7 @@
         }
 
         function createHeartBurst() {
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 15; i++) {
                 setTimeout(() => {
                     createRipple(
                         Math.random() * window.innerWidth,
@@ -753,9 +750,9 @@
             if (notes.length === 0) {
                 notesBoard.innerHTML = `
                     <div class="empty-state">
-                        💕 Наша история любви начнется с первой заметки... 💕
+                        💕 Ваша история любви начнется с первой заметки... 💕
                         <br><br>
-                        ✨ Напиши что-то особенное ✨
+                        ✨ Напишите что-то особенное ✨
                     </div>
                 `;
                 return;
@@ -763,11 +760,14 @@
             
             notesBoard.innerHTML = '';
             
-            notes.forEach((note, index) => {
+            // Сортируем заметки по времени
+            const sortedNotes = [...notes].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
+            sortedNotes.forEach((note, index) => {
                 const noteDiv = document.createElement('div');
                 const isOwn = note.user_id == currentUser;
                 noteDiv.className = `note ${isOwn ? 'own' : 'other'}`;
-                noteDiv.style.animationDelay = (index * 0.15) + 's';
+                noteDiv.style.animationDelay = (Math.min(index, 10) * 0.1) + 's';
                 
                 const date = new Date(note.timestamp);
                 const timeStr = date.toLocaleDateString('ru-RU') + ' ' + 
@@ -787,9 +787,14 @@
                 notesBoard.appendChild(noteDiv);
             });
             
+            // Прокручиваем к последней заметке
             setTimeout(() => {
                 notesBoard.scrollTop = notesBoard.scrollHeight;
-            }, 100);
+                const lastNote = notesBoard.lastElementChild;
+                if (lastNote && lastNote.classList.contains('note')) {
+                    lastNote.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }
+            }, 500);
         }
 
         async function addNote() {
@@ -798,11 +803,13 @@
             
             if (!text) return;
             
+            console.log('Отправка заметки:', text);
+            
             // Создаем эффект отправки
             const rect = document.getElementById('sendBtn').getBoundingClientRect();
             createRipple(rect.left + rect.width/2, rect.top + rect.height/2);
             
-            // Добавляем заметку локально сразу
+            // Добавляем заметку локально сразу для быстрого отображения
             const note = {
                 id: Date.now(),
                 user_id: currentUser,
@@ -821,14 +828,26 @@
             
             // Отправляем через Telegram
             if (tg.sendData) {
-                setSyncIndicator(true);
-                tg.sendData(JSON.stringify({
-                    type: 'send_message',
-                    message: text
-                }));
+                setSyncStatus('syncing', '🔄 Отправка...');
                 
-                setTimeout(() => setSyncIndicator(false), 2000);
-                tg.HapticFeedback.impactOccurred('light');
+                try {
+                    tg.sendData(JSON.stringify({
+                        type: 'send_message',
+                        message: text
+                    }));
+                    
+                    setTimeout(() => {
+                        setSyncStatus('', '🟢 Отправлено');
+                    }, 2000);
+                    
+                    if (tg.HapticFeedback) {
+                        tg.HapticFeedback.impactOccurred('light');
+                    }
+                    
+                } catch (error) {
+                    console.error('Ошибка отправки:', error);
+                    setSyncStatus('error', '❌ Ошибка');
+                }
             }
             
             setTimeout(() => {
@@ -842,42 +861,74 @@
             textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
         }
 
+        // Обработка входящих сообщений от бота
+        function handleIncomingMessage(message) {
+            console.log('Получено сообщение от бота:', message);
+            
+            // Ищем SYNC_DATA в сообщении
+            if (message.includes('SYNC_DATA:')) {
+                try {
+                    const jsonStart = message.indexOf('{');
+                    const jsonData = message.substring(jsonStart);
+                    const syncData = JSON.parse(jsonData);
+                    
+                    if (syncData.type === 'sync_update' && syncData.messages) {
+                        const oldCount = notes.length;
+                        notes = syncData.messages;
+                        saveNotesToLocal();
+                        displayNotes();
+                        
+                        console.log(`Синхронизировано: ${notes.length} заметок`);
+                        setSyncStatus('', '🟢 Синхронизировано');
+                        
+                        // Если появились новые сообщения
+                        if (notes.length > oldCount) {
+                            createHeartBurst();
+                            document.title = `💕 (${notes.length - oldCount}) Новые заметки!`;
+                            
+                            if (tg.HapticFeedback) {
+                                tg.HapticFeedback.notificationOccurred('success');
+                            }
+                            
+                            setTimeout(() => {
+                                document.title = '💕 Заметки любви';
+                            }, 5000);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Ошибка парсинга sync данных:', error);
+                }
+            }
+        }
+
         // Периодически запрашиваем синхронизацию
         function startSyncPolling() {
             setInterval(() => {
-                // Запрашиваем обновления каждые 15 секунд
-                if (tg.sendData && Date.now() - lastSyncTime > 15000) {
-                    setSyncIndicator(true);
+                if (tg.sendData && Date.now() - lastSyncTime > 20000) {
+                    console.log('Запрос синхронизации...');
+                    setSyncStatus('syncing', '🔄 Синхронизация...');
+                    
                     tg.sendData(JSON.stringify({
                         type: 'get_messages'
                     }));
+                    
                     lastSyncTime = Date.now();
                     
-                    setTimeout(() => setSyncIndicator(false), 1000);
+                    setTimeout(() => {
+                        setSyncStatus('', '🟢 Подключено');
+                    }, 3000);
                 }
-            }, 15000);
+            }, 20000); // Каждые 20 секунд
         }
 
-        // Обработка событий от Telegram
-        tg.onEvent('web_app_data_received', function(eventData) {
-            try {
-                const data = JSON.parse(eventData.detail.data);
-                if (data.type === 'sync_messages' && data.messages) {
-                    const oldLength = notes.length;
-                    notes = data.messages;
-                    saveNotesToLocal();
-                    displayNotes();
-                    
-                    if (notes.length > oldLength) {
-                        createHeartBurst();
-                        tg.HapticFeedback.notificationOccurred('success');
-                    }
-                }
-            } catch (e) {
-                console.log('Sync error:', e);
-            }
-        });
+        // Слушаем сообщения от Telegram (если поддерживается)
+        if (tg.onEvent) {
+            tg.onEvent('message_received', function(event) {
+                handleIncomingMessage(event.data);
+            });
+        }
 
+        // Обработка событий
         document.getElementById('messageText').addEventListener('input', function() {
             autoResize();
             
@@ -904,46 +955,49 @@
             addNote();
         });
 
+        // Инициализация
         window.addEventListener('load', () => {
+            console.log('Приложение запущено');
+            
             createSparkles();
             createFloatingHearts();
             createParticles();
             loadNotesFromLocal();
             startSyncPolling();
             
+            // Сразу запрашиваем синхронизацию
             setTimeout(() => {
+                if (tg.sendData) {
+                    console.log('Первичная синхронизация...');
+                    tg.sendData(JSON.stringify({
+                        type: 'get_messages'
+                    }));
+                }
                 document.getElementById('messageText').focus();
-            }, 1000);
+            }, 2000);
         });
 
-        // Добавляем случайные романтичные заметки
-        setInterval(() => {
-            const romanticMessages = [
-                "💕 Каждый момент с тобой драгоценен",
-                "🌟 Ты освещаешь мой мир",
-                "💖 В твоих глазах я вижу навсегда",
-                "🌹 Ты делаешь меня счастливее",
-                "💫 Наша любовь безгранична",
-                "🦋 С тобой я могу летать",
-                "💝 Ты мое величайшее сокровище"
-            ];
+        // Симуляция входящих сообщений (для тестирования)
+        // Убери это в продакшене!
+        /*
+        setTimeout(() => {
+            const testSync = {
+                type: 'sync_update',
+                messages: [
+                    {
+                        id: 1,
+                        user_id: 608326842,
+                        username: 'Любимая',
+                        text: 'Привет, мой дорогой! 💕',
+                        timestamp: new Date().toISOString(),
+                        type: 'note'
+                    }
+                ]
+            };
             
-            if (Math.random() < 0.03 && notes.length > 2) {
-                const inspNote = {
-                    id: Date.now() + Math.random(),
-                    user_id: 'universe',
-                    username: '💕 Вселенная',
-                    text: romanticMessages[Math.floor(Math.random() * romanticMessages.length)],
-                    timestamp: new Date().toISOString(),
-                    type: 'inspiration'
-                };
-                
-                notes.push(inspNote);
-                saveNotesToLocal();
-                displayNotes();
-                createHeartBurst();
-            }
-        }, 60000);
+            handleIncomingMessage('🔄 SYNC_DATA: ' + JSON.stringify(testSync));
+        }, 5000);
+        */
     </script>
 </body>
 </html>
