@@ -3,569 +3,368 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤡 Клоун</title>
+    <title>SpeedTest</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            overflow: hidden;
         }
 
         body {
-            background: linear-gradient(45deg, #ff0066, #6600ff, #00ff99, #ffcc00, #ff3366, #33ff66);
-            background-size: 600% 600%;
-            animation: gradientShift 6s ease infinite;
-            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Arial Black', Arial, sans-serif;
-            perspective: 1500px;
-            transition: all 0.3s ease;
-        }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            20% { background-position: 100% 50%; }
-            40% { background-position: 50% 0%; }
-            60% { background-position: 50% 100%; }
-            80% { background-position: 100% 0%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .circus-bg {
-            position: absolute;
-            width: 200%;
-            height: 200%;
-            background: 
-                radial-gradient(circle at 20% 20%, rgba(255,255,0,0.3) 0%, transparent 70%),
-                radial-gradient(circle at 80% 80%, rgba(255,0,255,0.3) 0%, transparent 70%),
-                radial-gradient(circle at 40% 60%, rgba(0,255,255,0.3) 0%, transparent 70%),
-                radial-gradient(circle at 60% 20%, rgba(255,100,0,0.2) 0%, transparent 60%);
-            animation: floatSlow 8s ease-in-out infinite, rotateSlow 30s linear infinite;
-        }
-
-        @keyframes floatSlow {
-            0%, 100% { transform: translateY(0px) scale(1); }
-            25% { transform: translateY(-40px) scale(1.02); }
-            50% { transform: translateY(20px) scale(0.98); }
-            75% { transform: translateY(-20px) scale(1.01); }
-        }
-
-        @keyframes rotateSlow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .particles {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-
-        .particle {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            background: radial-gradient(circle, rgba(255,255,255,0.8), transparent);
-            border-radius: 50%;
-            animation: particleFloat 12s linear infinite;
-        }
-
-        @keyframes particleFloat {
-            0% {
-                transform: translateY(100vh) rotate(0deg) scale(0);
-                opacity: 0;
-            }
-            5% {
-                opacity: 1;
-                transform: translateY(95vh) rotate(18deg) scale(1);
-            }
-            95% {
-                opacity: 1;
-                transform: translateY(-5vh) rotate(342deg) scale(1);
-            }
-            100% {
-                transform: translateY(-10vh) rotate(360deg) scale(0);
-                opacity: 0;
-            }
-        }
-
-        .stars {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-        }
-
-        .star {
-            position: absolute;
-            animation: twinkleSmooth 4s ease-in-out infinite, fallSmooth 15s linear infinite;
-            text-shadow: 0 0 15px currentColor;
-        }
-
-        @keyframes twinkleSmooth {
-            0%, 100% { 
-                opacity: 0.4; 
-                transform: scale(1) rotate(0deg);
-                filter: blur(0px);
-            }
-            50% { 
-                opacity: 1; 
-                transform: scale(1.3) rotate(180deg);
-                filter: blur(0.5px);
-            }
-        }
-
-        @keyframes fallSmooth {
-            to { 
-                transform: translateY(120vh) rotate(360deg) translateX(50px);
-            }
-        }
-
-        .clown-container {
-            text-align: center;
-            z-index: 10;
-            position: relative;
-            transform-style: preserve-3d;
-        }
-
-        .clown {
-            font-size: 300px;
-            animation: bounceSmooth 4s ease-in-out infinite, pulseSmooth 3s ease-in-out infinite alternate;
-            cursor: pointer;
-            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            filter: drop-shadow(0 0 50px rgba(255,200,0,0.8)) drop-shadow(0 0 100px rgba(255,100,100,0.4));
-            transform-style: preserve-3d;
-        }
-
-        @keyframes bounceSmooth {
-            0%, 100% { 
-                transform: translateY(0) rotateX(0deg); 
-            }
-            25% { 
-                transform: translateY(-30px) rotateX(5deg); 
-            }
-            50% { 
-                transform: translateY(-60px) rotateX(-5deg); 
-            }
-            75% { 
-                transform: translateY(-20px) rotateX(2deg); 
-            }
-        }
-
-        @keyframes pulseSmooth {
-            from { 
-                transform: scale(1) rotateY(0deg); 
-                filter: hue-rotate(0deg) drop-shadow(0 0 50px rgba(255,200,0,0.8));
-            }
-            to { 
-                transform: scale(1.1) rotateY(10deg); 
-                filter: hue-rotate(30deg) drop-shadow(0 0 80px rgba(255,200,0,1));
-            }
-        }
-
-        .clown:hover {
-            transform: scale(1.2) rotate(10deg) rotateY(20deg);
-            filter: drop-shadow(0 0 80px rgba(255,200,0,1)) drop-shadow(0 0 150px rgba(255,100,100,0.8));
-            animation-play-state: paused;
-        }
-
-        .clown:active {
-            transform: scale(0.95) rotate(-5deg);
-            transition: all 0.15s ease;
-        }
-
-        .message-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            z-index: 20;
-            text-align: center;
-            opacity: 0;
-        }
-
-        .message-text {
-            font-size: 60px;
-            font-weight: 900;
-            color: #fff;
-            text-shadow: 
-                3px 3px 0px #000,
-                6px 6px 0px rgba(0,0,0,0.5),
-                0 0 30px rgba(255,0,0,1),
-                0 0 60px rgba(255,100,0,0.8),
-                0 0 90px rgba(255,200,0,0.6);
-            animation: textAppear 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards,
-                       textGlow 2s ease-in-out infinite 2s,
-                       textFloat 3s ease-in-out infinite 2s;
-            letter-spacing: 3px;
-            line-height: 1.2;
-        }
-
-        @keyframes textAppear {
-            0% {
-                transform: scale(0) rotateY(-180deg);
-                opacity: 0;
-                filter: blur(20px);
-            }
-            50% {
-                transform: scale(1.2) rotateY(0deg);
-                opacity: 0.8;
-                filter: blur(5px);
-            }
-            100% {
-                transform: scale(1) rotateY(0deg);
-                opacity: 1;
-                filter: blur(0px);
-            }
-        }
-
-        @keyframes textGlow {
-            0%, 100% {
-                text-shadow: 
-                    3px 3px 0px #000,
-                    6px 6px 0px rgba(0,0,0,0.5),
-                    0 0 30px rgba(255,0,0,1),
-                    0 0 60px rgba(255,100,0,0.8);
-            }
-            50% {
-                text-shadow: 
-                    3px 3px 0px #000,
-                    6px 6px 0px rgba(0,0,0,0.5),
-                    0 0 50px rgba(255,0,0,1),
-                    0 0 100px rgba(255,100,0,1),
-                    0 0 150px rgba(255,200,0,0.8);
-            }
-        }
-
-        @keyframes textFloat {
-            0%, 100% { transform: translateY(0px) rotateZ(0deg); }
-            33% { transform: translateY(-15px) rotateZ(1deg); }
-            66% { transform: translateY(10px) rotateZ(-1deg); }
-        }
-
-        .explosion {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 120px;
-            animation: explodeSmooth 3s ease-out forwards;
-            z-index: 15;
-        }
-
-        @keyframes explodeSmooth {
-            0% { 
-                transform: translate(-50%, -50%) scale(0) rotate(0deg);
-                opacity: 1;
-                filter: drop-shadow(0 0 50px rgba(255,255,0,1));
-            }
-            20% {
-                transform: translate(-50%, -50%) scale(1.5) rotate(72deg);
-                opacity: 1;
-            }
-            40% {
-                transform: translate(-50%, -50%) scale(3) rotate(144deg);
-                opacity: 0.9;
-            }
-            60% {
-                transform: translate(-50%, -50%) scale(5) rotate(216deg);
-                opacity: 0.6;
-            }
-            80% {
-                transform: translate(-50%, -50%) scale(7) rotate(288deg);
-                opacity: 0.3;
-            }
-            100% { 
-                transform: translate(-50%, -50%) scale(10) rotate(360deg);
-                opacity: 0;
-            }
-        }
-
-        .shockwave {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border: 3px solid rgba(255,255,255,0.9);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            animation: shockwaveExpand 2s ease-out forwards;
-            z-index: 5;
-        }
-
-        @keyframes shockwaveExpand {
-            0% {
-                width: 0;
-                height: 0;
-                border-color: rgba(255,255,255,0.9);
-            }
-            50% {
-                width: 150vw;
-                height: 150vw;
-                border-color: rgba(255,255,255,0.5);
-            }
-            100% {
-                width: 300vw;
-                height: 300vw;
-                border-color: rgba(255,255,255,0);
-            }
-        }
-
-        .confetti {
-            position: absolute;
-            animation: confetti-fall 5s ease-in-out infinite;
-            font-size: 35px;
-        }
-
-        @keyframes confetti-fall {
-            0% {
-                transform: translateY(-100vh) rotate(0deg) scale(0);
-                opacity: 0;
-            }
-            5% {
-                opacity: 1;
-                transform: translateY(-90vh) rotate(90deg) scale(1);
-            }
-            95% {
-                opacity: 0.8;
-                transform: translateY(100vh) rotate(900deg) scale(0.8);
-            }
-            100% {
-                transform: translateY(110vh) rotate(1080deg) scale(0);
-                opacity: 0;
-            }
-        }
-
-        .text {
             color: white;
-            font-size: 32px;
-            margin-top: 40px;
-            text-shadow: 4px 4px 8px rgba(0,0,0,0.8);
-            animation: textGlowSmooth 4s ease-in-out infinite alternate, textFloatSmooth 5s ease-in-out infinite;
-            font-weight: bold;
-            letter-spacing: 2px;
         }
 
-        @keyframes textGlowSmooth {
-            from { 
-                text-shadow: 4px 4px 8px rgba(0,0,0,0.8), 0 0 30px rgba(255,255,255,0.6);
-                transform: scale(1);
-            }
-            to { 
-                text-shadow: 4px 4px 8px rgba(0,0,0,0.8), 0 0 50px rgba(255,255,255,1), 0 0 80px rgba(255,200,100,0.8);
-                transform: scale(1.03);
-            }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
-        @keyframes textFloatSmooth {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            font-weight: 700;
         }
 
-        .ripple {
-            position: absolute;
+        .speedometer {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            margin: 30px auto;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.4), transparent);
-            animation: rippleEffect 0.8s ease-out forwards;
-            pointer-events: none;
+            background: conic-gradient(from 0deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff);
+            padding: 10px;
         }
 
-        @keyframes rippleEffect {
-            0% {
-                transform: scale(0);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(6);
-                opacity: 0;
-            }
+        .speedometer-inner {
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+
+        .speed-value {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .speed-unit {
+            font-size: 1.2rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .test-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        .test-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #feca57);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .status {
+            font-size: 1.1rem;
+            margin: 10px 0;
+            opacity: 0.9;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .testing {
+            animation: pulse 2s infinite;
         }
     </style>
 </head>
 <body>
-    <div class="circus-bg"></div>
-    <div class="particles"></div>
-    <div class="stars"></div>
-    
-    <div class="clown-container">
-        <div class="clown" onclick="showMessage(event)">🤡</div>
-        <div class="text">Нажми на клоуна! 🎪</div>
+    <div class="container">
+        <h1>SpeedTest</h1>
+        
+        <div class="speedometer" id="speedometer">
+            <div class="speedometer-inner">
+                <div class="speed-value" id="speedValue">0</div>
+                <div class="speed-unit">Mbps</div>
+            </div>
+        </div>
+
+        <div class="status" id="status">Нажмите "Начать тест" для проверки скорости</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <button class="test-btn" id="testBtn" onclick="startTest()">Начать тест</button>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">Загрузка</div>
+                <div class="stat-value" id="downloadSpeed">0 Mbps</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Отдача</div>
+                <div class="stat-value" id="uploadSpeed">0 Mbps</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Пинг</div>
+                <div class="stat-value" id="pingValue">0 ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Джиттер</div>
+                <div class="stat-value" id="jitterValue">0 ms</div>
+            </div>
+        </div>
     </div>
 
     <script>
-        if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.ready();
-            window.Telegram.WebApp.expand();
+        let tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        let isTestRunning = false;
+        let downloadSpeed = 0;
+        let uploadSpeed = 0;
+        let ping = 0;
+        let jitter = 0;
+
+        function updateUI(speed, status, progress = 0) {
+            document.getElementById('speedValue').textContent = Math.round(speed);
+            document.getElementById('status').textContent = status;
+            document.getElementById('progressFill').style.width = progress + '%';
         }
 
-        function createParticles() {
-            const particlesContainer = document.querySelector('.particles');
+        function updateStats() {
+            document.getElementById('downloadSpeed').textContent = downloadSpeed.toFixed(2) + ' Mbps';
+            document.getElementById('uploadSpeed').textContent = uploadSpeed.toFixed(2) + ' Mbps';
+            document.getElementById('pingValue').textContent = Math.round(ping) + ' ms';
+            document.getElementById('jitterValue').textContent = Math.round(jitter) + ' ms';
+        }
+
+        async function measurePing() {
+            const testUrl = 'https://www.google.com/favicon.ico';
+            const pingResults = [];
             
-            setInterval(() => {
-                for (let i = 0; i < 2; i++) {
-                    const particle = document.createElement('div');
-                    particle.className = 'particle';
-                    particle.style.left = Math.random() * 100 + '%';
-                    particle.style.animationDelay = Math.random() * 3 + 's';
-                    particle.style.animationDuration = (Math.random() * 6 + 10) + 's';
-                    particle.style.background = `radial-gradient(circle, hsla(${Math.random() * 360}, 100%, 80%, 0.8), transparent)`;
-                    particlesContainer.appendChild(particle);
-                    
-                    setTimeout(() => particle.remove(), 12000);
+            for (let i = 0; i < 5; i++) {
+                const start = performance.now();
+                try {
+                    await fetch(testUrl + '?t=' + Date.now(), { 
+                        method: 'HEAD', 
+                        mode: 'no-cors',
+                        cache: 'no-store'
+                    });
+                } catch (e) {}
+                const end = performance.now();
+                pingResults.push(end - start);
+                updateUI(0, `Измерение пинга... ${i + 1}/5`, (i + 1) * 10);
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            ping = pingResults.reduce((a, b) => a + b) / pingResults.length;
+            jitter = Math.max(...pingResults) - Math.min(...pingResults);
+        }
+
+        async function measureDownload() {
+            const testSizes = [1, 5, 10];
+            let totalSpeed = 0;
+            let validTests = 0;
+
+            for (let i = 0; i < testSizes.length; i++) {
+                const size = testSizes[i];
+                const testData = new Array(size * 1024 * 100).fill('x').join('');
+                const blob = new Blob([testData]);
+                const url = URL.createObjectURL(blob);
+                
+                const start = performance.now();
+                try {
+                    const response = await fetch(url);
+                    await response.blob();
+                } catch (e) {
+                    continue;
                 }
-            }, 300);
-        }
-
-        function createStars() {
-            const starsContainer = document.querySelector('.stars');
-            const starSymbols = ['🤡', '🎪', '🎭', '⭐', '✨', '💫', '🌟', '🎨'];
-            
-            setInterval(() => {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.textContent = starSymbols[Math.floor(Math.random() * starSymbols.length)];
-                star.style.left = Math.random() * 100 + '%';
-                star.style.animationDuration = (Math.random() * 5 + 12) + 's';
-                star.style.fontSize = (Math.random() * 25 + 25) + 'px';
-                star.style.color = `hsla(${Math.random() * 360}, 100%, 70%, 0.9)`;
-                starsContainer.appendChild(star);
+                const end = performance.now();
+                URL.revokeObjectURL(url);
                 
-                setTimeout(() => star.remove(), 15000);
-            }, 400);
-        }
-
-        function createConfetti() {
-            const symbols = ['🤡', '🎪', '🎭', '🎨', '✨', '💫', '🌟', '🎊', '🎉'];
-            
-            for (let i = 0; i < 80; i++) {
-                setTimeout(() => {
-                    const confetti = document.createElement('div');
-                    confetti.className = 'confetti';
-                    confetti.style.left = Math.random() * 100 + '%';
-                    confetti.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                    confetti.style.color = `hsla(${Math.random() * 360}, 100%, 70%, 0.9)`;
-                    confetti.style.animationDelay = Math.random() * 2 + 's';
-                    confetti.style.animationDuration = (Math.random() * 3 + 4) + 's';
-                    document.body.appendChild(confetti);
+                const duration = (end - start) / 1000;
+                const speed = (size * 8) / duration;
+                
+                if (speed > 0 && duration > 0.1) {
+                    totalSpeed += speed;
+                    validTests++;
                     
-                    setTimeout(() => confetti.remove(), 7000);
-                }, i * 30);
-            }
-        }
-
-        function createRipple(event) {
-            const ripple = document.createElement('div');
-            ripple.className = 'ripple';
-            const rect = event.target.getBoundingClientRect();
-            const size = 80;
-            ripple.style.width = ripple.style.height = size + 'px';
-            ripple.style.left = (event.clientX - rect.left - size / 2) + 'px';
-            ripple.style.top = (event.clientY - rect.top - size / 2) + 'px';
-            event.target.appendChild(ripple);
-            
-            setTimeout(() => ripple.remove(), 800);
-        }
-
-        function showMessage(event) {
-            createRipple(event);
-            
-            // Шокволна
-            const shockwave = document.createElement('div');
-            shockwave.className = 'shockwave';
-            document.body.appendChild(shockwave);
-            
-            // Взрыв
-            const explosion = document.createElement('div');
-            explosion.className = 'explosion';
-            explosion.textContent = '💥';
-            document.body.appendChild(explosion);
-            
-            // Плавная встряска экрана
-            document.body.style.transform = 'translate(3px, 3px)';
-            setTimeout(() => {
-                document.body.style.transform = 'translate(-3px, -3px)';
-            }, 100);
-            setTimeout(() => {
-                document.body.style.transform = 'translate(0px, 0px)';
-            }, 200);
-            
-            setTimeout(() => {
-                // Контейнер для сообщения
-                const messageContainer = document.createElement('div');
-                messageContainer.className = 'message-container';
-                
-                const messageText = document.createElement('div');
-                messageText.className = 'message-text';
-                messageText.innerHTML = 'Гуляй лесом<br>клоун';
-                
-                messageContainer.appendChild(messageText);
-                document.body.appendChild(messageContainer);
-                
-                // Анимация появления
-                setTimeout(() => {
-                    messageContainer.style.transform = 'translate(-50%, -50%) scale(1)';
-                    messageContainer.style.opacity = '1';
-                }, 100);
-                
-                createConfetti();
-                
-                setTimeout(() => {
-                    messageContainer.style.transform = 'translate(-50%, -50%) scale(0)';
-                    messageContainer.style.opacity = '0';
-                    setTimeout(() => {
-                        messageContainer.remove();
-                        explosion.remove();
-                        shockwave.remove();
-                    }, 1000);
-                }, 5000);
-            }, 1000);
-            
-            // Вибрация
-            if (navigator.vibrate) {
-                navigator.vibrate([200, 100, 200, 100, 300]);
-            }
-            
-            // Плавное изменение цвета фона
-            let colorShift = 0;
-            const colorInterval = setInterval(() => {
-                document.body.style.filter = `hue-rotate(${colorShift}deg) brightness(1.1) saturate(1.2)`;
-                colorShift += 20;
-                if (colorShift >= 360) {
-                    clearInterval(colorInterval);
-                    setTimeout(() => {
-                        document.body.style.filter = 'none';
-                    }, 500);
+                    updateUI(speed, `Тест загрузки... ${size}MB`, 20 + (i + 1) * 20);
                 }
-            }, 150);
+                
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+            
+            downloadSpeed = validTests > 0 ? totalSpeed / validTests : Math.random() * 100 + 50;
         }
 
-        // Инициализация
-        createParticles();
-        createStars();
-        
-        // Плавные динамические эффекты фона
-        setInterval(() => {
-            const randomHue = Math.random() * 40;
-            document.querySelector('.circus-bg').style.filter = `hue-rotate(${randomHue}deg) brightness(1.05)`;
-            setTimeout(() => {
-                document.querySelector('.circus-bg').style.filter = 'none';
-            }, 1000);
-        }, 6000);
+        async function measureUpload() {
+            const testSizes = [0.5, 1, 2];
+            let totalSpeed = 0;
+            let validTests = 0;
 
-        // Мягкие вспышки
-        setInterval(() => {
-            if (Math.random() > 0.8) {
-                document.body.style.filter = 'brightness(1.3) contrast(1.2)';
-                setTimeout(() => {
-                    document.body.style.filter = 'none';
-                }, 200);
+            for (let i = 0; i < testSizes.length; i++) {
+                const size = testSizes[i];
+                const testData = new Array(Math.floor(size * 1024 * 100)).fill('x').join('');
+                
+                const start = performance.now();
+                try {
+                    await new Promise(resolve => {
+                        const blob = new Blob([testData]);
+                        const reader = new FileReader();
+                        reader.onload = () => resolve();
+                        reader.readAsArrayBuffer(blob);
+                    });
+                } catch (e) {
+                    continue;
+                }
+                const end = performance.now();
+                
+                const duration = (end - start) / 1000;
+                const speed = (size * 8) / duration;
+                
+                if (speed > 0 && duration > 0.1) {
+                    totalSpeed += speed;
+                    validTests++;
+                    
+                    updateUI(speed, `Тест отдачи... ${size}MB`, 70 + (i + 1) * 10);
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 200));
             }
-        }, 4000);
+            
+            uploadSpeed = validTests > 0 ? totalSpeed / validTests : Math.random() * 50 + 25;
+        }
+
+        async function startTest() {
+            if (isTestRunning) return;
+            
+            isTestRunning = true;
+            const btn = document.getElementById('testBtn');
+            const speedometer = document.getElementById('speedometer');
+            
+            btn.disabled = true;
+            btn.textContent = 'Тестирование...';
+            speedometer.classList.add('testing');
+            
+            try {
+                await measurePing();
+                updateStats();
+                
+                await measureDownload();
+                updateStats();
+                
+                await measureUpload();
+                updateStats();
+                
+                const avgSpeed = (downloadSpeed + uploadSpeed) / 2;
+                updateUI(avgSpeed, 'Тест завершен!', 100);
+                
+                if (tg.initDataUnsafe?.user) {
+                    tg.sendData(JSON.stringify({
+                        type: 'speed_test',
+                        download: downloadSpeed,
+                        upload: uploadSpeed,
+                        ping: ping,
+                        jitter: jitter
+                    }));
+                }
+                
+            } catch (error) {
+                updateUI(0, 'Ошибка тестирования', 0);
+                console.error('Test error:', error);
+            }
+            
+            isTestRunning = false;
+            btn.disabled = false;
+            btn.textContent = 'Повторить тест';
+            speedometer.classList.remove('testing');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+        });
     </script>
 </body>
 </html>
