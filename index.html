@@ -3,1063 +3,390 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Tetris Game</title>
+    <title>Пазл</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            background: linear-gradient(135deg, #0a0a1a, #1a1a2e, #16213e);
-            font-family: 'Arial', sans-serif;
-            color: #00ffff;
-            overflow: hidden;
-            position: relative;
-            height: 100vh;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
         }
-
-        .stars {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
         }
-
-        .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle 3s infinite ease-in-out;
+        .upload-area {
+            border: 2px dashed #fff;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); }
+        .upload-area:hover {
+            background: rgba(255,255,255,0.1);
         }
-
-        .floating-particles {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
+        .upload-area.dragover {
+            background: rgba(255,255,255,0.2);
         }
-
-        .particle {
-            position: absolute;
-            background: rgba(0, 255, 255, 0.6);
-            border-radius: 50%;
-            animation: float 8s infinite linear;
+        #imageInput {
+            display: none;
         }
-
-        @keyframes float {
-            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
-        }
-
         .game-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            position: relative;
-            z-index: 2;
+            display: none;
+            margin-top: 20px;
         }
-
-        .game-board {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
+        .puzzle-area {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
         }
-
-        .left-sidebar, .right-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            width: 200px;
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 2px;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+            background: #333;
+            border-radius: 5px;
+            padding: 5px;
         }
-
-        .tetris-canvas {
-            border: 3px solid #00ffff;
-            border-radius: 15px;
-            box-shadow: 
-                0 0 30px #00ffff, 
-                inset 0 0 20px rgba(0, 255, 255, 0.1),
-                0 0 60px rgba(0, 255, 255, 0.3);
-            background: rgba(0, 20, 40, 0.9);
-            transition: all 0.3s ease;
+        .puzzle-piece {
+            background-size: 300px 300px;
+            border-radius: 3px;
+            cursor: move;
+            transition: transform 0.2s ease;
         }
-
-        .tetris-canvas.line-clear {
-            animation: lineClearFlash 0.5s ease-in-out;
+        .puzzle-piece:hover {
+            transform: scale(1.05);
         }
-
-        @keyframes lineClearFlash {
-            0%, 100% { box-shadow: 0 0 30px #00ffff, inset 0 0 20px rgba(0, 255, 255, 0.1); }
-            50% { box-shadow: 0 0 60px #ffff00, inset 0 0 40px rgba(255, 255, 0, 0.3); }
+        .puzzle-piece.dragging {
+            opacity: 0.5;
         }
-
-        .info-panel {
-            background: rgba(0, 20, 40, 0.95);
-            border: 2px solid #00ffff;
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 
-                0 0 20px rgba(0, 255, 255, 0.4),
-                inset 0 0 10px rgba(0, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
+        .pieces-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
         }
-
-        .info-panel:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 5px 30px rgba(0, 255, 255, 0.5),
-                inset 0 0 15px rgba(0, 255, 255, 0.2);
+        .piece {
+            width: 80px;
+            height: 80px;
+            background-size: 240px 240px;
+            border-radius: 5px;
+            cursor: move;
+            transition: transform 0.2s ease;
         }
-
-        .info-panel h3 {
-            color: #00ffff;
-            font-size: 14px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px #00ffff;
+        .piece:hover {
+            transform: scale(1.1);
         }
-
-        .score-value {
+        .piece.dragging {
+            opacity: 0.5;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .success {
+            color: #4CAF50;
             font-size: 18px;
             font-weight: bold;
-            color: #ffffff;
-            text-shadow: 0 0 10px #00ffff;
-            transition: all 0.3s ease;
+            margin: 20px 0;
         }
-
-        .score-value.updated {
-            animation: scoreUpdate 0.5s ease-out;
-        }
-
-        @keyframes scoreUpdate {
-            0% { transform: scale(1); color: #ffffff; }
-            50% { transform: scale(1.2); color: #ffff00; text-shadow: 0 0 20px #ffff00; }
-            100% { transform: scale(1); color: #ffffff; }
-        }
-
-        .next-piece, .hold-piece {
-            width: 100px;
-            height: 80px;
-            border: 2px solid #00ffff;
-            border-radius: 8px;
-            background: rgba(0, 10, 20, 0.9);
-            margin: 10px auto;
-            box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.2);
-        }
-
-        .statistics {
-            font-size: 12px;
-            color: #aaa;
-            display: flex;
-            justify-content: space-between;
-            margin-top: 5px;
-        }
-
-        .combo-display {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 24px;
-            font-weight: bold;
-            color: #ffff00;
-            text-shadow: 0 0 20px #ffff00;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        .combo-display.show {
-            animation: comboShow 2s ease-out;
-        }
-
-        @keyframes comboShow {
-            0% { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.5); }
-            20% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.2); }
-            80% { opacity: 1; transform: translateX(-50%) translateY(-10px) scale(1); }
-            100% { opacity: 0; transform: translateX(-50%) translateY(-30px) scale(0.8); }
-        }
-
-        .controls {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .btn {
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
-            border: 2px solid #00ffff;
-            color: #00ffff;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-            user-select: none;
-            touch-action: manipulation;
-        }
-
-        .btn:hover {
-            background: linear-gradient(145deg, #00ffff, #0088cc);
-            color: #000;
-            box-shadow: 0 0 20px #00ffff;
-            transform: translateY(-2px);
-        }
-
-        .btn:active {
-            transform: translateY(0) scale(0.95);
-            box-shadow: 0 0 15px #00ffff;
-        }
-
-        .touch-controls {
-            display: none;
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            gap: 15px;
-            z-index: 20;
-        }
-
-        .touch-controls.show {
-            display: flex;
-        }
-
-        .touch-btn {
-            width: 60px;
-            height: 60px;
-            background: rgba(0, 255, 255, 0.2);
-            border: 2px solid #00ffff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: #00ffff;
-            touch-action: manipulation;
-            user-select: none;
-            transition: all 0.2s ease;
-        }
-
-        .touch-btn:active {
-            transform: scale(0.9);
-            background: rgba(0, 255, 255, 0.4);
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
-        }
-
-        .game-over {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.95);
-            border: 3px solid #00ffff;
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            display: none;
-            box-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
-            backdrop-filter: blur(10px);
-            z-index: 100;
-        }
-
-        .game-over h2 {
-            color: #ff3333;
-            font-size: 28px;
-            margin-bottom: 20px;
-            text-shadow: 0 0 15px #ff3333;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 4px;
+        .timer {
+            font-size: 18px;
             margin: 10px 0;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00ffff, #0088cc);
-            transition: width 0.3s ease;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-        }
-
-        @media (max-width: 768px) {
-            .game-board {
-                flex-direction: column;
-                align-items: center;
-                gap: 10px;
-            }
-            
-            .left-sidebar, .right-sidebar {
-                flex-direction: row;
-                width: auto;
-                gap: 10px;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            
-            .info-panel {
-                padding: 8px 12px;
-                min-width: 120px;
-            }
-            
-            .controls {
-                display: none;
-            }
-            
-            .touch-controls {
-                display: flex;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .tetris-canvas {
-                width: 200px !important;
-                height: 400px !important;
-            }
-            
-            .touch-btn {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="stars" id="stars"></div>
-    <div class="floating-particles" id="particles"></div>
-    
-    <div class="combo-display" id="comboDisplay"></div>
-    
-    <div class="game-container">
-        <div class="game-board">
-            <div class="left-sidebar">
-                <div class="info-panel">
-                    <h3>SCORE</h3>
-                    <div class="score-value" id="score">0</div>
-                </div>
-                
-                <div class="info-panel">
-                    <h3>LINES</h3>
-                    <div class="score-value" id="lines">0</div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="levelProgress"></div>
-                    </div>
-                </div>
-                
-                <div class="info-panel">
-                    <h3>LEVEL</h3>
-                    <div class="score-value" id="level">1</div>
-                    <div class="statistics">
-                        <span>Speed: <span id="speed">10</span></span>
-                    </div>
-                </div>
-                
-                <div class="info-panel">
-                    <h3>HOLD</h3>
-                    <canvas id="hold" class="hold-piece" width="100" height="80"></canvas>
-                </div>
-            </div>
-            
-            <canvas id="tetris" class="tetris-canvas" width="240" height="480"></canvas>
-            
-            <div class="right-sidebar">
-                <div class="info-panel">
-                    <h3>TIME</h3>
-                    <div class="score-value" id="time">00:00</div>
-                </div>
-                
-                <div class="info-panel">
-                    <h3>NEXT</h3>
-                    <canvas id="next" class="next-piece" width="100" height="80"></canvas>
-                </div>
-                
-                <div class="info-panel">
-                    <h3>COMBO</h3>
-                    <div class="score-value" id="combo">0</div>
-                    <div class="statistics">
-                        <span>Max: <span id="maxCombo">0</span></span>
-                    </div>
-                </div>
-                
-                <div class="info-panel">
-                    <h3>STATISTICS</h3>
-                    <div class="statistics">
-                        <span>PPS: <span id="pps">0.0</span></span>
-                        <span>TPM: <span id="tpm">0</span></span>
-                    </div>
-                    <div class="statistics">
-                        <span>Pieces: <span id="pieces">0</span></span>
-                    </div>
-                </div>
+    <div class="container">
+        <h1>🧩 Пазл</h1>
+        
+        <div class="upload-section">
+            <div class="upload-area" onclick="document.getElementById('imageInput').click()">
+                <p>📸 Кликни или перетащи фото сюда</p>
+                <input type="file" id="imageInput" accept="image/*">
             </div>
         </div>
-        
-        <div class="controls">
-            <button class="btn" onclick="moveLeft()">◄</button>
-            <button class="btn" onclick="rotate()">↻</button>
-            <button class="btn" onclick="moveRight()">►</button>
-            <button class="btn" onclick="moveDown()">▼</button>
-            <button class="btn" onclick="hardDrop()">⬇</button>
-            <button class="btn" onclick="holdPiece()">HOLD</button>
-            <button class="btn" onclick="pauseGame()">⏸</button>
+
+        <div class="game-container" id="gameContainer">
+            <div class="timer">⏱️ Время: <span id="timer">00:00</span></div>
+            
+            <div class="puzzle-area">
+                <h3>Собери пазл:</h3>
+                <div class="puzzle-grid" id="puzzleGrid"></div>
+            </div>
+
+            <div class="pieces-container" id="piecesContainer">
+                <h3>Кусочки:</h3>
+            </div>
+
+            <div class="controls">
+                <button onclick="shufflePieces()">🔀 Перемешать</button>
+                <button onclick="resetGame()">🔄 Сначала</button>
+            </div>
+
+            <div class="success" id="successMessage" style="display: none;"></div>
         </div>
-        
-        <div class="touch-controls" id="touchControls">
-            <div class="touch-btn" ontouchstart="handleTouch('rotate')">↻</div>
-            <div class="touch-btn" ontouchstart="handleTouch('left')">◄</div>
-            <div class="touch-btn" ontouchstart="handleTouch('down')">▼</div>
-            <div class="touch-btn" ontouchstart="handleTouch('right')">►</div>
-            <div class="touch-btn" ontouchstart="handleTouch('drop')">⬇</div>
-            <div class="touch-btn" ontouchstart="handleTouch('hold')">H</div>
-        </div>
-    </div>
-    
-    <div class="game-over" id="gameOver">
-        <h2>GAME OVER</h2>
-        <p>Score: <span id="finalScore">0</span></p>
-        <p>Lines: <span id="finalLines">0</span></p>
-        <p>Level: <span id="finalLevel">1</span></p>
-        <p>Time: <span id="finalTime">00:00</span></p>
-        <p>Max Combo: <span id="finalMaxCombo">0</span></p>
-        <button class="btn" onclick="startNewGame()">Новая игра</button>
-        <button class="btn" onclick="sendScore()">Отправить результат</button>
     </div>
 
     <script>
-        const canvas = document.getElementById('tetris');
-        const ctx = canvas.getContext('2d');
-        const nextCanvas = document.getElementById('next');
-        const nextCtx = nextCanvas.getContext('2d');
-        const holdCanvas = document.getElementById('hold');
-        const holdCtx = holdCanvas.getContext('2d');
-        
-        const BOARD_WIDTH = 12;
-        const BOARD_HEIGHT = 24;
-        const BLOCK_SIZE = 20;
-        
-        let board = [];
-        let currentPiece = null;
-        let nextPiece = null;
-        let heldPiece = null;
-        let canHold = true;
-        let score = 0;
-        let lines = 0;
-        let level = 1;
-        let combo = 0;
-        let maxCombo = 0;
-        let pieces = 0;
-        let gameRunning = false;
-        let isPaused = false;
-        let startTime = Date.now();
-        let gameInterval = null;
-        let lastPieceTime = Date.now();
-        
-        // Touch handling
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let isTouching = false;
-        
-        const pieceTypes = [
-            { shape: [[1,1,1,1]], color: '#00ffff', name: 'I' }, // I
-            { shape: [[1,1],[1,1]], color: '#ffff00', name: 'O' }, // O
-            { shape: [[0,1,0],[1,1,1]], color: '#aa00ff', name: 'T' }, // T
-            { shape: [[0,1,1],[1,1,0]], color: '#00ff00', name: 'S' }, // S
-            { shape: [[1,1,0],[0,1,1]], color: '#ff0000', name: 'Z' }, // Z
-            { shape: [[1,0,0],[1,1,1]], color: '#ff7700', name: 'J' }, // J
-            { shape: [[0,0,1],[1,1,1]], color: '#0000ff', name: 'L' }  // L
-        ];
-        
-        // Initialize background effects
-        function initStars() {
-            const starsContainer = document.getElementById('stars');
-            for (let i = 0; i < 100; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.width = star.style.height = (Math.random() * 3 + 1) + 'px';
-                star.style.animationDelay = Math.random() * 3 + 's';
-                starsContainer.appendChild(star);
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        let currentImage = null;
+        let pieces = [];
+        let startTime = null;
+        let timerInterval = null;
+        let gameCompleted = false;
+
+        const imageInput = document.getElementById('imageInput');
+        const gameContainer = document.getElementById('gameContainer');
+        const puzzleGrid = document.getElementById('puzzleGrid');
+        const piecesContainer = document.getElementById('piecesContainer');
+        const uploadArea = document.querySelector('.upload-area');
+        const successMessage = document.getElementById('successMessage');
+        const timerDisplay = document.getElementById('timer');
+
+        // Drag and drop для загрузки файла
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleImageUpload(files[0]);
             }
-        }
-        
-        function createParticle() {
-            const particlesContainer = document.getElementById('particles');
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.width = particle.style.height = (Math.random() * 4 + 2) + 'px';
-            particle.style.animationDuration = (Math.random() * 4 + 6) + 's';
-            particlesContainer.appendChild(particle);
-            
-            setTimeout(() => {
-                particle.remove();
-            }, 10000);
-        }
-        
-        function initBoard() {
-            board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
-        }
-        
-        function getRandomPiece() {
-            const piece = pieceTypes[Math.floor(Math.random() * pieceTypes.length)];
-            return {
-                shape: piece.shape.map(row => [...row]),
-                color: piece.color,
-                name: piece.name,
-                x: Math.floor((BOARD_WIDTH - piece.shape[0].length) / 2),
-                y: 0
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleImageUpload(e.target.files[0]);
+            }
+        });
+
+        function handleImageUpload(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Пожалуйста, выберите изображение');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentImage = e.target.result;
+                initGame();
+                updateMainButton();
             };
+            reader.readAsDataURL(file);
         }
-        
-        function drawBlock(ctx, x, y, color, size = BLOCK_SIZE) {
-            const gradient = ctx.createLinearGradient(x * size, y * size, x * size + size, y * size + size);
-            gradient.addColorStop(0, color);
-            gradient.addColorStop(0.7, color);
-            gradient.addColorStop(1, '#000');
-            
-            ctx.fillStyle = gradient;
-            ctx.fillRect(x * size, y * size, size, size);
-            
-            // Inner glow
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x * size + 1, y * size + 1, size - 2, size - 2);
-            
-            // Outer border
-            ctx.strokeStyle = '#00ffff';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x * size, y * size, size, size);
+
+        function initGame() {
+            gameContainer.style.display = 'block';
+            createPuzzle();
+            startTimer();
         }
-        
-        function drawBoard() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw grid
-            ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
-            ctx.lineWidth = 0.5;
-            for (let x = 0; x <= BOARD_WIDTH; x++) {
-                ctx.beginPath();
-                ctx.moveTo(x * BLOCK_SIZE, 0);
-                ctx.lineTo(x * BLOCK_SIZE, canvas.height);
-                ctx.stroke();
+
+        function createPuzzle() {
+            puzzleGrid.innerHTML = '';
+            piecesContainer.innerHTML = '<h3>Кусочки:</h3>';
+            pieces = [];
+            gameCompleted = false;
+
+            // Создаем 9 ячеек для пазла (3x3)
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'puzzle-piece';
+                cell.dataset.position = i;
+                cell.addEventListener('dragover', handleDragOver);
+                cell.addEventListener('drop', handleDrop);
+                puzzleGrid.appendChild(cell);
             }
-            for (let y = 0; y <= BOARD_HEIGHT; y++) {
-                ctx.beginPath();
-                ctx.moveTo(0, y * BLOCK_SIZE);
-                ctx.lineTo(canvas.width, y * BLOCK_SIZE);
-                ctx.stroke();
+
+            // Создаем кусочки пазла
+            for (let i = 0; i < 9; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'piece';
+                piece.draggable = true;
+                piece.dataset.pieceId = i;
+                piece.dataset.correctPosition = i;
+                
+                const row = Math.floor(i / 3);
+                const col = i % 3;
+                piece.style.backgroundImage = `url(${currentImage})`;
+                piece.style.backgroundPosition = `-${col * 80}px -${row * 80}px`;
+                
+                piece.addEventListener('dragstart', handleDragStart);
+                piece.addEventListener('dragend', handleDragEnd);
+                
+                pieces.push(piece);
+                piecesContainer.appendChild(piece);
+            }
+
+            shufflePieces();
+        }
+
+        function shufflePieces() {
+            // Перемешиваем кусочки
+            for (let i = pieces.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pieces[i], pieces[j]] = [pieces[j], pieces[i]];
             }
             
-            // Draw placed blocks
-            for (let y = 0; y < BOARD_HEIGHT; y++) {
-                for (let x = 0; x < BOARD_WIDTH; x++) {
-                    if (board[y][x]) {
-                        drawBlock(ctx, x, y, board[y][x]);
+            // Обновляем отображение
+            const container = document.getElementById('piecesContainer');
+            container.innerHTML = '<h3>Кусочки:</h3>';
+            pieces.forEach(piece => container.appendChild(piece));
+        }
+
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.dataset.pieceId);
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const pieceId = e.dataTransfer.getData('text/plain');
+            const piece = document.querySelector(`[data-piece-id="${pieceId}"]`);
+            const targetCell = e.target;
+
+            if (targetCell.classList.contains('puzzle-piece') && !targetCell.hasChildNodes()) {
+                const row = Math.floor(parseInt(targetCell.dataset.position) / 3);
+                const col = parseInt(targetCell.dataset.position) % 3;
+                
+                piece.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
+                piece.style.backgroundSize = '300px 300px';
+                piece.style.width = '100%';
+                piece.style.height = '100%';
+                piece.style.borderRadius = '3px';
+                
+                targetCell.appendChild(piece);
+                checkCompletion();
+            }
+        }
+
+        function checkCompletion() {
+            const cells = document.querySelectorAll('.puzzle-piece');
+            let correct = 0;
+
+            cells.forEach((cell, index) => {
+                if (cell.hasChildNodes()) {
+                    const piece = cell.firstChild;
+                    if (parseInt(piece.dataset.correctPosition) === index) {
+                        correct++;
                     }
                 }
-            }
-        }
-        
-        function drawPiece(piece, alpha = 1) {
-            ctx.save();
-            ctx.globalAlpha = alpha;
-            for (let y = 0; y < piece.shape.length; y++) {
-                for (let x = 0; x < piece.shape[y].length; x++) {
-                    if (piece.shape[y][x]) {
-                        drawBlock(ctx, piece.x + x, piece.y + y, piece.color);
-                    }
-                }
-            }
-            ctx.restore();
-        }
-        
-        function drawGhostPiece() {
-            if (!currentPiece) return;
-            
-            const ghostPiece = { ...currentPiece };
-            while (canMove(ghostPiece, 0, 1)) {
-                ghostPiece.y++;
-            }
-            
-            ctx.save();
-            ctx.globalAlpha = 0.3;
-            for (let y = 0; y < ghostPiece.shape.length; y++) {
-                for (let x = 0; x < ghostPiece.shape[y].length; x++) {
-                    if (ghostPiece.shape[y][x]) {
-                        ctx.strokeStyle = ghostPiece.color;
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect((ghostPiece.x + x) * BLOCK_SIZE + 2, 
-                                     (ghostPiece.y + y) * BLOCK_SIZE + 2, 
-                                     BLOCK_SIZE - 4, BLOCK_SIZE - 4);
-                    }
-                }
-            }
-            ctx.restore();
-        }
-        
-        function drawSmallPiece(piece, ctx, canvas) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (piece) {
-                const blockSize = 15;
-                const offsetX = (canvas.width - piece.shape[0].length * blockSize) / 2;
-                const offsetY = (canvas.height - piece.shape.length * blockSize) / 2;
+            });
+
+            if (correct === 9) {
+                gameCompleted = true;
+                stopTimer();
+                const time = timerDisplay.textContent;
+                successMessage.innerHTML = `🎉 Поздравляю! Пазл собран за ${time}!`;
+                successMessage.style.display = 'block';
+                updateMainButton();
                 
-                for (let y = 0; y < piece.shape.length; y++) {
-                    for (let x = 0; x < piece.shape[y].length; x++) {
-                        if (piece.shape[y][x]) {
-                            const px = offsetX + x * blockSize;
-                            const py = offsetY + y * blockSize;
-                            
-                            ctx.fillStyle = piece.color;
-                            ctx.fillRect(px, py, blockSize, blockSize);
-                            ctx.strokeStyle = '#00ffff';
-                            ctx.lineWidth = 1;
-                            ctx.strokeRect(px, py, blockSize, blockSize);
-                        }
-                    }
-                }
+                // Отправляем результат в Telegram
+                tg.sendData(JSON.stringify({
+                    action: 'puzzle_completed',
+                    time: time,
+                    timestamp: new Date().toISOString()
+                }));
             }
         }
-        
-        function canMove(piece, dx, dy) {
-            for (let y = 0; y < piece.shape.length; y++) {
-                for (let x = 0; x < piece.shape[y].length; x++) {
-                    if (piece.shape[y][x]) {
-                        const newX = piece.x + x + dx;
-                        const newY = piece.y + y + dy;
-                        
-                        if (newX < 0 || newX >= BOARD_WIDTH || 
-                            newY >= BOARD_HEIGHT || 
-                            (newY >= 0 && board[newY][newX])) {
-                            return false;
-                        }
-                    }
-                }
-            }
-            return true;
-        }
-        
-        function placePiece() {
-            for (let y = 0; y < currentPiece.shape.length; y++) {
-                for (let x = 0; x < currentPiece.shape[y].length; x++) {
-                    if (currentPiece.shape[y][x]) {
-                        const boardY = currentPiece.y + y;
-                        const boardX = currentPiece.x + x;
-                        if (boardY >= 0) {
-                            board[boardY][boardX] = currentPiece.color;
-                        }
-                    }
-                }
-            }
-            
-            clearLines();
-            spawnNewPiece();
-            canHold = true;
-            pieces++;
-            lastPieceTime = Date.now();
-        }
-        
-        function clearLines() {
-            let linesCleared = 0;
-            let clearedRows = [];
-            
-            for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
-                if (board[y].every(cell => cell !== 0)) {
-                    clearedRows.push(y);
-                    linesCleared++;
-                }
-            }
-            
-            if (linesCleared > 0) {
-                // Animate line clear
-                canvas.classList.add('line-clear');
-                setTimeout(() => canvas.classList.remove('line-clear'), 500);
-                
-                // Clear lines with animation
-                clearedRows.forEach(row => {
-                    board.splice(row, 1);
-                    board.unshift(Array(BOARD_WIDTH).fill(0));
-                });
-                
-                lines += linesCleared;
-                combo++;
-                maxCombo = Math.max(maxCombo, combo);
-                
-                // Score calculation with combo bonus
-                const baseScore = [0, 100, 300, 500, 800][linesCleared] || 800;
-                score += baseScore * level * (combo > 1 ? combo * 0.5 : 1);
-                
-                level = Math.floor(lines / 10) + 1;
-                
-                // Show combo
-                if (combo > 1) {
-                    showCombo(combo);
-                }
-                
-                updateDisplay();
-                createParticle();
-            } else {
-                combo = 0;
-            }
-        }
-        
-        function showCombo(comboCount) {
-            const comboDisplay = document.getElementById('comboDisplay');
-            comboDisplay.textContent = `${comboCount}x COMBO!`;
-            comboDisplay.classList.remove('show');
-            comboDisplay.offsetHeight; // Force reflow
-            comboDisplay.classList.add('show');
-        }
-        
-        function spawnNewPiece() {
-            currentPiece = nextPiece || getRandomPiece();
-            nextPiece = getRandomPiece();
-            
-            if (!canMove(currentPiece, 0, 0)) {
-                gameOver();
-            }
-        }
-        
-        function rotatePiece(piece) {
-            const rotated = piece.shape[0].map((_, i) =>
-                piece.shape.map(row => row[i]).reverse()
-            );
-            return { ...piece, shape: rotated };
-        }
-        
-        function holdPiece() {
-            if (!canHold || !gameRunning || isPaused) return;
-            
-            if (heldPiece) {
-                [currentPiece, heldPiece] = [heldPiece, currentPiece];
-                currentPiece.x = Math.floor((BOARD_WIDTH - currentPiece.shape[0].length) / 2);
-                currentPiece.y = 0;
-            } else {
-                heldPiece = currentPiece;
-                spawnNewPiece();
-            }
-            
-            canHold = false;
-            drawSmallPiece(heldPiece, holdCtx, holdCanvas);
-            drawBoard();
-            drawGhostPiece();
-            drawPiece(currentPiece);
-        }
-        
-        function updateDisplay() {
-            // Animate score updates
-            const scoreElement = document.getElementById('score');
-            scoreElement.textContent = score.toLocaleString();
-            scoreElement.classList.add('updated');
-            setTimeout(() => scoreElement.classList.remove('updated'), 500);
-            
-            document.getElementById('lines').textContent = lines;
-            document.getElementById('level').textContent = level;
-            document.getElementById('combo').textContent = combo;
-            document.getElementById('maxCombo').textContent = maxCombo;
-            document.getElementById('pieces').textContent = pieces;
-            document.getElementById('speed').textContent = Math.max(1, 11 - level);
-            
-            // Update level progress
-            const progress = (lines % 10) / 10 * 100;
-            document.getElementById('levelProgress').style.width = progress + '%';
-            
-            // Calculate statistics
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const minutes = Math.floor(elapsed / 60);
-            const seconds = elapsed % 60;
-            document.getElementById('time').textContent = 
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            // PPS and TPM calculations
-            const pps = elapsed > 0 ? (pieces / elapsed).toFixed(1) : '0.0';
-            const tpm = elapsed > 0 ? Math.round((pieces / elapsed) * 60) : 0;
-            document.getElementById('pps').textContent = pps;
-            document.getElementById('tpm').textContent = tpm;
-        }
-        
-        function gameLoop() {
-            if (!gameRunning || isPaused) return;
-            
-            if (canMove(currentPiece, 0, 1)) {
-                currentPiece.y++;
-            } else {
-                placePiece();
-            }
-            
-            drawBoard();
-            drawGhostPiece();
-            drawPiece(currentPiece);
-            drawSmallPiece(nextPiece, nextCtx, nextCanvas);
-            updateDisplay();
-        }
-        
-        function gameOver() {
-            gameRunning = false;
-            clearInterval(gameInterval);
-            
-            document.getElementById('finalScore').textContent = score.toLocaleString();
-            document.getElementById('finalLines').textContent = lines;
-            document.getElementById('finalLevel').textContent = level;
-            document.getElementById('finalMaxCombo').textContent = maxCombo;
-            
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const minutes = Math.floor(elapsed / 60);
-            const seconds = elapsed % 60;
-            document.getElementById('finalTime').textContent = 
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            document.getElementById('gameOver').style.display = 'block';
-        }
-        
-        function startNewGame() {
-            initBoard();
-            score = 0;
-            lines = 0;
-            level = 1;
-            combo = 0;
-            maxCombo = 0;
-            pieces = 0;
+
+        function startTimer() {
             startTime = Date.now();
-            lastPieceTime = Date.now();
-            gameRunning = true;
-            isPaused = false;
-            heldPiece = null;
-            canHold = true;
-            
-            document.getElementById('gameOver').style.display = 'none';
-            
-            currentPiece = getRandomPiece();
-            nextPiece = getRandomPiece();
-            
-            clearInterval(gameInterval);
-            gameInterval = setInterval(gameLoop, Math.max(50, 1000 - (level - 1) * 100));
-            
-            holdCtx.clearRect(0, 0, holdCanvas.width, holdCanvas.height);
-            drawBoard();
-            drawGhostPiece();
-            drawPiece(currentPiece);
-            drawSmallPiece(nextPiece, nextCtx, nextCanvas);
-            updateDisplay();
+            timerInterval = setInterval(updateTimer, 1000);
         }
-        
-        // Movement functions
-        function moveLeft() {
-            if (gameRunning && !isPaused && canMove(currentPiece, -1, 0)) {
-                currentPiece.x--;
-                drawBoard();
-                drawGhostPiece();
-                drawPiece(currentPiece);
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
             }
         }
-        
-        function moveRight() {
-            if (gameRunning && !isPaused && canMove(currentPiece, 1, 0)) {
-                currentPiece.x++;
-                drawBoard();
-                drawGhostPiece();
-                drawPiece(currentPiece);
+
+        function updateTimer() {
+            if (startTime) {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             }
         }
-        
-        function moveDown() {
-            if (gameRunning && !isPaused && canMove(currentPiece, 0, 1)) {
-                currentPiece.y++;
-                drawBoard();
-                drawGhostPiece();
-                drawPiece(currentPiece);
+
+        function resetGame() {
+            stopTimer();
+            successMessage.style.display = 'none';
+            if (currentImage) {
+                initGame();
+                updateMainButton();
             }
         }
-        
-        function rotate() {
-            if (gameRunning && !isPaused) {
-                const rotated = rotatePiece(currentPiece);
-                if (canMove(rotated, 0, 0)) {
-                    currentPiece = rotated;
-                    drawBoard();
-                    drawGhostPiece();
-                    drawPiece(currentPiece);
-                }
-            }
-        }
-        
-        function hardDrop() {
-            if (gameRunning && !isPaused) {
-                while (canMove(currentPiece, 0, 1)) {
-                    currentPiece.y++;
-                }
-                placePiece();
-                drawBoard();
-                drawGhostPiece();
-                drawPiece(currentPiece);
-                drawSmallPiece(nextPiece, nextCtx, nextCanvas);
-            }
-        }
-        
-        function pauseGame() {
-            if (gameRunning) {
-                isPaused = !isPaused;
-                document.querySelector('.controls button:last-child').textContent = isPaused ? '▶' : '⏸';
-            }
-        }
-        
-        // Touch controls
-        function handleTouch(action) {
-            switch(action) {
-                case 'left': moveLeft(); break;
-                case 'right': moveRight(); break;
-                case 'down': moveDown(); break;
-                case 'rotate': rotate(); break;
-                case 'drop': hardDrop(); break;
-                case 'hold': holdPiece(); break;
-            }
-        }
-        
-        // Touch gesture handling
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            const touch = e.touches[0];
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
-            isTouching = true;
-        });
-        
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-        });
-        
-        canvas.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            if (!isTouching) return;
-            
-            const touch = e.changedTouches[0];
-            const deltaX = touch.clientX - touchStartX;
-            const deltaY = touch.clientY - touchStartY;
-            const threshold = 30;
-            
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                if (Math.abs(deltaX) > threshold) {
-                    if (deltaX > 0) {
-                        moveRight();
-                    } else {
-                        moveLeft();
-                    }
-                }
+
+        // Настройка главной кнопки Telegram
+        function updateMainButton() {
+            if (gameCompleted) {
+                tg.MainButton.setText('Поделиться результатом');
+                tg.MainButton.show();
+            } else if (currentImage) {
+                tg.MainButton.setText('Играю в пазл...');
+                tg.MainButton.hide();
             } else {
-                if (Math.abs(deltaY) > threshold) {
-                    if (deltaY > 0) {
-                        hardDrop();
-                    } else {
-                        rotate();
-                    }
-                } else {
-                    // Tap to rotate
-                    rotate();
-                }
+                tg.MainButton.setText('Выбери фото');
+                tg.MainButton.hide();
             }
-            
-            isTouching = false;
-        });
-        
-        // Keyboard controls
-        document.addEventListener('keydown', (e) => {
-            switch(e.key) {
-                case 'ArrowLeft':
-                    e.preventDefault();
-                    moveLeft();
-                    break;
-                case 'ArrowRight':
-                    e.preventDefault();
-                    moveRight();
-                    break;
-                case 'ArrowDown':
-                    e.preventDefault();
-                    moveDown();
-                    break;
-                case 'ArrowUp':
-                    e.preventDefault();
-                    rotate();
-                    break;
-                case ' ':
-                    e.preventDefault();
-                    hardDrop();
-                    break;
-                case 'c':
-                case 'C':
-                    e.preventDefault();
-                    holdPiece();
-                    break;
-                case 'p':
-                case 'P':
-                    e.preventDefault();
-                    pauseGame();
-                    break;
-            }
-        });
-        
-        function sendScore() {
-            const gameData = {
-                score: score,
-                lines: lines,
-                level: level,
-                time: Math.floor((Date.now() - startTime) / 1000),
-                maxCombo: maxCombo,
-                pieces: pieces
-            };
-            
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.sendData(JSON.stringify(gameData));
-                window.Telegram.WebApp.close();
+        }
+
+        tg.MainButton.onClick(() => {
+            if (gameCompleted) {
+                tg.close();
             } else {
-                alert(`Результат: ${score} очков, ${lines} линий, уровень ${level}, максимальное комбо ${maxCombo}`);
+                tg.showAlert('Сначала собери пазл!');
             }
-        }
-        
-        // Initialize
-        if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.ready();
-            window.Telegram.WebApp.expand();
-        }
-        
-        // Check if mobile
-        if ('ontouchstart' in window) {
-            document.getElementById('touchControls').classList.add('show');
-        }
-        
-        initStars();
-        setInterval(createParticle, 2000);
-        startNewGame();
+        });
+
+        updateMainButton();
     </script>
 </body>
 </html>
