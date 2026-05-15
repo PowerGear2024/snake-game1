@@ -1,392 +1,634 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Пазл</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: white;
-        }
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-            text-align: center;
-        }
-        .upload-area {
-            border: 2px dashed #fff;
-            padding: 30px;
-            margin: 20px 0;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .upload-area:hover {
-            background: rgba(255,255,255,0.1);
-        }
-        .upload-area.dragover {
-            background: rgba(255,255,255,0.2);
-        }
-        #imageInput {
-            display: none;
-        }
-        .game-container {
-            display: none;
-            margin-top: 20px;
-        }
-        .puzzle-area {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .puzzle-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            gap: 2px;
-            width: 300px;
-            height: 300px;
-            margin: 0 auto;
-            background: #333;
-            border-radius: 5px;
-            padding: 5px;
-        }
-        .puzzle-piece {
-            background-size: 300px 300px;
-            border-radius: 3px;
-            cursor: move;
-            transition: transform 0.2s ease;
-        }
-        .puzzle-piece:hover {
-            transform: scale(1.05);
-        }
-        .puzzle-piece.dragging {
-            opacity: 0.5;
-        }
-        .pieces-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin: 20px 0;
-            padding: 10px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
-        .piece {
-            width: 80px;
-            height: 80px;
-            background-size: 240px 240px;
-            border-radius: 5px;
-            cursor: move;
-            transition: transform 0.2s ease;
-        }
-        .piece:hover {
-            transform: scale(1.1);
-        }
-        .piece.dragging {
-            opacity: 0.5;
-        }
-        .controls {
-            margin: 20px 0;
-        }
-        button {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 5px;
-        }
-        button:hover {
-            background: #45a049;
-        }
-        .success {
-            color: #4CAF50;
-            font-size: 18px;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        .timer {
-            font-size: 18px;
-            margin: 10px 0;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Політика конфіденційності — Автомобільний Харків</title>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;800;900&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --paper: #fefefe;
+    --ink: #1a1a1a;
+    --muted: #6b6b6b;
+    --ua-blue: #005BBB;
+    --ua-yellow: #FFD500;
+    --red: #c0392b;
+    --green: #1a7a4a;
+    --border: #d8d4cc;
+    --accent: #005BBB;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Raleway', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  /* Texture overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='none'/%3E%3Ccircle cx='1' cy='1' r='0.5' fill='%23000' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header strip */
+  .flag-bar {
+    height: 6px;
+    background: linear-gradient(to bottom, var(--ua-blue) 50%, var(--ua-yellow) 50%);
+    border-radius: 4px 4px 0 0;
+  }
+
+  .header {
+    background: var(--ua-blue);
+    padding: 36px 40px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::before {
+    content: '🇺🇦';
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 64px;
+    opacity: 0.15;
+  }
+
+  .header-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 8px;
+  }
+
+  .header h1 {
+    font-size: clamp(20px, 4vw, 30px);
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+  }
+
+  .header h1 span {
+    color: var(--ua-yellow);
+  }
+
+  .header-meta {
+    margin-top: 12px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .meta-tag {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.85);
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+
+  /* Body */
+  .body {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    padding: 40px;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 36px;
+    opacity: 0;
+    transform: translateY(16px);
+    animation: reveal 0.5s ease forwards;
+  }
+
+  .section:nth-child(1) { animation-delay: 0.1s; }
+  .section:nth-child(2) { animation-delay: 0.2s; }
+  .section:nth-child(3) { animation-delay: 0.3s; }
+  .section:nth-child(4) { animation-delay: 0.4s; }
+  .section:nth-child(5) { animation-delay: 0.5s; }
+  .section:nth-child(6) { animation-delay: 0.6s; }
+
+  @keyframes reveal {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ua-blue);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* War alert */
+  .war-alert {
+    background: #fff5f5;
+    border-left: 4px solid var(--red);
+    border-radius: 0 8px 8px 0;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+
+  .war-alert-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--red);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .war-alert p {
+    font-size: 13px;
+    line-height: 1.75;
+    color: #444;
+  }
+
+  /* Reason cards */
+  .reasons {
+    display: grid;
+    gap: 10px;
+  }
+
+  .reason {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    background: #f8f7f4;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    transition: border-color 0.2s;
+  }
+
+  .reason:hover { border-color: var(--ua-blue); }
+
+  .reason-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .reason-body {}
+
+  .reason-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+
+  .reason-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* Two-col rules */
+  .rules-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 560px) {
+    .rules-grid { grid-template-columns: 1fr; }
+    .body { padding: 24px 20px; }
+    .header { padding: 28px 24px; }
+  }
+
+  .rules-col {
+    padding: 18px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .rules-col.allow { background: #f0fdf4; border-color: #bbf7d0; }
+  .rules-col.deny  { background: #fff5f5; border-color: #fecaca; }
+
+  .rules-col-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .allow .rules-col-title { color: var(--green); }
+  .deny  .rules-col-title { color: var(--red); }
+
+  .rules-col ul { list-style: none; }
+  .rules-col ul li {
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    gap: 7px;
+    align-items: flex-start;
+    color: #333;
+  }
+  .rules-col ul li:last-child { border-bottom: none; }
+
+  /* Punishment */
+  .punishment-row {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .p-step {
+    flex: 1;
+    padding: 16px 14px;
+    text-align: center;
+    position: relative;
+  }
+
+  .p-step::after {
+    content: '→';
+    position: absolute;
+    right: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--muted);
+    z-index: 1;
+  }
+  .p-step:last-child::after { display: none; }
+
+  .p-step:nth-child(1) { background: #fffbeb; }
+  .p-step:nth-child(2) { background: #fff7ed; }
+  .p-step:nth-child(3) { background: #fef2f2; }
+
+  .p-icon { font-size: 22px; margin-bottom: 6px; }
+  .p-name {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .p-desc { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+  /* Instant ban */
+  .instant-ban {
+    margin-top: 12px;
+    background: var(--red);
+    color: white;
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* Data */
+  .data-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .data-item {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 14px;
+    background: #f8f7f4;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #333;
+    line-height: 1.5;
+  }
+
+  /* UA position */
+  .ua-block {
+    background: var(--ua-blue);
+    color: white;
+    border-radius: 10px;
+    padding: 24px 28px;
+    text-align: center;
+  }
+
+  .ua-block .big { font-size: 32px; margin-bottom: 8px; }
+
+  .ua-block p {
+    font-size: 13px;
+    line-height: 1.7;
+    opacity: 0.9;
+    margin-bottom: 14px;
+  }
+
+  .ua-glory {
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: var(--ua-yellow);
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 28px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .footer a { color: var(--ua-blue); text-decoration: none; font-weight: 600; }
+
+  /* Copy button */
+  .copy-wrap {
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 28px;
+    background: var(--ua-blue);
+    color: white;
+    font-family: 'Raleway', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { background: #004a9e; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,91,187,0.3); }
+  .copy-btn.ok { background: var(--green); }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>🧩 Пазл</h1>
-        
-        <div class="upload-section">
-            <div class="upload-area" onclick="document.getElementById('imageInput').click()">
-                <p>📸 Кликни или перетащи фото сюда</p>
-                <input type="file" id="imageInput" accept="image/*">
-            </div>
-        </div>
+<div class="page">
 
-        <div class="game-container" id="gameContainer">
-            <div class="timer">⏱️ Время: <span id="timer">00:00</span></div>
-            
-            <div class="puzzle-area">
-                <h3>Собери пазл:</h3>
-                <div class="puzzle-grid" id="puzzleGrid"></div>
-            </div>
+  <div class="flag-bar"></div>
 
-            <div class="pieces-container" id="piecesContainer">
-                <h3>Кусочки:</h3>
-            </div>
+  <div class="header">
+    <div class="header-eyebrow">Офіційний документ спільноти</div>
+    <h1>Політика конфіденційності<br><span>Автомобільний Харків</span></h1>
+    <div class="header-meta">
+      <span class="meta-tag">@cto_kharkov</span>
+      <span class="meta-tag">@cto_kharkov_chat</span>
+      <span class="meta-tag">Травень 2025</span>
+    </div>
+  </div>
 
-            <div class="controls">
-                <button onclick="shufflePieces()">🔀 Перемешать</button>
-                <button onclick="resetGame()">🔄 Сначала</button>
-            </div>
+  <div class="body">
 
-            <div class="success" id="successMessage" style="display: none;"></div>
-        </div>
+    <!-- Section 1 -->
+    <div class="section">
+      <div class="section-label">01 — Загальні положення</div>
+      <p style="font-size:13px; line-height:1.8; color:#333;">
+        Ця політика регулює поведінку всіх учасників каналу <strong>«Автомобільний Харків | СТО Харків»</strong>.
+        Вступаючи до чату або підписуючись на канал, ви автоматично приймаєте всі правила нижче.
+        Незнання правил не звільняє від відповідальності.
+      </p>
     </div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+    <!-- Section 2 -->
+    <div class="section">
+      <div class="section-label">02 — Заборона скриншотів</div>
 
-        let currentImage = null;
-        let pieces = [];
-        let startTime = null;
-        let timerInterval = null;
-        let gameCompleted = false;
+      <div class="war-alert">
+        <div class="war-alert-title">⚠️ Воєнний стан — підвищена небезпека</div>
+        <p>
+          Харків знаходиться в зоні активних бойових дій та регулярно зазнає ракетних і дронових обстрілів.
+          Скриншоти повідомлень учасників <strong>суворо заборонені</strong> — вони можуть становити пряму
+          загрозу безпеці людей та порушувати законодавство України в умовах воєнного стану.
+        </p>
+      </div>
 
-        const imageInput = document.getElementById('imageInput');
-        const gameContainer = document.getElementById('gameContainer');
-        const puzzleGrid = document.getElementById('puzzleGrid');
-        const piecesContainer = document.getElementById('piecesContainer');
-        const uploadArea = document.querySelector('.upload-area');
-        const successMessage = document.getElementById('successMessage');
-        const timerDisplay = document.getElementById('timer');
+      <div class="reasons">
+        <div class="reason">
+          <div class="reason-icon">📍</div>
+          <div class="reason-body">
+            <div class="reason-title">Геолокація та маршрути</div>
+            <div class="reason-desc">Повідомлення можуть містити дані про переміщення, стан доріг та блокпости — стратегічна інформація для ворога</div>
+          </div>
+        </div>
+        <div class="reason">
+          <div class="reason-icon">🚗</div>
+          <div class="reason-body">
+            <div class="reason-title">Транспортні дані</div>
+            <div class="reason-desc">Номери авто, маршрути евакуації, місця скупчення техніки не повинні бути доступні стороннім</div>
+          </div>
+        </div>
+        <div class="reason">
+          <div class="reason-icon">👤</div>
+          <div class="reason-body">
+            <div class="reason-title">Деанонімізація учасників</div>
+            <div class="reason-desc">Скриншот розкриває особисті дані людей, які перебувають у небезпечному місті</div>
+          </div>
+        </div>
+        <div class="reason">
+          <div class="reason-icon">⚖️</div>
+          <div class="reason-body">
+            <div class="reason-title">Кримінальна відповідальність</div>
+            <div class="reason-desc">Поширення певних відомостей при воєнному стані — ст. 111, 114-1 КК України</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        // Drag and drop для загрузки файла
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
+    <!-- Section 3 -->
+    <div class="section">
+      <div class="section-label">03 — Правила спільноти</div>
+      <div class="rules-grid">
+        <div class="rules-col allow">
+          <div class="rules-col-title">✅ Дозволено</div>
+          <ul>
+            <li><span>🚗</span> Авто, ремонт, СТО</li>
+            <li><span>📰</span> Автоновини та ПДД</li>
+            <li><span>🤝</span> Взаємодопомога</li>
+            <li><span>🗺️</span> Стан доріг (без стратегічних деталей)</li>
+          </ul>
+        </div>
+        <div class="rules-col deny">
+          <div class="rules-col-title">🚫 Заборонено</div>
+          <ul>
+            <li><span>📸</span> Скриншоти без згоди учасника</li>
+            <li><span>📞</span> Особисті дані учасників</li>
+            <li><span>📢</span> Реклама та спам</li>
+            <li><span>🎯</span> Дані про блокпости та ЗСУ</li>
+            <li><span>🤥</span> Фейки та дезінформація</li>
+            <li><span>😡</span> Образи та агресія</li>
+          </ul>
+        </div>
+      </div>
+    </div>
 
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
+    <!-- Section 4 -->
+    <div class="section">
+      <div class="section-label">04 — Система покарань</div>
 
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleImageUpload(files[0]);
-            }
-        });
+      <div class="punishment-row">
+        <div class="p-step">
+          <div class="p-icon">⚠️</div>
+          <div class="p-name">Попередження</div>
+          <div class="p-desc">1-е порушення</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">🔇</div>
+          <div class="p-name">Мут</div>
+          <div class="p-desc">Повторне порушення</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">🚫</div>
+          <div class="p-name">Бан</div>
+          <div class="p-desc">Грубе порушення</div>
+        </div>
+      </div>
 
-        imageInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleImageUpload(e.target.files[0]);
-            }
-        });
+      <div class="instant-ban">
+        ⚡ Миттєвий бан без попередження — скриншоти, підтримка агресора (РФ/РБ), поширення особистих даних
+      </div>
+    </div>
 
-        function handleImageUpload(file) {
-            if (!file.type.startsWith('image/')) {
-                alert('Пожалуйста, выберите изображение');
-                return;
-            }
+    <!-- Section 5 -->
+    <div class="section">
+      <div class="section-label">05 — Персональні дані</div>
+      <div class="data-row">
+        <div class="data-item">🔒 Адміністрація <strong>не збирає</strong> та <strong>не передає</strong> персональні дані третім особам</div>
+        <div class="data-item">👁️ Ваш username та повідомлення видимі іншим учасникам — будьте обачні</div>
+        <div class="data-item">🚫 Порушення конфіденційності іншого учасника = <strong>негайний бан</strong></div>
+        <div class="data-item">📝 Адміністрація має право змінювати правила в будь-який час</div>
+      </div>
+    </div>
 
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                currentImage = e.target.result;
-                initGame();
-                updateMainButton();
-            };
-            reader.readAsDataURL(file);
-        }
+    <!-- Section 6 -->
+    <div class="section">
+      <div class="section-label">06 — Позиція спільноти</div>
+      <div class="ua-block">
+        <div class="big">🇺🇦</div>
+        <p>
+          Ми — українська спільнота з Харкова. Підтримуємо Україну та Збройні Сили України.
+          Будь-яка проросійська риторика, виправдання агресії або підтримка окупантів
+          призводить до <strong>негайного та безповоротного бану</strong>.
+        </p>
+        <div class="ua-glory">Слава Україні! Героям Слава!</div>
+      </div>
+    </div>
 
-        function initGame() {
-            gameContainer.style.display = 'block';
-            createPuzzle();
-            startTimer();
-        }
+    <hr>
 
-        function createPuzzle() {
-            puzzleGrid.innerHTML = '';
-            piecesContainer.innerHTML = '<h3>Кусочки:</h3>';
-            pieces = [];
-            gameCompleted = false;
+    <!-- Copy -->
+    <div class="copy-wrap">
+      <button class="copy-btn" id="copyBtn" onclick="copyForTelegram()">
+        📋 Скопіювати текст для Telegram
+      </button>
+    </div>
 
-            // Создаем 9 ячеек для пазла (3x3)
-            for (let i = 0; i < 9; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'puzzle-piece';
-                cell.dataset.position = i;
-                cell.addEventListener('dragover', handleDragOver);
-                cell.addEventListener('drop', handleDrop);
-                puzzleGrid.appendChild(cell);
-            }
+  </div>
 
-            // Создаем кусочки пазла
-            for (let i = 0; i < 9; i++) {
-                const piece = document.createElement('div');
-                piece.className = 'piece';
-                piece.draggable = true;
-                piece.dataset.pieceId = i;
-                piece.dataset.correctPosition = i;
-                
-                const row = Math.floor(i / 3);
-                const col = i % 3;
-                piece.style.backgroundImage = `url(${currentImage})`;
-                piece.style.backgroundPosition = `-${col * 80}px -${row * 80}px`;
-                
-                piece.addEventListener('dragstart', handleDragStart);
-                piece.addEventListener('dragend', handleDragEnd);
-                
-                pieces.push(piece);
-                piecesContainer.appendChild(piece);
-            }
+  <div class="footer">
+    <span>Канал: <a href="https://t.me/cto_kharkov">@cto_kharkov</a> · Чат: <a href="https://t.me/cto_kharkov_chat">@cto_kharkov_chat</a></span>
+    <span>Адміністратор: <a href="https://t.me/botctokharkov">@botctokharkov</a></span>
+    <span style="color:#bbb;">Правила дійсні з моменту вступу до спільноти · Травень 2025</span>
+  </div>
 
-            shufflePieces();
-        }
+</div>
 
-        function shufflePieces() {
-            // Перемешиваем кусочки
-            for (let i = pieces.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [pieces[i], pieces[j]] = [pieces[j], pieces[i]];
-            }
-            
-            // Обновляем отображение
-            const container = document.getElementById('piecesContainer');
-            container.innerHTML = '<h3>Кусочки:</h3>';
-            pieces.forEach(piece => container.appendChild(piece));
-        }
+<script>
+const TELEGRAM_TEXT = `🔒 ПРАВИЛА ГРУПИ — Автомобільний Харків
+@cto_kharkov | @cto_kharkov_chat
 
-        function handleDragStart(e) {
-            e.dataTransfer.setData('text/plain', e.target.dataset.pieceId);
-            e.target.classList.add('dragging');
-        }
+━━━━━━━━━━━━━━━━━
+⚠️ ЗАБОРОНА СКРИНШОТІВ
+━━━━━━━━━━━━━━━━━
+Харків у зоні бойових дій. Скриншоти з чату можуть розкрити геолокацію, маршрути переміщення та особисті дані учасників — це пряма загроза безпеці людей.
 
-        function handleDragEnd(e) {
-            e.target.classList.remove('dragging');
-        }
+📌 Порушення = НЕГАЙНИЙ БАН
 
-        function handleDragOver(e) {
-            e.preventDefault();
-        }
+━━━━━━━━━━━━━━━━━
+✅ ДОЗВОЛЕНО
+━━━━━━━━━━━━━━━━━
+🚗 Авто, ремонт, СТО
+📰 Автоновини та ПДД
+🤝 Взаємодопомога
+🗺️ Стан доріг (без стратегічних деталей)
 
-        function handleDrop(e) {
-            e.preventDefault();
-            const pieceId = e.dataTransfer.getData('text/plain');
-            const piece = document.querySelector(`[data-piece-id="${pieceId}"]`);
-            const targetCell = e.target;
+━━━━━━━━━━━━━━━━━
+🚫 ЗАБОРОНЕНО
+━━━━━━━━━━━━━━━━━
+📸 Скриншоти повідомлень учасників
+📞 Поширення особистих даних
+📢 Реклама та спам
+🎯 Дані про блокпости та ЗСУ
+🤥 Фейки та дезінформація
+🇷🇺 Будь-яка підтримка агресора (РФ/РБ)
 
-            if (targetCell.classList.contains('puzzle-piece') && !targetCell.hasChildNodes()) {
-                const row = Math.floor(parseInt(targetCell.dataset.position) / 3);
-                const col = parseInt(targetCell.dataset.position) % 3;
-                
-                piece.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
-                piece.style.backgroundSize = '300px 300px';
-                piece.style.width = '100%';
-                piece.style.height = '100%';
-                piece.style.borderRadius = '3px';
-                
-                targetCell.appendChild(piece);
-                checkCompletion();
-            }
-        }
+━━━━━━━━━━━━━━━━━
+⚖️ ПОКАРАННЯ
+━━━━━━━━━━━━━━━━━
+⚠️ Попередження → 🔇 Мут → 🚫 Бан
+⚡ Миттєвий бан: скриншоти, проросійська риторика, деанон учасників
 
-        function checkCompletion() {
-            const cells = document.querySelectorAll('.puzzle-piece');
-            let correct = 0;
+🇺🇦 Слава Україні! Ми — харківська спільнота і підтримуємо ЗСУ.
 
-            cells.forEach((cell, index) => {
-                if (cell.hasChildNodes()) {
-                    const piece = cell.firstChild;
-                    if (parseInt(piece.dataset.correctPosition) === index) {
-                        correct++;
-                    }
-                }
-            });
+🤖 Скарга на спам: відповісти на повідомлення /mute`;
 
-            if (correct === 9) {
-                gameCompleted = true;
-                stopTimer();
-                const time = timerDisplay.textContent;
-                successMessage.innerHTML = `🎉 Поздравляю! Пазл собран за ${time}!`;
-                successMessage.style.display = 'block';
-                updateMainButton();
-                
-                // Отправляем результат в Telegram
-                tg.sendData(JSON.stringify({
-                    action: 'puzzle_completed',
-                    time: time,
-                    timestamp: new Date().toISOString()
-                }));
-            }
-        }
-
-        function startTimer() {
-            startTime = Date.now();
-            timerInterval = setInterval(updateTimer, 1000);
-        }
-
-        function stopTimer() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-        }
-
-        function updateTimer() {
-            if (startTime) {
-                const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                const minutes = Math.floor(elapsed / 60);
-                const seconds = elapsed % 60;
-                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }
-        }
-
-        function resetGame() {
-            stopTimer();
-            successMessage.style.display = 'none';
-            if (currentImage) {
-                initGame();
-                updateMainButton();
-            }
-        }
-
-        // Настройка главной кнопки Telegram
-        function updateMainButton() {
-            if (gameCompleted) {
-                tg.MainButton.setText('Поделиться результатом');
-                tg.MainButton.show();
-            } else if (currentImage) {
-                tg.MainButton.setText('Играю в пазл...');
-                tg.MainButton.hide();
-            } else {
-                tg.MainButton.setText('Выбери фото');
-                tg.MainButton.hide();
-            }
-        }
-
-        tg.MainButton.onClick(() => {
-            if (gameCompleted) {
-                tg.close();
-            } else {
-                tg.showAlert('Сначала собери пазл!');
-            }
-        });
-
-        updateMainButton();
-    </script>
+function copyForTelegram() {
+  navigator.clipboard.writeText(TELEGRAM_TEXT).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ Скопійовано!';
+    btn.classList.add('ok');
+    setTimeout(() => {
+      btn.innerHTML = '📋 Скопіювати текст для Telegram';
+      btn.classList.remove('ok');
+    }, 2500);
+  });
+}
+</script>
 </body>
 </html>
